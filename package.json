@@ -15,8 +15,8 @@
   "homepage": "https://github.com/ashsajal1/react-saas-template#readme",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node api.js && vite",
+    "build": "node api.js && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal public/logo.svg"
@@ -62,6 +62,7 @@
     "input-otp": "^1.2.4",
     "lucide-react": "^0.395.0",
     "next-themes": "^0.3.0",
+    "pnpm": "^12.14.0",
     "react": "^19.2.4",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.2.4",

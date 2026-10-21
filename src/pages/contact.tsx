@@ -1,206 +1,220 @@
-import React, { useState } from 'react';
-import { PhoneCall, Mail, MapPin, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { FooterPromotions } from '../components/grid/FooterPromotions';
 import { toast } from 'sonner';
+import { CheckCircle2, MapPin } from 'lucide-react';
 
 export default function Contact() {
-  const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: 'Corporate Order / Bulk Pricing',
-    message: '',
-  });
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    toast.success('Thank you! Our representative will call you shortly.');
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsSubmitted(true);
+      toast.success('Thanks for contacting us. We’ll get back to you as soon as possible.');
+      setName('');
+      setEmail('');
+      setMessage('');
+    }, 600);
   };
 
   return (
-    <div className="w-full bg-white font-sans py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center mb-16 space-y-3">
-          <span className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
-            Get In Touch
-          </span>
-          <h1 className="font-heading font-black text-3xl sm:text-5xl text-neutral-900 tracking-tight">
-            Contact GRID Furniture
-          </h1>
-          <p className="text-sm sm:text-base text-neutral-500 max-w-xl mx-auto font-light">
-            Have questions about dimensions, bulk corporate orders, or warranty? We’re here to assist you.
-          </p>
+    <div className="w-full bg-white font-sans text-neutral-900">
+      
+      {/* 1. Rich Text Section: Get in touch */}
+      <section className="pt-16 pb-12 border-b border-neutral-100">
+        <div className="max-w-[750px] mx-auto px-4 sm:px-6 text-center">
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl text-neutral-900 tracking-tight mb-5">
+            Get in touch
+          </h2>
+          <div className="text-base sm:text-lg text-neutral-700 leading-relaxed space-y-3 font-normal">
+            <p>
+              Email us:{' '}
+              <a
+                href="mailto:gridfurnitures@gmail.com"
+                className="underline hover:text-black transition-colors"
+              >
+                gridfurnitures@gmail.com
+              </a>
+            </p>
+            <p>
+              Call us:{' '}
+              <a
+                href="tel:01404431330"
+                className="underline hover:text-black transition-colors"
+              >
+                014044 31330-5
+              </a>
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+      {/* 2. Rich Text Section: Display Center */}
+      <section className="py-14 border-b border-neutral-100">
+        <div className="max-w-[750px] mx-auto px-4 sm:px-6 text-center">
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl text-neutral-900 tracking-tight mb-5">
+            Display Center
+          </h2>
+          <div className="text-base sm:text-lg text-neutral-700 leading-relaxed font-normal">
+            <p className="mb-2">
+              House 111, Road 8, Block C, Banani (Behind Hotel Sarina)
+            </p>
+            <p>
+              Google Map Location link:&nbsp;
+              <a
+                href="https://goo.gl/maps/XZmY1nKkqqtgKnrw5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-medium hover:text-black transition-colors inline-flex items-center gap-1"
+                title="Map View"
+              >
+                <span>Click Here</span>
+                <MapPin className="w-4 h-4 text-neutral-500" />
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Form Section: Contact us */}
+      <section className="py-16">
+        <div className="max-w-[750px] mx-auto px-4 sm:px-6">
           
-          {/* Left: Contact Info */}
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h2 className="font-heading font-bold text-2xl text-neutral-900">
-                Studio & Headquarters
-              </h2>
-              <p className="text-sm text-neutral-600 leading-relaxed">
-                Visit our experience studio to test out ergonomic chairs and motorized standing desk setups in person.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-100">
-                <div className="p-3 bg-white rounded-lg shadow-xs text-neutral-900">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-neutral-900">Dhaka Experience Studio</h4>
-                  <p className="text-xs text-neutral-600 mt-0.5">
-                    Plot 12, Road 4, Gulshan-1, Dhaka 1212, Bangladesh
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-100">
-                <div className="p-3 bg-white rounded-lg shadow-xs text-neutral-900">
-                  <PhoneCall className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-neutral-900">Hotline & Customer Service</h4>
-                  <p className="text-xs text-neutral-600 mt-0.5">
-                    +880 1700-009947 (10:00 AM – 8:00 PM, Every day)
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-100">
-                <div className="p-3 bg-white rounded-lg shadow-xs text-neutral-900">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-neutral-900">Email Inquiries</h4>
-                  <p className="text-xs text-neutral-600 mt-0.5">
-                    support@99grid.com | sales@99grid.com
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-100">
-                <div className="p-3 bg-white rounded-lg shadow-xs text-neutral-900">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-neutral-900">Delivery Timings</h4>
-                  <p className="text-xs text-neutral-600 mt-0.5">
-                    Inside Dhaka: 3 working days with assembly. Outside Dhaka: 5-7 days.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="mb-8">
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
+              Contact us
+            </h2>
           </div>
 
-          {/* Right: Message Form */}
-          <div className="bg-neutral-50 p-8 sm:p-10 rounded-3xl border border-neutral-100">
-            {submitted ? (
-              <div className="text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <h3 className="font-heading font-bold text-2xl text-neutral-900">Message Received!</h3>
-                <p className="text-sm text-neutral-600 max-w-sm mx-auto">
-                  Thank you for reaching out. A GRID product specialist will get in touch with you shortly.
-                </p>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="mt-4 px-6 py-2.5 bg-black text-white text-xs font-semibold rounded-full hover:bg-neutral-800 transition-colors"
-                >
-                  Send Another Message
-                </button>
+          {isSubmitted ? (
+            <div className="p-8 rounded-xl bg-neutral-50 border border-neutral-200 text-center space-y-4 animate-in fade-in duration-300">
+              <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <h3 className="font-heading font-bold text-xl text-neutral-900 mb-2">
-                  Send Us A Message
-                </h3>
-
+              <h3 className="font-heading font-semibold text-xl text-neutral-900">
+                Message Sent
+              </h3>
+              <p className="text-neutral-600 text-sm max-w-md mx-auto">
+                Thanks for contacting us. We’ll get back to you as soon as possible.
+              </p>
+              <button
+                onClick={() => setIsSubmitted(false)}
+                className="mt-2 px-6 py-2.5 bg-black text-white text-xs font-semibold rounded-full hover:bg-neutral-800 transition-colors"
+              >
+                Send Another Message
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Name & Email 2-column Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">Your Name</label>
+                  <label
+                    htmlFor="ContactFormName"
+                    className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
+                  >
+                    Name
+                  </label>
                   <input
                     type="text"
+                    id="ContactFormName"
                     required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Tanvir Ahmed"
-                    className="w-full text-sm p-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-black"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-700 mb-1">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="tanvir@example.com"
-                      className="w-full text-sm p-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-700 mb-1">Phone Number</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="017XXXXXXXX"
-                      className="w-full text-sm p-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">Inquiry Type</label>
-                  <select
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full text-sm p-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-black text-neutral-800"
+                  <label
+                    htmlFor="ContactFormEmail"
+                    className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
                   >
-                    <option>Corporate Order / Bulk Pricing</option>
-                    <option>Product Inquiries (Desk / Chair Specs)</option>
-                    <option>Warranty & Servicing Request</option>
-                    <option>Custom Dimension Table Top</option>
-                    <option>Other Question</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">Message</label>
-                  <textarea
-                    rows={4}
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="ContactFormEmail"
                     required
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Tell us about your requirements or setup..."
-                    className="w-full text-sm p-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-black"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                   />
                 </div>
+              </div>
 
+              {/* Message Textarea */}
+              <div>
+                <label
+                  htmlFor="ContactFormMessage"
+                  className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
+                >
+                  Message
+                </label>
+                <textarea
+                  id="ContactFormMessage"
+                  rows={5}
+                  required
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors resize-y"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div>
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-medium text-sm rounded-full flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
+                  disabled={isLoading}
+                  className="px-8 py-3.5 bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-widest rounded-full transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
                 >
-                  <span>Submit Inquiry</span>
-                  <Send className="w-4 h-4" />
+                  {isLoading ? 'Sending...' : 'Send'}
                 </button>
-              </form>
-            )}
-          </div>
+              </div>
+
+              {/* Privacy and Security Disclaimer */}
+              <p className="text-[11px] text-neutral-400 leading-relaxed pt-2">
+                This site is protected by hCaptcha and the hCaptcha{' '}
+                <a
+                  href="https://hcaptcha.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-neutral-600"
+                >
+                  Privacy Policy
+                </a>{' '}
+                and{' '}
+                <a
+                  href="https://hcaptcha.com/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-neutral-600"
+                >
+                  Terms of Service
+                </a>{' '}
+                apply.
+              </p>
+            </form>
+          )}
 
         </div>
+      </section>
 
-      </div>
+      {/* 4. Footer Promotions (3 Cards identical to 99grid.com contact page) */}
+      <FooterPromotions />
+
     </div>
   );
 }
