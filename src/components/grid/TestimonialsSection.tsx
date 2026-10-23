@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TESTIMONIALS } from '../../data/gridData';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MotionHeading } from './MotionHeading';
 
 export const TestimonialsSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -23,20 +24,24 @@ export const TestimonialsSection = () => {
     <section className="py-20 sm:py-24 bg-neutral-50/60 border-b border-neutral-100 overflow-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         
-        {/* Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.8, ease: [0.26, 0.54, 0.32, 1] }}
-        >
-          <h2 className="font-heading font-bold text-2xl sm:text-3xl md:text-4xl text-neutral-900 mb-2">
+        {/* Title with MotionHeading */}
+        <div className="mb-10">
+          <MotionHeading
+            tag="h2"
+            className="font-heading font-bold text-2xl sm:text-3xl md:text-4xl text-neutral-900 mb-2"
+          >
             Don't take our word for it
-          </h2>
-          <p className="text-xs sm:text-sm text-neutral-500 font-sans mb-10">
+          </MotionHeading>
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.7, delay: 0.25, ease: [0.26, 0.54, 0.32, 1] }}
+            className="text-xs sm:text-sm text-neutral-500 font-sans"
+          >
             Trusted by Bangladesh's top entrepreneurs, tech creators & executives
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
 
         {/* Carousel Card with Smooth Slide Animations */}
         <div className="relative bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-neutral-100 max-w-3xl mx-auto min-h-[300px] flex flex-col justify-between overflow-hidden">

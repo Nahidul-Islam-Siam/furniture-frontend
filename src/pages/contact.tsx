@@ -39,7 +39,7 @@ export default function Contact() {
           </h2>
           <div className="text-base sm:text-lg text-neutral-700 leading-relaxed space-y-3 font-normal">
             <p>
-              Email us:{' '}
+              Email us:
               <a
                 href="mailto:gridfurnitures@gmail.com"
                 className="underline hover:text-black transition-colors"
@@ -48,7 +48,7 @@ export default function Contact() {
               </a>
             </p>
             <p>
-              Call us:{' '}
+              Call us:
               <a
                 href="tel:01404431330"
                 className="underline hover:text-black transition-colors"
@@ -194,8 +194,8 @@ export default function Contact() {
                   className="underline hover:text-neutral-600"
                 >
                   Privacy Policy
-                </a>{' '}
-                and{' '}
+                </a>
+                and
                 <a
                   href="https://hcaptcha.com/terms"
                   target="_blank"
@@ -203,18 +203,15 @@ export default function Contact() {
                   className="underline hover:text-neutral-600"
                 >
                   Terms of Service
-                </a>{' '}
+                </a>
                 apply.
               </p>
             </form>
           )}
-
         </div>
       </section>
-
       {/* 4. Footer Promotions (3 Cards identical to 99grid.com contact page) */}
       <FooterPromotions />
-
     </div>
   );
 }

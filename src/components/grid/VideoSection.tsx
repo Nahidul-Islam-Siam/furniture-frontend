@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { MotionHeading } from './MotionHeading';
 
 export const VideoSection = () => {
   return (
@@ -31,13 +32,16 @@ export const VideoSection = () => {
             transition={{ duration: 0.8, ease: [0.26, 0.54, 0.32, 1] }}
             className="space-y-4 text-left"
           >
-            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 block mb-1">
               Customer Stories
             </span>
-            <h2 className="font-heading font-bold text-3xl sm:text-4xl text-neutral-900 leading-tight">
+            <MotionHeading
+              tag="h2"
+              className="font-heading font-bold text-3xl sm:text-4xl text-neutral-900 leading-tight"
+            >
               Hear From Our Customers
-            </h2>
-            <p className="font-sans text-base sm:text-lg text-neutral-600 leading-relaxed font-light">
+            </MotionHeading>
+            <p className="font-sans text-base sm:text-lg text-neutral-600 leading-relaxed font-light pt-2">
               Discover how we create beautiful furniture pieces that transform your living space and redefine commercial work environments across Bangladesh.
             </p>
             <div className="pt-2">

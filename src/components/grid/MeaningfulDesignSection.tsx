@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MotionHeading } from './MotionHeading';
 
 export const MeaningfulDesignSection = () => {
   return (
@@ -35,14 +36,17 @@ export const MeaningfulDesignSection = () => {
             transition={{ duration: 0.9, ease: [0.26, 0.54, 0.32, 1] }}
             className="space-y-6"
           >
-            <div className="space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 block mb-1">
                 Direct Importer & Manufacturer
               </span>
-              <h2 className="font-heading font-black text-3xl sm:text-4xl text-neutral-900 leading-tight">
+              <MotionHeading
+                tag="h2"
+                className="font-heading font-black text-3xl sm:text-4xl text-neutral-900 leading-tight"
+              >
                 We Create Meaningful Design
-              </h2>
-              <p className="font-sans text-base text-neutral-600 leading-relaxed pt-1 font-light">
+              </MotionHeading>
+              <p className="font-sans text-base text-neutral-600 leading-relaxed pt-2 font-light">
                 GRID ensures you 100% authenticity and originality of the products which are imported via China, Vietnam & Taiwan. We never want you to compromise with the quality that is why we ensure you get the best furniture delivered via GRID!
               </p>
             </div>

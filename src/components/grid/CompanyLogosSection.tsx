@@ -1,20 +1,20 @@
 import { COMPANY_LOGOS } from '../../data/gridData';
 import { motion } from 'framer-motion';
+import { MotionHeading } from './MotionHeading';
 
 export const CompanyLogosSection = () => {
   return (
     <section className="py-20 bg-neutral-50/70 border-b border-neutral-100 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        
-        <motion.h2
-          initial={{ opacity: 0, y: 25 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.8, ease: [0.26, 0.54, 0.32, 1] }}
-          className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 mb-10 tracking-tight"
-        >
-          Trusted By Top Companies
-        </motion.h2>
+
+        <div className="mb-10">
+          <MotionHeading
+            tag="h2"
+            className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight"
+          >
+            Trusted By Top Companies
+          </MotionHeading>
+        </div>
 
         {/* Logo Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8 items-center justify-items-center">

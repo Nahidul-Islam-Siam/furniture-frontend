@@ -28,7 +28,6 @@ export default function RootLayout() {
           <CartDrawer />
           <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
           <QuickViewModal />
-          
           <Toaster position="top-right" richColors />
         </div>
       </QuickViewProvider>

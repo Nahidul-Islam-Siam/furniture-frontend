@@ -28,11 +28,10 @@ export default function Navbar() {
   }, []);
 
   const handleNavClick = () => {
-    if(isOpen) {
+    if (isOpen) {
       setIsOpen(false)
     }
   }
-
   const navLinks = [
     { to: "/features", label: "Features" },
     { to: "/pricing", label: "Pricing" },
@@ -43,14 +42,14 @@ export default function Navbar() {
   return (
     <>
       <SideNav handleClose={toggleOpen} isOpen={isOpen} />
-      <motion.nav 
+      <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`flex items-center justify-between px-4 md:px-8 w-full h-[80px] top-0 bg-white/80 md:dark:border-none border-b dark:bg-black/80 dark:border-b-gray-800 z-20 fixed backdrop-blur-md ${scrollY > 150 ? 'shadow-sm' : ''}`} 
+        className={`flex items-center justify-between px-4 md:px-8 w-full h-[80px] top-0  md:dark:border-none border-b dark:bg-black/80 dark:border-b-gray-800 z-20 fixed backdrop-blur-md ${scrollY > 150 ? 'shadow-sm' : ''}`}
         onClick={handleNavClick}
       >
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-10">
           <Link to='/'>
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -59,7 +58,7 @@ export default function Navbar() {
               <Text label="SaaSify" className="text-xl font-bold text-primary" />
             </motion.div>
           </Link>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
@@ -68,8 +67,8 @@ export default function Navbar() {
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
               >
-                <Link 
-                  to={link.to} 
+                <Link
+                  to={link.to}
                   className="text-sm font-medium text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors relative group"
                 >
                   {link.label}
@@ -83,8 +82,8 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link 
-                to='/login' 
+              <Link
+                to='/login'
                 className="text-sm font-medium text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors"
               >
                 Sign in
@@ -98,15 +97,15 @@ export default function Navbar() {
               </Link>
             </motion.div>
           </div>
-          
+
           <ModeToggle />
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <CiMenuFries 
-              onClick={toggleOpen} 
-              className="h-6 w-6 md:hidden text-gray-600 dark:text-gray-400 cursor-pointer hover:text-primary dark:hover:text-primary transition-colors" 
+            <CiMenuFries
+              onClick={toggleOpen}
+              className="h-6 w-6 md:hidden text-gray-600 dark:text-gray-400 cursor-pointer hover:text-primary dark:hover:text-primary transition-colors"
             />
           </motion.div>
         </div>
