@@ -92,7 +92,7 @@ export default function Contact() {
         <div className="max-w-[750px] mx-auto px-4 sm:px-6">
           
           <div className="mb-8">
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight text-center">
               Contact us
             </h2>
           </div>
@@ -178,7 +178,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-8 py-3.5 bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-widest rounded-full transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
+                  className="px-8 py-3.5 bg-black text-white text-xs font-bold  tracking-widest  transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
                 >
                   {isLoading ? 'Sending...' : 'Send'}
                 </button>
