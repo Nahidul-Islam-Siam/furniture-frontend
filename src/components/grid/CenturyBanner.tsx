@@ -6,8 +6,6 @@ export const CenturyBanner = () => {
     <section className="py-20 sm:py-28 bg-[#111111] text-white text-center relative overflow-hidden">
       {/* Decorative ambient gradient with slow breathing pulse */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-neutral-800/40 rounded-full blur-[100px] pointer-events-none animate-pulse" />
-      {/* Decorative ambient gradient with slow breathing pulse */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-neutral-800/40 rounded-full blur-[100px] pointer-events-none animate-pulse" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 space-y-4">
         <div>

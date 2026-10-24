@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { FooterPromotions } from '../components/grid/FooterPromotions';
-import { useState } from 'react';
-import { FooterPromotions } from '../components/grid/FooterPromotions';
 import { toast } from 'sonner';
-import { CheckCircle2, MapPin } from 'lucide-react';
 import { CheckCircle2, MapPin } from 'lucide-react';
 
 export default function Contact() {
@@ -12,28 +9,9 @@ export default function Contact() {
   const [message, setMessage] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSubmitted(true);
-      toast.success('Thanks for contacting us. We’ll get back to you as soon as possible.');
-      setName('');
-      setEmail('');
-      setMessage('');
-    }, 600);
     if (!name.trim() || !email.trim() || !message.trim()) {
       toast.error('Please fill in all fields');
       return;
@@ -142,36 +120,7 @@ export default function Contact() {
               
               {/* Name & Email 2-column Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {isSubmitted ? (
-            <div className="p-8 rounded-xl bg-neutral-50 border border-neutral-200 text-center space-y-4 animate-in fade-in duration-300">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h3 className="font-heading font-semibold text-xl text-neutral-900">
-                Message Sent
-              </h3>
-              <p className="text-neutral-600 text-sm max-w-md mx-auto">
-                Thanks for contacting us. We’ll get back to you as soon as possible.
-              </p>
-              <button
-                onClick={() => setIsSubmitted(false)}
-                className="mt-2 px-6 py-2.5 bg-black text-white text-xs font-semibold rounded-full hover:bg-neutral-800 transition-colors"
-              >
-                Send Another Message
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              
-              {/* Name & Email 2-column Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label
-                    htmlFor="ContactFormName"
-                    className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
-                  >
-                    Name
-                  </label>
                   <label
                     htmlFor="ContactFormName"
                     className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
@@ -181,11 +130,7 @@ export default function Contact() {
                   <input
                     type="text"
                     id="ContactFormName"
-                    id="ContactFormName"
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
@@ -196,15 +141,7 @@ export default function Contact() {
                   <label
                     htmlFor="ContactFormEmail"
                     className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
-                  <label
-                    htmlFor="ContactFormEmail"
-                    className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
                   >
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="ContactFormEmail"
                     Email
                   </label>
                   <input
@@ -235,33 +172,7 @@ export default function Contact() {
                   className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors resize-y"
                 />
               </div>
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
-                  />
-                </div>
-              </div>
 
-              {/* Message Textarea */}
-              <div>
-                <label
-                  htmlFor="ContactFormMessage"
-                  className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-2"
-                >
-                  Message
-                </label>
-                <textarea
-                  id="ContactFormMessage"
-                  rows={5}
-                  required
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors resize-y"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <div>
               {/* Submit Button */}
               <div>
                 <button
@@ -269,7 +180,6 @@ export default function Contact() {
                   disabled={isLoading}
                   className="px-8 py-3.5 bg-black text-white text-xs font-bold  tracking-widest  transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
                 >
-                  {isLoading ? 'Sending...' : 'Send'}
                   {isLoading ? 'Sending...' : 'Send'}
                 </button>
               </div>
