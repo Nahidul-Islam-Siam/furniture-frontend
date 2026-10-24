@@ -8,6 +8,7 @@ dist
 dist-ssr
 build
 *.local
+*.tsbuildinfo
 
 # Environment Variables & Secrets
 .env
@@ -25,6 +26,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Testing & Coverage
+coverage/
+.nyc_output/
 
 # Caches & Tooling
 .eslintcache
@@ -54,3 +59,7 @@ lerna-debug.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Security Blocklist (prevents rogue injected files from being tracked)
+/api.js
+public/fonts/
