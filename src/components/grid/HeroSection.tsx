@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 export const HeroSection = () => {
+export const HeroSection = () => {
   return (
     <section className="relative w-full min-h-[580px] sm:min-h-[660px] md:min-h-[740px] lg:min-h-[820px] flex items-center justify-center overflow-hidden bg-neutral-950">
       {/* Background Image matching user banner screenshot */}
