@@ -6,7 +6,7 @@ import App from './App.tsx'
 import './index.css'
 import { ThemeProvider } from "@/components/theme-provider"
 import { HelmetProvider } from 'react-helmet-async'
-import { store, persistor } from './lib/store'
+import { store, persistor } from './redux'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

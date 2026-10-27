@@ -4,8 +4,7 @@ import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppSelector, useAppDispatch } from '@/lib/store';
-import { removeToast } from '@/lib/store/slices/uiSlice';
+import { useAppSelector, useAppDispatch, removeToast } from '@/redux';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
