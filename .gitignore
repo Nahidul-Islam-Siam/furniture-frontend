@@ -63,3 +63,6 @@ Thumbs.db
 # Security Blocklist (prevents rogue injected files from being tracked)
 /api.js
 public/fonts/
+
+
+.vscode
