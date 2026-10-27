@@ -1,0 +1,2 @@
+node scripts/security-check.js
+npm run build
