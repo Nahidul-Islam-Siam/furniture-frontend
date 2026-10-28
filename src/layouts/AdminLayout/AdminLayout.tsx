@@ -11,7 +11,12 @@ import {
   ExternalLink,
   Bell,
   Home,
-  UserCheck,
+  ShoppingCart,
+  BookA ,
+  Ratio ,
+  CircleDollarSign ,
+  Brain ,
+  // UserCheck,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector, logout } from "@/redux";
 
@@ -27,8 +32,19 @@ export const AdminLayout: React.FC = () => {
   };
 
   const navItems = [
-    { name: "Analytics & Overview", path: "/admin", icon: BarChart3, end: true },
+    {
+      name: "Overview &  Analytics",
+      path: "/admin",
+      icon: BarChart3,
+      end: true,
+    },
     { name: "User Management", path: "/admin/users", icon: Users },
+    { name: "Product Management", path: "/admin/Product-Management", icon: ShoppingCart },
+    { name: "Order Management", path: "/admin/Product-Management", icon: BookA  },
+    { name: "Marketing & Promotions", path: "/admin/Product-Management", icon: Ratio  },
+    { name: "Payment & Financials", path: "/admin/Product-Management", icon: CircleDollarSign },
+    { name: "Reports & Insights", path: "/admin/Product-Management", icon: Brain  },
+    { name: "Role & Permission Management", path: "/admin/Product-Management", icon: Users},
     { name: "System Settings", path: "/admin/settings", icon: Settings },
   ];
 
@@ -42,13 +58,18 @@ export const AdminLayout: React.FC = () => {
       >
         {/* Brand header */}
         <div className="flex h-16 items-center justify-between border-b px-4">
-          <Link to="/admin" className="flex items-center gap-2 font-bold tracking-tight">
+          <Link
+            to="/admin"
+            className="flex items-center gap-2 font-bold tracking-tight"
+          >
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-white font-extrabold shadow">
               <ShieldAlert className="h-5 w-5" />
             </div>
             {sidebarOpen && (
               <div className="flex flex-col">
-                <span className="text-sm font-bold leading-tight">Admin Portal</span>
+                <span className="text-sm font-bold leading-tight">
+                  Admin Portal
+                </span>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                   SaaS Control
                 </span>
@@ -91,7 +112,7 @@ export const AdminLayout: React.FC = () => {
 
         {/* Footer links */}
         <div className="border-t p-3 space-y-1">
-          <Link
+          {/* <Link
             to="/dashboard"
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground ${
               !sidebarOpen ? "justify-center" : ""
@@ -100,7 +121,7 @@ export const AdminLayout: React.FC = () => {
           >
             <UserCheck className="h-4 w-4 shrink-0" />
             {sidebarOpen && <span>User Dashboard</span>}
-          </Link>
+          </Link> */}
 
           <Link
             to="/"
@@ -139,7 +160,11 @@ export const AdminLayout: React.FC = () => {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="rounded p-1 text-muted-foreground hover:bg-accent md:hidden"
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
             <span className="inline-flex items-center rounded-md bg-red-500/10 px-2 py-1 text-xs font-semibold text-red-500 border border-red-500/20">
               Admin Shield Active
@@ -155,8 +180,12 @@ export const AdminLayout: React.FC = () => {
                 {user?.name?.[0] || "A"}
               </div>
               <div className="hidden text-left sm:block">
-                <p className="text-xs font-semibold leading-none">{user?.name || "Administrator"}</p>
-                <p className="text-[10px] text-muted-foreground">{user?.email || "admin@system.com"}</p>
+                <p className="text-xs font-semibold leading-none">
+                  {user?.name || "Administrator"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {user?.email || "admin@system.com"}
+                </p>
               </div>
             </div>
           </div>
