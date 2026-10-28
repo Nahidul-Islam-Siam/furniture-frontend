@@ -211,7 +211,6 @@ export default function Docs() {
                                             <li>Configure your settings</li>
                                             <li>Invite your team members</li>
                                         </ol>
-
                                         <h3>Quick Start</h3>
                                         <p>
                                             Here's a quick overview of the main features:
