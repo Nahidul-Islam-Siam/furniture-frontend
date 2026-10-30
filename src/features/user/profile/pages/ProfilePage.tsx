@@ -1,7 +1,6 @@
 import React from "react";
 import { useAppSelector } from "@/redux";
 import { User, Mail, Shield, Camera } from "lucide-react";
-
 export const ProfilePage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
 
@@ -13,7 +12,6 @@ export const ProfilePage: React.FC = () => {
           Manage your personal details, profile picture, and identity verification.
         </p>
       </div>
-
       <div className="rounded-xl border bg-card p-6 shadow-sm space-y-6">
         {/* Avatar */}
         <div className="flex items-center gap-4">
@@ -31,7 +29,6 @@ export const ProfilePage: React.FC = () => {
             </span>
           </div>
         </div>
-
         {/* Details Form */}
         <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t">
           <div>

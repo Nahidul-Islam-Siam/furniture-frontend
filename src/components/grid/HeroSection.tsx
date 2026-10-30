@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
   return (
@@ -10,7 +11,8 @@ export const HeroSection = () => {
           alt="GRID Modern Work Furniture"
           className="w-full h-full object-cover object-[center_top] hero-zoom-bg"
           onError={(e) => {
-            e.currentTarget.src = 'https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385';
+            e.currentTarget.src =
+              "https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385";
           }}
         />
         {/* Subtle dual gradients: top gradient for header legibility, bottom gradient for hero text depth */}
@@ -20,7 +22,6 @@ export const HeroSection = () => {
 
       {/* Hero Text Wrap */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center text-white space-y-4 pt-28 sm:pt-36 pb-16">
-        
         {/* Title */}
         <div className="overflow-hidden">
           <h1 className="font-sans font-bold text-4xl sm:text-6xl md:text-7xl lg:text-[76px] tracking-tight leading-[1.1] text-white drop-shadow-md">
@@ -47,13 +48,22 @@ export const HeroSection = () => {
         <div className="pt-4 hero-cta-anim flex items-center justify-center">
           <Link
             to="/collections"
-            className="px-8 py-3 bg-black/25 hover:bg-white hover:text-black text-white font-medium text-sm tracking-wider uppercase transition-all duration-300 border border-white backdrop-blur-[2px]"
+            className="group px-8 py-3 bg-black/25 hover:bg-white hover:text-black text-white font-medium text-sm tracking-wider uppercase transition-all duration-300 border border-white backdrop-blur-[2px] flex items-center gap-2"
           >
-            Shop Now
+            <span className="mb-1">Shop Now</span>
+            <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
           </Link>
         </div>
+        {/* <div className="pt-4 hero-cta-anim flex items-center justify-center">
+          <Link
+            to="/collections"
+            className="px-8 py-3 bg-black/25 hover:bg-white hover:text-black text-white font-medium text-sm tracking-wider uppercase transition-all duration-300 border border-white backdrop-blur-[2px] flex"
+          >
+          <span className='mb-1'>  Shop Now </span>  
+          <ArrowRight className=''></ArrowRight>
+          </Link>
+        </div> */}
       </div>
     </section>
   );
 };
-

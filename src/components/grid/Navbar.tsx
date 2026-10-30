@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
-import { Search, ShoppingBag, User, Menu, X, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
+import { Search, ShoppingBag, User, Menu, X, ChevronDown } from "lucide-react";
 
 interface NavbarProps {
   onOpenSearch: () => void;
@@ -16,53 +16,60 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isHome = location.pathname === '/';
+  const isHome = location.pathname === "/";
   const isTransparent = isHome && !isScrolled;
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 25);
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const collectionLinks = [
-    { label: 'All Chairs', href: '/collections/chair' },
-    { label: 'All Tables & Desks', href: '/collections/table' },
-    { label: 'Elevating Desk Series', href: '/collections/table' },
-    { label: 'Sofa Collection', href: '/collections/sofa' },
-    { label: 'Storage & Credenzas', href: '/collections/storage' },
-    { label: 'Steelcase Executive Chairs', href: '/collections/chair' },
-    { label: 'All Collections', href: '/collections' },
+    { label: "All Chairs", href: "/collections/chair" },
+    { label: "All Tables & Desks", href: "/collections/table" },
+    { label: "Elevating Desk Series", href: "/collections/table" },
+    { label: "Sofa Collection", href: "/collections/sofa" },
+    { label: "Storage & Credenzas", href: "/collections/storage" },
+    { label: "Steelcase Executive Chairs", href: "/collections/chair" },
+    { label: "All Collections", href: "/collections" },
   ];
 
   return (
     <>
       {/* Main Navigation Bar */}
       <header
-        className={`w-full transition-all duration-300 z-40 ${isHome
-          ? isScrolled
-            ? 'fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200/80 py-3.5 text-neutral-900'
-            : 'fixed top-0 left-0 right-0 bg-gradient-to-b from-black/55 via-black/25 to-transparent py-4 sm:py-5 border-none text-white'
-          : 'sticky top-0 bg-white border-b border-neutral-100 py-3.5 text-neutral-900 shadow-sm'
-          }`}
+        className={`w-full transition-all duration-300 z-40 ${
+          isHome
+            ? isScrolled
+              ? "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200/80 py-3.5 text-neutral-900"
+              : "fixed top-0 left-0 right-0 bg-gradient-to-b from-black/55 via-black/25 to-transparent py-4 sm:py-5 border-none text-white"
+            : "sticky top-0 bg-white border-b border-neutral-100 py-3.5 text-neutral-900 shadow-sm"
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-
           {/* Left: Mobile hamburger & Brand Logo */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className={`lg:hidden p-1.5 transition-colors ${isTransparent ? 'text-white hover:text-white/80' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`lg:hidden p-1.5 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/80"
+                  : "text-neutral-800 hover:text-black"
+              }`}
               aria-label="Open menu"
             >
               <Menu className="w-6 h-6" />
             </button>
 
             {/* Exact Orange GRID Badge Logo */}
-            <Link to="/" className="flex items-center group" aria-label="GRID Furniture">
+            <Link
+              to="/"
+              className="flex items-center group"
+              aria-label="GRID Furniture"
+            >
               {!logoLoadFailed ? (
                 <img
                   src="/logo-grid.png"
@@ -77,7 +84,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               )}
             </Link>
           </div>
-
           {/* Center: Desktop Navigation Links (Same to Same) */}
           <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-sans text-[15px] font-normal tracking-[0.015em]">
             {/* All Collection Dropdown */}
@@ -87,9 +93,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               onMouseLeave={() => setCollectionDropdownOpen(false)}
             >
               <button
-                onClick={() => navigate('/collections')}
-                className={`flex items-center gap-1 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-900 hover:text-black'
-                  }`}
+                onClick={() => navigate("/collections")}
+                className={`flex items-center gap-1 transition-colors ${
+                  isTransparent
+                    ? "text-white hover:text-white/85"
+                    : "text-neutral-900 hover:text-black"
+                }`}
               >
                 <span>All Collection</span>
                 <ChevronDown className="w-3.5 h-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180" />
@@ -114,16 +123,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               to="/collections/table"
-              className={`py-2 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`py-2 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/85"
+                  : "text-neutral-800 hover:text-black"
+              }`}
             >
               Elevating Desk Series
             </Link>
 
             <Link
               to="/pages/grid-studio"
-              className={`py-2 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`py-2 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/85"
+                  : "text-neutral-800 hover:text-black"
+              }`}
             >
               Grid Studio
             </Link>
@@ -132,32 +147,44 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               href="https://www.youtube.com/channel/UCerNlR7eZVNTqn_Z90t-Tjg/videos"
               target="_blank"
               rel="noopener noreferrer"
-              className={`py-2 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`py-2 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/85"
+                  : "text-neutral-800 hover:text-black"
+              }`}
             >
               Videos
             </a>
 
             <Link
               to="/blog"
-              className={`py-2 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`py-2 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/85"
+                  : "text-neutral-800 hover:text-black"
+              }`}
             >
               Articles
             </Link>
 
             <Link
               to="/about"
-              className={`py-2 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`py-2 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/85"
+                  : "text-neutral-800 hover:text-black"
+              }`}
             >
               About
             </Link>
 
             <Link
               to="/contact"
-              className={`py-2 transition-colors ${isTransparent ? 'text-white hover:text-white/85' : 'text-neutral-800 hover:text-black'
-                }`}
+              className={`py-2 transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/85"
+                  : "text-neutral-800 hover:text-black"
+              }`}
             >
               Contact
             </Link>
@@ -168,10 +195,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             {/* 1. Account / User Profile */}
             <Link
               to="/login"
-              className={`p-1.5 rounded-full transition-colors ${isTransparent
-                ? 'text-white hover:text-white/80 hover:bg-white/10'
-                : 'text-neutral-800 hover:text-black hover:bg-neutral-100'
-                }`}
+              className={`p-1.5 rounded-full transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/80 hover:bg-white/10"
+                  : "text-neutral-800 hover:text-black hover:bg-neutral-100"
+              }`}
               title="Customer Login"
               aria-label="User Account"
             >
@@ -181,10 +209,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             {/* 2. Search Trigger */}
             <button
               onClick={onOpenSearch}
-              className={`p-1.5 rounded-full transition-colors ${isTransparent
-                ? 'text-white hover:text-white/80 hover:bg-white/10'
-                : 'text-neutral-800 hover:text-black hover:bg-neutral-100'
-                }`}
+              className={`p-1.5 rounded-full transition-colors ${
+                isTransparent
+                  ? "text-white hover:text-white/80 hover:bg-white/10"
+                  : "text-neutral-800 hover:text-black hover:bg-neutral-100"
+              }`}
               title="Search products"
               aria-label="Search"
             >
@@ -194,10 +223,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             {/* 3. Shopping Bag / Cart with red notification dot */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className={`p-1.5 rounded-full transition-colors relative ${isTransparent
-                ? 'text-white hover:text-white/80 hover:bg-white/10'
-                : 'text-neutral-900 hover:text-black hover:bg-neutral-100'
-                }`}
+              className={`p-1.5 rounded-full transition-colors relative ${
+                isTransparent
+                  ? "text-white hover:text-white/80 hover:bg-white/10"
+                  : "text-neutral-900 hover:text-black hover:bg-neutral-100"
+              }`}
               title="Shopping Cart"
               aria-label="Shopping Cart"
             >
@@ -206,7 +236,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                 {/* Red dot badge matching screenshot */}
                 <span
                   className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#e24434] rounded-full ring-[1.5px] ring-white shadow-sm flex items-center justify-center"
-                  aria-label={totalItems > 0 ? `${totalItems} items in cart` : 'Cart'}
+                  aria-label={
+                    totalItems > 0 ? `${totalItems} items in cart` : "Cart"
+                  }
                 />
               </div>
             </button>
@@ -242,7 +274,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               {/* Links */}
               <div className="p-5 space-y-4 font-sans text-base">
                 <div className="border-b border-neutral-100 pb-3">
-                  <div className="font-semibold text-neutral-900 mb-2">Collections</div>
+                  <div className="font-semibold text-neutral-900 mb-2">
+                    Collections
+                  </div>
                   <div className="pl-3 space-y-2.5 text-sm text-neutral-600">
                     {collectionLinks.map((item) => (
                       <Link
@@ -312,7 +346,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             {/* Drawer Footer */}
             <div className="p-5 bg-neutral-50 border-t border-neutral-100 text-xs text-neutral-500 space-y-1">
-              <p className="font-semibold text-neutral-800">GRID Furniture Bangladesh</p>
+              <p className="font-semibold text-neutral-800">
+                GRID Furniture Bangladesh
+              </p>
               <p>Hotline: +880 1700-009947</p>
               <p>Delivery all over Bangladesh</p>
             </div>
@@ -322,4 +358,3 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     </>
   );
 };
-
