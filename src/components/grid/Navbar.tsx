@@ -73,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             >
               {!logoLoadFailed ? (
                 <img
-                  src="/logo-grid.png"
+                  src="/images/logo.png"
                   alt="GRID"
                   className="h-10 sm:h-9 w-auto object-contain rounded-lg transition-transform duration-200 group-hover:scale-105"
                   onError={() => setLogoLoadFailed(true)}

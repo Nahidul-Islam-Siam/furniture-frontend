@@ -30,6 +30,10 @@ export const metadata: Metadata = {
     description:
       "Enterprise-ready SaaS application with advanced user management, billing, and analytics.",
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+  },
   robots: {
     index: true,
     follow: true,

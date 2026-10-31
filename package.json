@@ -2,7 +2,7 @@
   "name": "react-saas-template",
   "private": true,
   "version": "1.0.0",
-  "description": "A modern SaaS starter template built with React, Redux Toolkit, TypeScript, and Tailwind CSS.",
+  "description": "A modern SaaS starter template built with Next.js, Redux Toolkit, TypeScript, Tailwind CSS, and Ant Design.",
   "author": "Sajal",
   "license": "MIT",
   "repository": {
@@ -18,7 +18,6 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "generate-pwa-assets": "pwa-assets-generator --preset minimal public/logo.svg",
     "prepare": "husky",
     "security-check": "node scripts/security-check.js",
     "start": "next start"
@@ -94,18 +93,13 @@
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
-    "@vite-pwa/assets-generator": "^0.2.4",
-    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
     "husky": "^9.1.7",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.2.2",
-    "vite": "^6.4.5",
-    "vite-plugin-pwa": "^0.20.0"
+    "typescript": "^5.2.2"
   },
   "overrides": {
     "sharp": "^0.35.5",

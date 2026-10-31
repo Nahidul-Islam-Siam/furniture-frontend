@@ -15,6 +15,18 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/logo-grid.png',
+        destination: '/images/logo.png',
+      },
+      {
+        source: '/hero-banner.jpg',
+        destination: '/images/hero-banner.jpg',
+      },
+    ];
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
