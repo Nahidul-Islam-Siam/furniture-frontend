@@ -1,15 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
-import Home from "./pages/home";
-import Collections from "./pages/collections";
-import Warranty from "./pages/warranty";
-import RootLayout from "./pages/Layout";
-import NotFound from "./pages/not-found";
-import About from "./pages/about";
-import Login from "./pages/login";
-import Signup from "./pages/signup";
-import Contact from "./pages/contact";
-import Blog from "./pages/blog";
-import ErrorPage from "./pages/error";
+import Home from "./views/home";
+import Collections from "./views/collections";
+import Warranty from "./views/warranty";
+import RootLayout from "./views/Layout";
+import NotFound from "./views/not-found";
+import About from "./views/about";
+import Login from "./views/login";
+import Signup from "./views/signup";
+import Contact from "./views/contact";
+import Blog from "./views/blog";
+import ErrorPage from "./views/error";
 
 // Role-Based Guards
 import { RoleGuard } from "./routes/guards/RoleGuard";

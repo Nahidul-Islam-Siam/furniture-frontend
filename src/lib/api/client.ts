@@ -3,7 +3,7 @@ import { store } from '../store';
 
 // Create axios instance with default config
 const apiClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
     headers: {
         'Content-Type': 'application/json',
     },

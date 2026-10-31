@@ -53,8 +53,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
           {/* Left: Mobile hamburger & Brand Logo */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className={`lg:hidden p-1.5 transition-colors ${
+              className={`lg:hidden p-1.5 bg-transparent border-0 outline-none cursor-pointer transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/80"
                   : "text-neutral-800 hover:text-black"
@@ -67,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             {/* Exact Orange GRID Badge Logo */}
             <Link
               to="/"
-              className="flex items-center group"
+              className="flex items-center group no-underline hover:no-underline"
               aria-label="GRID Furniture"
             >
               {!logoLoadFailed ? (
@@ -84,7 +85,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               )}
             </Link>
           </div>
-          {/* Center: Desktop Navigation Links (Same to Same) */}
+
+          {/* Center: Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-sans text-[15px] font-normal tracking-[0.015em]">
             {/* All Collection Dropdown */}
             <div
@@ -93,8 +95,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               onMouseLeave={() => setCollectionDropdownOpen(false)}
             >
               <button
+                type="button"
                 onClick={() => navigate("/collections")}
-                className={`flex items-center gap-1 transition-colors ${
+                className={`bg-transparent border-0 outline-none cursor-pointer flex items-center gap-1 transition-colors ${
                   isTransparent
                     ? "text-white hover:text-white/85"
                     : "text-neutral-900 hover:text-black"
@@ -111,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                     <Link
                       key={item.label}
                       to={item.href}
-                      className="block px-5 py-2.5 text-sm text-neutral-800 hover:text-black hover:bg-neutral-50 font-normal transition-colors"
+                      className="block px-5 py-2.5 text-sm text-neutral-800 hover:text-black hover:bg-neutral-50 font-normal no-underline hover:no-underline transition-colors"
                       onClick={() => setCollectionDropdownOpen(false)}
                     >
                       {item.label}
@@ -123,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               to="/collections/table"
-              className={`py-2 transition-colors ${
+              className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
                   : "text-neutral-800 hover:text-black"
@@ -134,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               to="/pages/grid-studio"
-              className={`py-2 transition-colors ${
+              className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
                   : "text-neutral-800 hover:text-black"
@@ -147,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               href="https://www.youtube.com/channel/UCerNlR7eZVNTqn_Z90t-Tjg/videos"
               target="_blank"
               rel="noopener noreferrer"
-              className={`py-2 transition-colors ${
+              className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
                   : "text-neutral-800 hover:text-black"
@@ -158,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               to="/blog"
-              className={`py-2 transition-colors ${
+              className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
                   : "text-neutral-800 hover:text-black"
@@ -169,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               to="/about"
-              className={`py-2 transition-colors ${
+              className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
                   : "text-neutral-800 hover:text-black"
@@ -180,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               to="/contact"
-              className={`py-2 transition-colors ${
+              className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
                   : "text-neutral-800 hover:text-black"
@@ -190,12 +193,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </Link>
           </nav>
 
-          {/* Right: User, Search, Cart (Exact order from screenshot) */}
+          {/* Right: User, Search, Cart */}
           <div className="flex items-center gap-3 sm:gap-4">
             {/* 1. Account / User Profile */}
             <Link
               to="/login"
-              className={`p-1.5 rounded-full transition-colors ${
+              className={`p-1.5 rounded-full transition-colors no-underline hover:no-underline ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
                   : "text-neutral-800 hover:text-black hover:bg-neutral-100"
@@ -208,8 +211,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             {/* 2. Search Trigger */}
             <button
+              type="button"
               onClick={onOpenSearch}
-              className={`p-1.5 rounded-full transition-colors ${
+              className={`p-1.5 rounded-full bg-transparent border-0 outline-none cursor-pointer transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
                   : "text-neutral-800 hover:text-black hover:bg-neutral-100"
@@ -222,8 +226,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             {/* 3. Shopping Bag / Cart with red notification dot */}
             <button
+              type="button"
               onClick={() => setIsCartOpen(true)}
-              className={`p-1.5 rounded-full transition-colors relative ${
+              className={`p-1.5 rounded-full bg-transparent border-0 outline-none cursor-pointer transition-colors relative ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
                   : "text-neutral-900 hover:text-black hover:bg-neutral-100"
@@ -264,8 +269,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                   GRID
                 </div>
                 <button
+                  type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 text-neutral-500 hover:text-black"
+                  className="p-1.5 bg-transparent border-0 outline-none cursor-pointer text-neutral-500 hover:text-black"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -282,7 +288,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                       <Link
                         key={item.label}
                         to={item.href}
-                        className="block hover:text-black py-1"
+                        className="block hover:text-black py-1 no-underline hover:no-underline"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.label}
@@ -293,14 +299,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
                 <Link
                   to="/collections/table"
-                  className="block text-neutral-800 font-medium hover:text-black py-1"
+                  className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Elevating Desk Series
                 </Link>
                 <Link
                   to="/pages/grid-studio"
-                  className="block text-neutral-800 font-medium hover:text-black py-1"
+                  className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Grid Studio
@@ -309,34 +315,34 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                   href="https://www.youtube.com/channel/UCerNlR7eZVNTqn_Z90t-Tjg/videos"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-neutral-800 font-medium hover:text-black py-1"
+                  className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                 >
                   Videos
                 </a>
                 <Link
                   to="/blog"
-                  className="block text-neutral-800 font-medium hover:text-black py-1"
+                  className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Articles
                 </Link>
                 <Link
                   to="/about"
-                  className="block text-neutral-800 font-medium hover:text-black py-1"
+                  className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   About
                 </Link>
                 <Link
                   to="/contact"
-                  className="block text-neutral-800 font-medium hover:text-black py-1"
+                  className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Contact
                 </Link>
                 <Link
                   to="/login"
-                  className="block text-neutral-800 font-medium hover:text-black pt-2 border-t border-neutral-100"
+                  className="block text-neutral-800 font-medium hover:text-black pt-2 border-t border-neutral-100 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Log In / Account
