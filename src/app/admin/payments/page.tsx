@@ -316,7 +316,21 @@ export default function AdminPaymentsPage() {
         dataSource={filteredTransactions}
         columns={columns}
         rowKey="id"
-        pagination={{ pageSize: 8 }}
+        scroll={{ x: 800 }}
+        pagination={{
+          defaultPageSize: 8,
+          pageSizeOptions: ["8", "16", "24", "50"],
+          showSizeChanger: true,
+          showQuickJumper: true,
+          responsive: true,
+          showTotal: (total, range) => (
+            <span style={{ fontSize: 13, color: "#595959" }}>
+              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> transactions
+            </span>
+          ),
+          position: ["bottomRight"],
+          style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
+        }}
       />
     </div>
   );

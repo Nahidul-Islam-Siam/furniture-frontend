@@ -332,7 +332,21 @@ export default function AdminOrdersPage() {
         dataSource={filteredOrders}
         columns={columns}
         rowKey="id"
-        pagination={{ pageSize: 8 }}
+        scroll={{ x: 880 }}
+        pagination={{
+          defaultPageSize: 8,
+          pageSizeOptions: ["8", "16", "24", "50"],
+          showSizeChanger: true,
+          showQuickJumper: true,
+          responsive: true,
+          showTotal: (total, range) => (
+            <span style={{ fontSize: 13, color: "#595959" }}>
+              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> orders
+            </span>
+          ),
+          position: ["bottomRight"],
+          style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
+        }}
       />
 
       {/* Order Detail Drawer */}
@@ -340,7 +354,7 @@ export default function AdminOrdersPage() {
         title={selectedOrder ? `Order #${selectedOrder.id}` : "Order Details"}
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        width={560}
+        width="min(95vw, 560px)"
       >
         {selectedOrder && (
           <div>

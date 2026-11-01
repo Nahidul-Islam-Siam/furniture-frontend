@@ -301,7 +301,21 @@ export default function AdminProductsPage() {
         dataSource={filteredProducts}
         columns={columns}
         rowKey="id"
-        pagination={{ pageSize: 8, showTotal: (total) => `Total ${total} products` }}
+        scroll={{ x: 800 }}
+        pagination={{
+          defaultPageSize: 8,
+          pageSizeOptions: ["8", "16", "24", "48"],
+          showSizeChanger: true,
+          showQuickJumper: true,
+          responsive: true,
+          showTotal: (total, range) => (
+            <span style={{ fontSize: 13, color: "#595959" }}>
+              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> products
+            </span>
+          ),
+          position: ["bottomRight"],
+          style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
+        }}
       />
 
       {/* Upload / Edit Product Modal */}
@@ -312,7 +326,7 @@ export default function AdminProductsPage() {
         onOk={() => form.submit()}
         okText={editingProduct ? "Save Changes" : "Publish Product"}
         okButtonProps={{ style: { background: "#09090b" } }}
-        width={650}
+        width="min(95vw, 650px)"
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleSaveProduct} style={{ marginTop: 16 }}>

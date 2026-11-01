@@ -255,6 +255,7 @@ export default function AdminDashboardPage() {
           columns={columns}
           pagination={false}
           size="middle"
+          scroll={{ x: 750 }}
         />
       </Card>
     </Space>

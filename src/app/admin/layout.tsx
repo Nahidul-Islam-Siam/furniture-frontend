@@ -101,11 +101,18 @@ export default function AdminLayout({
   return (
     <AntdProvider>
       <Layout style={{ minHeight: "100vh" }}>
-        {/* Ant Design Sider */}
+        {/* Ant Design Sider with Responsive Mobile Breakpoint */}
         <Sider
           trigger={null}
           collapsible
           collapsed={collapsed}
+          breakpoint="lg"
+          collapsedWidth={0}
+          onBreakpoint={(broken) => {
+            if (broken) {
+              setCollapsed(true);
+            }
+          }}
           width={240}
           style={{
             background: "#ffffff",
@@ -114,6 +121,7 @@ export default function AdminLayout({
             top: 0,
             height: "100vh",
             overflow: "auto",
+            zIndex: 100,
           }}
         >
           {/* Admin Brand Logo Header */}
@@ -171,11 +179,11 @@ export default function AdminLayout({
         </Sider>
 
         {/* Main Content Area */}
-        <Layout>
+        <Layout style={{ minWidth: 0, background: "#f8f9fa" }}>
           {/* Header */}
           <Header
             style={{
-              padding: "0 24px",
+              padding: "0 clamp(12px, 2vw, 24px)",
               background: "#ffffff",
               display: "flex",
               alignItems: "center",
@@ -190,9 +198,12 @@ export default function AdminLayout({
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
               style={{
-                fontSize: 16,
-                width: 48,
-                height: 48,
+                fontSize: 18,
+                width: 44,
+                height: 44,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             />
 
@@ -223,7 +234,14 @@ export default function AdminLayout({
                   >
                     {user?.name ? user.name[0].toUpperCase() : "A"}
                   </Avatar>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: "#262626" }}>
+                  <span
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: "#262626",
+                    }}
+                    className="hidden sm:inline"
+                  >
                     {user?.name || "Store Admin"}
                   </span>
                 </Space>
@@ -231,14 +249,15 @@ export default function AdminLayout({
             </Space>
           </Header>
 
-          {/* Page Body */}
+          {/* Page Body - Responsive Padding & Margin */}
           <Content
             style={{
-              margin: "24px",
-              padding: "24px",
+              margin: "clamp(12px, 2vw, 24px)",
+              padding: "clamp(14px, 2.5vw, 24px)",
               background: "#ffffff",
               borderRadius: 8,
               minHeight: 280,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
             }}
           >
             {children}
