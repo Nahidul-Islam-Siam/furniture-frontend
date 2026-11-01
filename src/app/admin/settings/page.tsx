@@ -7,199 +7,348 @@ import {
   Form,
   Input,
   Button,
-  Switch,
-  Divider,
   Typography,
   Space,
   Row,
   Col,
+  Avatar,
   message,
 } from "antd";
 import {
-  SettingOutlined,
+  UserOutlined,
   LockOutlined,
-  BellOutlined,
-  DatabaseOutlined,
+  FileTextOutlined,
+  InfoCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
+import { useAppSelector } from "@/redux";
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function AdminSettingsPage() {
-  const [generalForm] = Form.useForm();
-  const [securityForm] = Form.useForm();
+  const { user } = useAppSelector((state) => state.auth);
 
-  const handleSave = () => {
-    message.success("System configurations updated successfully");
+  const [profileForm] = Form.useForm();
+  const [passwordForm] = Form.useForm();
+  const [aboutForm] = Form.useForm();
+  const [privacyForm] = Form.useForm();
+  const [termsForm] = Form.useForm();
+
+  const handleProfileSave = (values: any) => {
+    message.success("Admin profile updated successfully!");
   };
 
-  const generalTab = (
-    <Form
-      form={generalForm}
-      layout="vertical"
-      initialValues={{
-        appName: "React SaaS Cloud Platform",
-        supportEmail: "support@saasplatform.com",
-        maintenanceMode: false,
-        analyticsTracking: true,
-      }}
-      onFinish={handleSave}
-    >
-      <Row gutter={24}>
-        <Col xs={24} md={12}>
-          <Form.Item
-            name="appName"
-            label="Platform Name"
-            rules={[{ required: true }]}
-          >
-            <Input placeholder="Enter SaaS platform name" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item
-            name="supportEmail"
-            label="Public Support Email"
-            rules={[{ required: true, type: "email" }]}
-          >
-            <Input placeholder="support@domain.com" />
-          </Form.Item>
-        </Col>
-      </Row>
+  const handlePasswordSave = (values: any) => {
+    if (values.newPassword !== values.confirmPassword) {
+      message.error("New password and confirm password do not match!");
+      return;
+    }
+    passwordForm.resetFields();
+    message.success("Password changed successfully!");
+  };
 
-      <Divider />
+  const handleContentSave = (section: string) => {
+    message.success(`${section} updated successfully!`);
+  };
 
-      <Title level={5}>Runtime Controls</Title>
-      <Space direction="vertical" size="large" style={{ display: "flex" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <Text strong>Maintenance Mode</Text>
-            <div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Redirect all incoming non-admin traffic to the service offline page.
-              </Text>
-            </div>
+  // 1. Profile Tab
+  const profileTab = (
+    <Card bordered={false}>
+      <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28 }}>
+        <Avatar size={72} style={{ backgroundColor: "#09090b", fontSize: 28 }}>
+          {user?.name ? user.name[0].toUpperCase() : "A"}
+        </Avatar>
+        <div>
+          <Title level={4} style={{ margin: 0 }}>
+            {user?.name || "Store Administrator"}
+          </Title>
+          <Text type="secondary">{user?.email || "admin@gridfurniture.com"}</Text>
+          <div style={{ marginTop: 4 }}>
+            <span
+              style={{
+                fontSize: 12,
+                background: "#f5f5f5",
+                padding: "2px 8px",
+                borderRadius: 4,
+                color: "#595959",
+                fontWeight: 600,
+              }}
+            >
+              Super Administrator
+            </span>
           </div>
-          <Form.Item orientation="horizontal" name="maintenanceMode" valuePropName="checked" noStyle>
-            <Switch />
-          </Form.Item>
         </div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <Text strong>Live Telemetry Collection</Text>
-            <div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Stream application metrics and performance traces to analytics ingestors.
-              </Text>
-            </div>
-          </div>
-          <Form.Item orientation="horizontal" name="analyticsTracking" valuePropName="checked" noStyle>
-            <Switch defaultChecked />
-          </Form.Item>
-        </div>
-      </Space>
-
-      <div style={{ marginTop: 32 }}>
-        <Button type="primary" icon={<SaveOutlined />} htmlType="submit">
-          Save General Settings
-        </Button>
       </div>
-    </Form>
+
+      <Form
+        form={profileForm}
+        layout="vertical"
+        initialValues={{
+          fullName: user?.name || "Admin Siam",
+          email: user?.email || "admin@gridfurniture.com",
+          phone: "+880 1712-345678",
+        }}
+        onFinish={handleProfileSave}
+        style={{ maxWidth: 600 }}
+      >
+        <Form.Item
+          name="fullName"
+          label="Full Name"
+          rules={[{ required: true, message: "Please enter your name" }]}
+        >
+          <Input placeholder="Enter your full name" size="large" />
+        </Form.Item>
+
+        <Form.Item
+          name="email"
+          label="Email Address"
+          rules={[{ required: true, type: "email", message: "Please enter valid email" }]}
+        >
+          <Input placeholder="Enter admin email address" size="large" />
+        </Form.Item>
+
+        <Form.Item name="phone" label="Phone Number">
+          <Input placeholder="+880 1..." size="large" />
+        </Form.Item>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          size="large"
+          style={{ background: "#09090b" }}
+        >
+          Save Profile
+        </Button>
+      </Form>
+    </Card>
   );
 
-  const securityTab = (
-    <Form
-      form={securityForm}
-      layout="vertical"
-      initialValues={{
-        twoFactorEnforced: true,
-        sessionTimeoutHours: 24,
-      }}
-      onFinish={handleSave}
-    >
-      <Title level={5}>Authentication & Session Policies</Title>
-      <Paragraph type="secondary">
-        Control credential enforcement, password rotation rules, and brute-force defenses.
+  // 2. Change Password Tab
+  const passwordTab = (
+    <Card bordered={false} style={{ maxWidth: 600 }}>
+      <Paragraph type="secondary" style={{ marginBottom: 24 }}>
+        Ensure your account uses a strong, random password to maintain administrative security.
       </Paragraph>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <div>
-          <Text strong>Enforce Two-Factor Authentication (2FA)</Text>
-          <div>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Require TOTP or SMS verification for all administrator logins.
-            </Text>
-          </div>
-        </div>
-        <Form.Item name="twoFactorEnforced" valuePropName="checked" noStyle>
-          <Switch defaultChecked />
-        </Form.Item>
-      </div>
-
-      <Form.Item
-        name="sessionTimeoutHours"
-        label="Maximum Session Lifetime (Hours)"
-        style={{ maxWidth: 300 }}
+      <Form
+        form={passwordForm}
+        layout="vertical"
+        onFinish={handlePasswordSave}
       >
-        <Input type="number" suffix="hours" />
-      </Form.Item>
+        <Form.Item
+          name="currentPassword"
+          label="Current Password"
+          rules={[{ required: true, message: "Please enter current password" }]}
+        >
+          <Input.Password placeholder="Enter current password" size="large" />
+        </Form.Item>
 
-      <Button type="primary" icon={<SaveOutlined />} htmlType="submit">
-        Update Security Policies
-      </Button>
-    </Form>
+        <Form.Item
+          name="newPassword"
+          label="New Password"
+          rules={[{ required: true, min: 6, message: "Minimum 6 characters required" }]}
+        >
+          <Input.Password placeholder="Enter new password" size="large" />
+        </Form.Item>
+
+        <Form.Item
+          name="confirmPassword"
+          label="Confirm New Password"
+          rules={[{ required: true, message: "Please confirm your new password" }]}
+        >
+          <Input.Password placeholder="Re-enter new password" size="large" />
+        </Form.Item>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          size="large"
+          style={{ background: "#09090b" }}
+        >
+          Update Password
+        </Button>
+      </Form>
+    </Card>
+  );
+
+  // 3. About Us Tab
+  const aboutTab = (
+    <Card bordered={false}>
+      <Paragraph type="secondary" style={{ marginBottom: 20 }}>
+        Edit the About Us story and brand background shown to website visitors.
+      </Paragraph>
+
+      <Form
+        form={aboutForm}
+        layout="vertical"
+        initialValues={{
+          aboutText:
+            "GRID is a modern work lifestyle brand committed to reimagining ergonomics, craftsmanship, and aesthetic balance for forward-thinking workspaces. In partnership with global ergonomic pioneers like Steelcase, we craft high-performance desks, seating systems, and modular furniture engineered for peak focus and wellness.",
+        }}
+        onFinish={() => handleContentSave("About Us")}
+      >
+        <Form.Item
+          name="aboutText"
+          label="About Us Content"
+          rules={[{ required: true }]}
+        >
+          <Input.TextArea rows={8} placeholder="Write store story..." />
+        </Form.Item>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          size="large"
+          style={{ background: "#09090b" }}
+        >
+          Save About Us
+        </Button>
+      </Form>
+    </Card>
+  );
+
+  // 4. Privacy Policy Tab
+  const privacyTab = (
+    <Card bordered={false}>
+      <Paragraph type="secondary" style={{ marginBottom: 20 }}>
+        Manage customer data privacy, information protection, and store checkout policies.
+      </Paragraph>
+
+      <Form
+        form={privacyForm}
+        layout="vertical"
+        initialValues={{
+          privacyText:
+            "At GRID Furniture, your privacy is our highest priority. We collect customer information exclusively to fulfill furniture orders, process secure payments, and coordinate doorstep delivery across Bangladesh. We never share, sell, or disclose personal customer data to unauthorized third parties.",
+        }}
+        onFinish={() => handleContentSave("Privacy Policy")}
+      >
+        <Form.Item
+          name="privacyText"
+          label="Privacy Policy Statement"
+          rules={[{ required: true }]}
+        >
+          <Input.TextArea rows={8} placeholder="Write privacy terms..." />
+        </Form.Item>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          size="large"
+          style={{ background: "#09090b" }}
+        >
+          Save Privacy Policy
+        </Button>
+      </Form>
+    </Card>
+  );
+
+  // 5. Terms & Conditions Tab
+  const termsTab = (
+    <Card bordered={false}>
+      <Paragraph type="secondary" style={{ marginBottom: 20 }}>
+        Specify terms of service, product warranties, return windows, and delivery terms.
+      </Paragraph>
+
+      <Form
+        form={termsForm}
+        layout="vertical"
+        initialValues={{
+          termsText:
+            "All GRID ergonomic chairs and motorized standing desks carry authentic manufacturer warranties (up to 5 years on selected models). Deliveries inside Dhaka are completed within 48 hours; nationwide delivery takes 3-5 business days. Returns or replacements for transit defects are honored within 7 days of delivery inspection.",
+        }}
+        onFinish={() => handleContentSave("Terms & Conditions")}
+      >
+        <Form.Item
+          name="termsText"
+          label="Terms & Conditions Agreement"
+          rules={[{ required: true }]}
+        >
+          <Input.TextArea rows={8} placeholder="Write terms and conditions..." />
+        </Form.Item>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          size="large"
+          style={{ background: "#09090b" }}
+        >
+          Save Terms & Conditions
+        </Button>
+      </Form>
+    </Card>
   );
 
   const tabItems = [
     {
-      key: "general",
+      key: "profile",
       label: (
         <span>
-          <SettingOutlined /> General Configuration
+          <UserOutlined />
+          Admin Profile
         </span>
       ),
-      children: generalTab,
+      children: profileTab,
     },
     {
-      key: "security",
+      key: "password",
       label: (
         <span>
-          <LockOutlined /> Security & Auth
+          <LockOutlined />
+          Change Password
         </span>
       ),
-      children: securityTab,
+      children: passwordTab,
     },
     {
-      key: "database",
+      key: "about",
       label: (
         <span>
-          <DatabaseOutlined /> Storage & Cache
+          <InfoCircleOutlined />
+          About Us
         </span>
       ),
-      children: (
-        <div>
-          <Paragraph type="secondary">
-            Manage Redis connection parameters and persistent asset storage buckets.
-          </Paragraph>
-          <Button danger onClick={() => message.info("Redis cache flushed successfully")}>
-            Purge Application Cache
-          </Button>
-        </div>
+      children: aboutTab,
+    },
+    {
+      key: "privacy",
+      label: (
+        <span>
+          <FileTextOutlined />
+          Privacy Policy
+        </span>
       ),
+      children: privacyTab,
+    },
+    {
+      key: "terms",
+      label: (
+        <span>
+          <FileTextOutlined />
+          Terms & Conditions
+        </span>
+      ),
+      children: termsTab,
     },
   ];
 
   return (
-    <Card bordered={false}>
-      <Title level={3} style={{ marginTop: 0 }}>
-        System Administration & Settings
-      </Title>
-      <Text type="secondary">
-        Configure global system variables, runtime rules, security enforcement, and integration keys.
-      </Text>
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <Title level={3} style={{ margin: 0 }}>
+          Admin & Content Settings
+        </Title>
+        <Text type="secondary">
+          Manage your personal administrator credentials and update store public legal content.
+        </Text>
+      </div>
 
-      <Tabs items={tabItems} style={{ marginTop: 20 }} />
-    </Card>
+      <Tabs defaultActiveKey="profile" items={tabItems} size="large" />
+    </div>
   );
 }
-

@@ -1,212 +1,262 @@
 "use client";
 
 import React from "react";
-import { Card, Col, Row, Statistic, Table, Tag, Progress, Typography, Space, Button } from "antd";
+import Link from "next/link";
 import {
-  ArrowUpOutlined,
+  Card,
+  Col,
+  Row,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  Space,
+  Button,
+} from "antd";
+import {
   DollarOutlined,
-  UsergroupAddOutlined,
   ShoppingOutlined,
-  ThunderboltOutlined,
-  ReloadOutlined,
+  OrderedListOutlined,
+  PlusOutlined,
+  ArrowRightOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
-interface EventItem {
+interface RecentOrder {
   key: string;
-  event: string;
-  status: "success" | "warning" | "processing";
-  timestamp: string;
+  id: string;
+  customer: string;
+  product: string;
+  amount: number;
+  status: "Pending" | "Processing" | "Shipped" | "Delivered";
+  method: string;
+  time: string;
 }
 
 export default function AdminDashboardPage() {
-  const eventsData: EventItem[] = [
+  const recentOrders: RecentOrder[] = [
     {
       key: "1",
-      event: "Automated database backup snapshot #492 completed",
-      status: "success",
-      timestamp: "12m ago",
+      id: "ORD-9421",
+      customer: "Rahim Chowdhury",
+      product: "GRID x Steelcase Leap (Black)",
+      amount: 175500,
+      status: "Processing",
+      method: "bKash",
+      time: "25m ago",
     },
     {
       key: "2",
-      event: "High API throughput spike on /api/v1/auth (1,240 req/sec)",
-      status: "warning",
-      timestamp: "45m ago",
+      id: "ORD-9420",
+      customer: "Tanvir Ahmed",
+      product: "Indie Motorized Desk + Lounge",
+      amount: 107500,
+      status: "Processing",
+      method: "Card",
+      time: "3h ago",
     },
     {
       key: "3",
-      event: "New enterprise subscription tier activated (Annual Plan)",
-      status: "success",
-      timestamp: "2h ago",
+      id: "ORD-9419",
+      customer: "Sadia Sultana",
+      product: "GRID x Steelcase Gesture Chair",
+      amount: 196500,
+      status: "Shipped",
+      method: "Card",
+      time: "Yesterday",
     },
     {
       key: "4",
-      event: "Security vulnerability scanner run (0 critical issues)",
-      status: "processing",
-      timestamp: "4h ago",
+      id: "ORD-9418",
+      customer: "Mahmud Hasan",
+      product: "Modern Office Credenza",
+      amount: 48500,
+      status: "Pending",
+      method: "COD",
+      time: "Yesterday",
+    },
+    {
+      key: "5",
+      id: "ORD-9417",
+      customer: "Farzana Yasmin",
+      product: "GRID Ergonomic Headrest Edition",
+      amount: 109500,
+      status: "Delivered",
+      method: "Nagad",
+      time: "2 days ago",
     },
   ];
 
   const columns = [
     {
-      title: "System Event",
-      dataIndex: "event",
-      key: "event",
-      render: (text: string) => <Text strong>{text}</Text>,
+      title: "Order ID",
+      dataIndex: "id",
+      key: "id",
+      render: (id: string) => <span style={{ fontWeight: 700 }}>#{id}</span>,
     },
     {
-      title: "Status",
+      title: "Customer",
+      dataIndex: "customer",
+      key: "customer",
+    },
+    {
+      title: "Items",
+      dataIndex: "product",
+      key: "product",
+    },
+    {
+      title: "Amount (BDT)",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amt: number) => (
+        <span style={{ fontWeight: 600 }}>Tk {amt.toLocaleString("en-BD")}</span>
+      ),
+    },
+    {
+      title: "Payment",
+      dataIndex: "method",
+      key: "method",
+      render: (method: string) => <Tag color="blue">{method}</Tag>,
+    },
+    {
+      title: "Fulfillment",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => {
-        const color = status === "success" ? "green" : status === "warning" ? "gold" : "blue";
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      render: (status: RecentOrder["status"]) => {
+        const color =
+          status === "Delivered"
+            ? "green"
+            : status === "Shipped"
+            ? "purple"
+            : status === "Processing"
+            ? "cyan"
+            : "gold";
+        return <Tag color={color}>{status}</Tag>;
       },
     },
     {
       title: "Time",
-      dataIndex: "timestamp",
-      key: "timestamp",
+      dataIndex: "time",
+      key: "time",
       render: (time: string) => <Text type="secondary">{time}</Text>,
     },
   ];
 
   return (
-    <Space direction="vertical" size="large" style={{ display: "flex" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <Space orientation="vertical" size="large" style={{ display: "flex" }}>
+      {/* Welcome & Quick Action Bar */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 16,
+        }}
+      >
         <div>
           <Title level={3} style={{ margin: 0 }}>
-            Analytics & System Telemetry
+            E-Commerce Store Overview
           </Title>
           <Text type="secondary">
-            Real-time platform metrics, resource consumption, and administrative events.
+            Live overview of products, incoming customer orders, and payment collections.
           </Text>
         </div>
-        <Button icon={<ReloadOutlined />}>Refresh Metrics</Button>
+
+        <Space>
+          <Link href="/admin/products">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              style={{ background: "#09090b" }}
+            >
+              Upload Product
+            </Button>
+          </Link>
+          <Link href="/admin/orders">
+            <Button icon={<OrderedListOutlined />}>View Orders</Button>
+          </Link>
+        </Space>
       </div>
 
-      {/* Statistics Cards */}
+      {/* KPI Statistic Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered hoverable>
             <Statistic
-              title="Total Revenue"
-              value={45231.89}
-              precision={2}
-              prefix={<DollarOutlined />}
-              suffix="USD"
+              title="Total Store Revenue"
+              value={1425000}
+              prefix="Tk "
               valueStyle={{ color: "#3f8600", fontWeight: 700 }}
             />
-            <div style={{ marginTop: 8 }}>
-              <Tag color="green">
-                <ArrowUpOutlined /> +20.1%
-              </Tag>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                vs last month
-              </Text>
-            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Across all payment channels
+            </Text>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered hoverable>
             <Statistic
-              title="Active Users"
-              value={2350}
-              prefix={<UsergroupAddOutlined />}
-              valueStyle={{ color: "#1677ff", fontWeight: 700 }}
+              title="Total Customer Orders"
+              value={148}
+              prefix={<OrderedListOutlined />}
+              valueStyle={{ color: "#09090b", fontWeight: 700 }}
             />
-            <div style={{ marginTop: 8 }}>
-              <Tag color="blue">
-                <ArrowUpOutlined /> +180.1%
-              </Tag>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                verified members
-              </Text>
-            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              98.2% fulfillment rate
+            </Text>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered hoverable>
             <Statistic
-              title="Sales Transactions"
-              value={12234}
+              title="Catalog Products"
+              value={18}
               prefix={<ShoppingOutlined />}
-              valueStyle={{ color: "#722ed1", fontWeight: 700 }}
+              valueStyle={{ color: "#1890ff", fontWeight: 700 }}
             />
-            <div style={{ marginTop: 8 }}>
-              <Tag color="purple">
-                <ArrowUpOutlined /> +19%
-              </Tag>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                order conversions
-              </Text>
-            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Chairs, Tables, Sofas, Storage
+            </Text>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered hoverable>
             <Statistic
-              title="Active Subscriptions"
-              value={573}
-              prefix={<ThunderboltOutlined />}
-              valueStyle={{ color: "#fa8c16", fontWeight: 700 }}
+              title="Pending Fulfillment"
+              value={4}
+              prefix={<ClockCircleOutlined />}
+              valueStyle={{ color: "#faad14", fontWeight: 700 }}
             />
-            <div style={{ marginTop: 8 }}>
-              <Tag color="orange">+201 new</Tag>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                recurring tiers
-              </Text>
-            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Orders awaiting packaging/delivery
+            </Text>
           </Card>
         </Col>
       </Row>
 
-      {/* System Telemetry & Logs */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
-          <Card title="Live System Event Stream" bordered={false}>
-            <Table
-              dataSource={eventsData}
-              columns={columns}
-              pagination={false}
-              size="middle"
-            />
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={8}>
-          <Card title="Cluster Resource Load" bordered={false}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Text>CPU Utilization</Text>
-                <Text strong>38%</Text>
-              </div>
-              <Progress percent={38} status="active" strokeColor="#1677ff" />
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Text>Memory Allocation (RAM)</Text>
-                <Text strong>64%</Text>
-              </div>
-              <Progress percent={64} status="normal" strokeColor="#52c41a" />
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Text>Database Disk IOPS</Text>
-                <Text strong>82%</Text>
-              </div>
-              <Progress percent={82} status="exception" strokeColor="#faad14" />
-            </div>
-          </Card>
-        </Col>
-      </Row>
+      {/* Recent Orders Section */}
+      <Card
+        title="Recent Customer Orders"
+        extra={
+          <Link href="/admin/orders" style={{ fontSize: 13, fontWeight: 600 }}>
+            All Orders <ArrowRightOutlined />
+          </Link>
+        }
+      >
+        <Table
+          dataSource={recentOrders}
+          columns={columns}
+          pagination={false}
+          size="middle"
+        />
+      </Card>
     </Space>
   );
 }
-
