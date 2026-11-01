@@ -43,6 +43,11 @@ export default function AdminLayout({
   const { user } = useAppSelector((state) => state.auth);
 
   const handleLogout = () => {
+    if (typeof document !== "undefined") {
+      document.cookie = "accessToken=; path=/; max-age=0";
+      document.cookie = "token=; path=/; max-age=0";
+      document.cookie = "role=; path=/; max-age=0";
+    }
     dispatch(logout());
     router.push("/login");
   };

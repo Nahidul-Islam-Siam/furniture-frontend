@@ -33,6 +33,10 @@ export default function Login() {
 
     const handleQuickLogin = (role: 'ADMIN' | 'USER') => {
         const isMockAdmin = role === 'ADMIN';
+        if (typeof document !== 'undefined') {
+            document.cookie = `accessToken=demo_token_${role.toLowerCase()}; path=/; max-age=86400; SameSite=Lax`;
+            document.cookie = `role=${role}; path=/; max-age=86400; SameSite=Lax`;
+        }
         dispatch(setUser({
             user: {
                 id: isMockAdmin ? 'admin_01' : 'user_01',
@@ -54,6 +58,10 @@ export default function Login() {
 
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
         const isAdmin = data.email.toLowerCase().includes('admin');
+        if (typeof document !== 'undefined') {
+            document.cookie = `accessToken=mock_jwt_token; path=/; max-age=86400; SameSite=Lax`;
+            document.cookie = `role=${isAdmin ? 'ADMIN' : 'USER'}; path=/; max-age=86400; SameSite=Lax`;
+        }
         dispatch(setUser({
             user: {
                 id: isAdmin ? 'admin_01' : 'user_01',
