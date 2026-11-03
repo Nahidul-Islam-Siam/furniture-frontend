@@ -88,6 +88,36 @@ export default function AdminDashboardPage() {
       method: "Nagad",
       time: "2 days ago",
     },
+    {
+      key: "6",
+      id: "ORD-9416",
+      customer: "Nafis Imtiaz",
+      product: "Smart Ergonomic Dual-Motor Desk",
+      amount: 82000,
+      status: "Delivered",
+      method: "bKash",
+      time: "3 days ago",
+    },
+    {
+      key: "7",
+      id: "ORD-9415",
+      customer: "Ayesha Siddiqua",
+      product: "Minimalist Oak Storage Credenza",
+      amount: 62000,
+      status: "Delivered",
+      method: "Card",
+      time: "4 days ago",
+    },
+    {
+      key: "8",
+      id: "ORD-9414",
+      customer: "Kamrul Islam",
+      product: "Mesh Task Swivel Ergonomic Chair",
+      amount: 38500,
+      status: "Delivered",
+      method: "COD",
+      time: "5 days ago",
+    },
   ];
 
   const columns = [
@@ -146,7 +176,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <Space orientation="vertical" size="large" style={{ display: "flex" }}>
+    <Space direction="vertical" orientation="vertical" size="large" style={{ display: "flex" }}>
       {/* Welcome & Quick Action Bar */}
       <div
         style={{
@@ -253,7 +283,20 @@ export default function AdminDashboardPage() {
         <Table
           dataSource={recentOrders}
           columns={columns}
-          pagination={false}
+          pagination={{
+            defaultPageSize: 5,
+            pageSizeOptions: ["5", "10", "20"],
+            showSizeChanger: true,
+            showQuickJumper: true,
+            responsive: true,
+            showTotal: (total, range) => (
+              <span style={{ fontSize: 13, color: "#595959" }}>
+                Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> orders
+              </span>
+            ),
+            position: ["bottomRight"],
+            style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
+          }}
           size="middle"
           scroll={{ x: 750 }}
         />
