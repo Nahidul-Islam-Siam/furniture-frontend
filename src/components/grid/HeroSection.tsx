@@ -7,7 +7,7 @@ export const HeroSection = () => {
       {/* Background Image matching user banner screenshot */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
-          src="/hero-banner.jpg"
+          src="/images/hero-banner.jpg"
           alt="GRID Modern Work Furniture"
           className="w-full h-full object-cover object-[center_top] hero-zoom-bg"
           onError={(e) => {

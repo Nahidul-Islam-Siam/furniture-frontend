@@ -1,3 +1,5 @@
+.next/
+out/
 # Dependencies
 node_modules
 .pnp

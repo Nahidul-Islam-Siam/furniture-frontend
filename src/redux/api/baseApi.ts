@@ -10,9 +10,9 @@ import { logout, setAccessToken } from "../features/auth";
 
 const baseQuery = fetchBaseQuery({
   baseUrl:
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_API_BASE_URL ||
-    "https://api.aiarealty.code-commando.com/api/v1",
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api/v1",
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth?.accessToken;
     if (token) {
@@ -58,8 +58,9 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["auth", "user", "profile", "contact"],
+  tagTypes: ["auth", "user", "profile", "contact", "Product", "Category", "Order", "AdminOverview"],
   endpoints: () => ({}),
 });
 
 export default baseApi;
+
