@@ -39,7 +39,7 @@ export const NavLink = React.forwardRef<
     ? pathname === target
     : pathname === target || (target !== "/" && pathname.startsWith(target));
   const computedClassName =
-    typeof className === "function" ? className({ isActive }) : className;
+    typeof className === "function" ? (className as any)({ isActive }) : className;
 
   return (
     <NextLink

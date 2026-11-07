@@ -12,171 +12,98 @@ import {
   Typography,
   Space,
   Button,
+  Spin,
 } from "antd";
 import {
-  DollarOutlined,
   ShoppingOutlined,
   OrderedListOutlined,
   PlusOutlined,
   ArrowRightOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
+import { useGetAdminOverviewQuery } from "@/redux/service/adminApi";
+import { useGetProductsQuery } from "@/redux/service/productApi";
+import { useGetAllOrdersQuery } from "@/redux/service/orderApi";
 
 const { Title, Text } = Typography;
 
-interface RecentOrder {
-  key: string;
-  id: string;
-  customer: string;
-  product: string;
-  amount: number;
-  status: "Pending" | "Processing" | "Shipped" | "Delivered";
-  method: string;
-  time: string;
-}
-
 export default function AdminDashboardPage() {
-  const recentOrders: RecentOrder[] = [
-    {
-      key: "1",
-      id: "ORD-9421",
-      customer: "Rahim Chowdhury",
-      product: "GRID x Steelcase Leap (Black)",
-      amount: 175500,
-      status: "Processing",
-      method: "bKash",
-      time: "25m ago",
-    },
-    {
-      key: "2",
-      id: "ORD-9420",
-      customer: "Tanvir Ahmed",
-      product: "Indie Motorized Desk + Lounge",
-      amount: 107500,
-      status: "Processing",
-      method: "Card",
-      time: "3h ago",
-    },
-    {
-      key: "3",
-      id: "ORD-9419",
-      customer: "Sadia Sultana",
-      product: "GRID x Steelcase Gesture Chair",
-      amount: 196500,
-      status: "Shipped",
-      method: "Card",
-      time: "Yesterday",
-    },
-    {
-      key: "4",
-      id: "ORD-9418",
-      customer: "Mahmud Hasan",
-      product: "Modern Office Credenza",
-      amount: 48500,
-      status: "Pending",
-      method: "COD",
-      time: "Yesterday",
-    },
-    {
-      key: "5",
-      id: "ORD-9417",
-      customer: "Farzana Yasmin",
-      product: "GRID Ergonomic Headrest Edition",
-      amount: 109500,
-      status: "Delivered",
-      method: "Nagad",
-      time: "2 days ago",
-    },
-    {
-      key: "6",
-      id: "ORD-9416",
-      customer: "Nafis Imtiaz",
-      product: "Smart Ergonomic Dual-Motor Desk",
-      amount: 82000,
-      status: "Delivered",
-      method: "bKash",
-      time: "3 days ago",
-    },
-    {
-      key: "7",
-      id: "ORD-9415",
-      customer: "Ayesha Siddiqua",
-      product: "Minimalist Oak Storage Credenza",
-      amount: 62000,
-      status: "Delivered",
-      method: "Card",
-      time: "4 days ago",
-    },
-    {
-      key: "8",
-      id: "ORD-9414",
-      customer: "Kamrul Islam",
-      product: "Mesh Task Swivel Ergonomic Chair",
-      amount: 38500,
-      status: "Delivered",
-      method: "COD",
-      time: "5 days ago",
-    },
-  ];
+  const { data: overviewData, isLoading: isOverviewLoading } = useGetAdminOverviewQuery();
+  const { data: productsData } = useGetProductsQuery({ limit: 10 });
+  const { data: ordersData } = useGetAllOrdersQuery({ limit: 8 });
+
+  const overview = overviewData?.data;
+  const recentOrdersList = overview?.recentOrders || ordersData?.data || [];
+  const totalProducts = overview?.totalProducts ?? (productsData?.meta?.total ?? productsData?.data?.length ?? 6);
+  const totalOrders = overview?.totalOrders ?? (ordersData?.meta?.total ?? ordersData?.data?.length ?? 0);
+  const totalRevenue = overview?.totalRevenue ?? 0;
+  const totalUsers = overview?.totalUsers ?? 2;
 
   const columns = [
     {
       title: "Order ID",
-      dataIndex: "id",
-      key: "id",
-      render: (id: string) => <span style={{ fontWeight: 700 }}>#{id}</span>,
+      dataIndex: "orderNumber",
+      key: "orderNumber",
+      render: (id: string, record: any) => (
+        <span style={{ fontWeight: 700 }}>#{id || record._id?.slice(-6).toUpperCase()}</span>
+      ),
     },
     {
       title: "Customer",
-      dataIndex: "customer",
       key: "customer",
-    },
-    {
-      title: "Items",
-      dataIndex: "product",
-      key: "product",
+      render: (_: any, record: any) => (
+        <span>{record.customer?.name || record.customerName || "Customer"}</span>
+      ),
     },
     {
       title: "Amount (BDT)",
-      dataIndex: "amount",
       key: "amount",
-      render: (amt: number) => (
-        <span style={{ fontWeight: 600 }}>Tk {amt.toLocaleString("en-BD")}</span>
+      render: (_: any, record: any) => (
+        <span style={{ fontWeight: 600 }}>
+          Tk {(record.finalAmount || record.totalAmount || record.amount || 0).toLocaleString("en-BD")}
+        </span>
       ),
     },
     {
       title: "Payment",
-      dataIndex: "method",
       key: "method",
-      render: (method: string) => <Tag color="blue">{method}</Tag>,
+      render: (_: any, record: any) => (
+        <Tag color="blue" style={{ textTransform: "uppercase" }}>
+          {record.paymentMethod || "SSLCOMMERZ"}
+        </Tag>
+      ),
     },
     {
       title: "Fulfillment",
-      dataIndex: "status",
       key: "status",
-      render: (status: RecentOrder["status"]) => {
+      render: (_: any, record: any) => {
+        const status = record.orderStatus || record.status || "Pending";
+        const s = status.toLowerCase();
         const color =
-          status === "Delivered"
+          s === "delivered"
             ? "green"
-            : status === "Shipped"
+            : s === "shipped"
             ? "purple"
-            : status === "Processing"
+            : s === "processing"
             ? "cyan"
             : "gold";
         return <Tag color={color}>{status}</Tag>;
       },
     },
     {
-      title: "Time",
-      dataIndex: "time",
-      key: "time",
-      render: (time: string) => <Text type="secondary">{time}</Text>,
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => (
+        <Text type="secondary">
+          {date ? new Date(date).toLocaleDateString("en-BD", { month: "short", day: "numeric" }) : "Today"}
+        </Text>
+      ),
     },
   ];
 
   return (
-    <Space direction="vertical" orientation="vertical" size="large" style={{ display: "flex" }}>
+    <Space direction="vertical" size="large" style={{ display: "flex", width: "100%" }}>
       {/* Welcome & Quick Action Bar */}
       <div
         style={{
@@ -218,9 +145,10 @@ export default function AdminDashboardPage() {
           <Card bordered hoverable>
             <Statistic
               title="Total Store Revenue"
-              value={1425000}
+              value={totalRevenue}
               prefix="Tk "
               valueStyle={{ color: "#3f8600", fontWeight: 700 }}
+              loading={isOverviewLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
               Across all payment channels
@@ -232,12 +160,13 @@ export default function AdminDashboardPage() {
           <Card bordered hoverable>
             <Statistic
               title="Total Customer Orders"
-              value={148}
+              value={totalOrders}
               prefix={<OrderedListOutlined />}
               valueStyle={{ color: "#09090b", fontWeight: 700 }}
+              loading={isOverviewLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              98.2% fulfillment rate
+              Live customer orders
             </Text>
           </Card>
         </Col>
@@ -246,12 +175,13 @@ export default function AdminDashboardPage() {
           <Card bordered hoverable>
             <Statistic
               title="Catalog Products"
-              value={18}
+              value={totalProducts}
               prefix={<ShoppingOutlined />}
-              valueStyle={{ color: "#1890ff", fontWeight: 700 }}
+              valueStyle={{ color: "#09090b", fontWeight: 700 }}
+              loading={isOverviewLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Chairs, Tables, Sofas, Storage
+              Active in inventory
             </Text>
           </Card>
         </Col>
@@ -259,13 +189,14 @@ export default function AdminDashboardPage() {
         <Col xs={24} sm={12} lg={6}>
           <Card bordered hoverable>
             <Statistic
-              title="Pending Fulfillment"
-              value={4}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: "#faad14", fontWeight: 700 }}
+              title="Registered Accounts"
+              value={totalUsers}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: "#09090b", fontWeight: 700 }}
+              loading={isOverviewLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Orders awaiting packaging/delivery
+              Admins & customer profiles
             </Text>
           </Card>
         </Col>
@@ -273,32 +204,24 @@ export default function AdminDashboardPage() {
 
       {/* Recent Orders Section */}
       <Card
-        title="Recent Customer Orders"
-        extra={
-          <Link href="/admin/orders" style={{ fontSize: 13, fontWeight: 600 }}>
-            All Orders <ArrowRightOutlined />
-          </Link>
+        title={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontWeight: 600 }}>Recent Customer Orders</span>
+            <Link href="/admin/orders" style={{ fontSize: 13, color: "#1677ff", fontWeight: 500 }}>
+              View all orders <ArrowRightOutlined />
+            </Link>
+          </div>
         }
+        bordered
       >
         <Table
-          dataSource={recentOrders}
+          dataSource={recentOrdersList}
           columns={columns}
-          pagination={{
-            defaultPageSize: 5,
-            pageSizeOptions: ["5", "10", "20"],
-            showSizeChanger: true,
-            showQuickJumper: true,
-            responsive: true,
-            showTotal: (total, range) => (
-              <span style={{ fontSize: 13, color: "#595959" }}>
-                Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> orders
-              </span>
-            ),
-            position: ["bottomRight"],
-            style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
-          }}
-          size="middle"
-          scroll={{ x: 750 }}
+          rowKey={(r) => r._id || r.id || Math.random().toString()}
+          pagination={false}
+          loading={isOverviewLoading}
+          scroll={{ x: 700 }}
+          locale={{ emptyText: "No customer orders placed yet." }}
         />
       </Card>
     </Space>

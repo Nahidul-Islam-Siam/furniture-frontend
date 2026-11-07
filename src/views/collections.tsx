@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ALL_PRODUCTS, CHAIR_PRODUCTS, TABLE_PRODUCTS, Product } from '../data/gridData';
+import { ALL_PRODUCTS, Product } from '../data/gridData';
 import { useQuickView } from '../context/QuickViewContext';
 import { useCart } from '../context/CartContext';
-import { Star, Eye, ShoppingBag, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Star, Eye, ShoppingBag, SlidersHorizontal, ChevronRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useGetProductsQuery, IProductItem } from '@/redux/service/productApi';
+import { useGetCategoriesQuery } from '@/redux/service/categoryApi';
 
 export default function Collections() {
   const { category } = useParams<{ category?: string }>();
@@ -13,6 +15,10 @@ export default function Collections() {
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
   const { openQuickView } = useQuickView();
   const { addToCart } = useCart();
+
+  // Live Backend Data
+  const { data: backendProductsData, isLoading: isProductsLoading } = useGetProductsQuery({ limit: 100 });
+  const { data: categoriesData } = useGetCategoriesQuery();
 
   // Normalize category name
   const currentCategoryName = useMemo(() => {
@@ -24,20 +30,51 @@ export default function Collections() {
     return category.charAt(0).toUpperCase() + category.slice(1);
   }, [category]);
 
+  // Map Backend Products to Frontend Product interface
+  const liveProducts: Product[] = useMemo(() => {
+    if (backendProductsData?.data && backendProductsData.data.length > 0) {
+      return backendProductsData.data.map((p: IProductItem) => {
+        const catName =
+          typeof p.category === 'object'
+            ? p.category?.name
+            : categoriesData?.data?.find((c) => c._id === p.category)?.name || 'General';
+        const formattedPrice = `from Tk ${(p.price || 0).toLocaleString('en-BD')}.00`;
+        const formattedOriginal = p.discountPrice
+          ? `Tk ${p.discountPrice.toLocaleString('en-BD')}.00`
+          : undefined;
+
+        return {
+          id: p._id,
+          title: p.name,
+          category: catName as any,
+          link: `/products/${p.slug || p._id}`,
+          priceNumber: p.price,
+          priceText: formattedPrice,
+          originalPrice: formattedOriginal,
+          images: p.images?.length > 0 ? p.images : ['https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385'],
+          rating: p.rating || 5,
+          description: p.description,
+          inStock: p.isAvailable ?? (p.stock > 0),
+          tag: p.isFeatured ? 'Featured' : undefined,
+        };
+      });
+    }
+    return ALL_PRODUCTS;
+  }, [backendProductsData, categoriesData]);
+
   const filteredProducts = useMemo(() => {
-    let prods: Product[] = ALL_PRODUCTS;
+    let prods: Product[] = liveProducts;
 
     if (category) {
       const catLower = category.toLowerCase();
-      if (catLower === 'chair') {
-        prods = CHAIR_PRODUCTS;
-      } else if (catLower === 'table') {
-        prods = TABLE_PRODUCTS;
-      } else if (catLower === 'sofa' || catLower === 'grid-sofa-collection') {
-        prods = ALL_PRODUCTS.filter((p) => p.category === 'Sofa');
-      } else if (catLower === 'storage') {
-        prods = ALL_PRODUCTS.filter((p) => p.category === 'Storage');
-      }
+      prods = prods.filter((p) => {
+        const itemCat = p.category.toLowerCase();
+        if (catLower === 'chair') return itemCat.includes('chair');
+        if (catLower === 'table') return itemCat.includes('table') || itemCat.includes('desk');
+        if (catLower === 'sofa' || catLower === 'grid-sofa-collection') return itemCat.includes('sofa');
+        if (catLower === 'storage') return itemCat.includes('storage') || itemCat.includes('credenza');
+        return itemCat.includes(catLower);
+      });
     }
 
     if (inStockOnly) {
@@ -55,7 +92,7 @@ export default function Collections() {
     }
 
     return sorted;
-  }, [category, inStockOnly, selectedSort]);
+  }, [liveProducts, category, inStockOnly, selectedSort]);
 
   return (
     <div className="w-full bg-white min-h-screen py-10">
@@ -101,7 +138,7 @@ export default function Collections() {
                   : 'bg-white text-neutral-700 border-neutral-200 hover:border-black'
               }`}
             >
-              All Products ({ALL_PRODUCTS.length})
+              All Products ({liveProducts.length})
             </Link>
             <Link
               to="/collections/chair"
@@ -111,7 +148,7 @@ export default function Collections() {
                   : 'bg-white text-neutral-700 border-neutral-200 hover:border-black'
               }`}
             >
-              Chairs ({CHAIR_PRODUCTS.length})
+              Chairs
             </Link>
             <Link
               to="/collections/table"
@@ -121,7 +158,17 @@ export default function Collections() {
                   : 'bg-white text-neutral-700 border-neutral-200 hover:border-black'
               }`}
             >
-              Tables & Desks ({TABLE_PRODUCTS.length})
+              Tables & Desks
+            </Link>
+            <Link
+              to="/collections/sofa"
+              className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
+                category?.toLowerCase() === 'sofa'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white text-neutral-700 border-neutral-200 hover:border-black'
+              }`}
+            >
+              Sofas
             </Link>
           </div>
         </div>
@@ -145,6 +192,11 @@ export default function Collections() {
           </div>
 
           <div className="flex items-center gap-2 text-xs">
+            {isProductsLoading && (
+              <span className="flex items-center gap-1 text-neutral-400 mr-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Syncing Live...
+              </span>
+            )}
             <span className="text-neutral-500 font-medium">Sort by:</span>
             <select
               value={selectedSort}

@@ -18,6 +18,7 @@ import type { MenuProps } from "antd";
 import {
   DashboardOutlined,
   ShoppingOutlined,
+  AppstoreOutlined,
   OrderedListOutlined,
   CreditCardOutlined,
   SettingOutlined,
@@ -62,6 +63,11 @@ export default function AdminLayout({
       key: "/admin/products",
       icon: <ShoppingOutlined />,
       label: <Link href="/admin/products">Products & Upload</Link>,
+    },
+    {
+      key: "/admin/categories",
+      icon: <AppstoreOutlined />,
+      label: <Link href="/admin/categories">Categories</Link>,
     },
     {
       key: "/admin/orders",

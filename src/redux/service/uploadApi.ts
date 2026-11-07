@@ -31,3 +31,4 @@ export const uploadApi = baseApi.injectEndpoints({
 });
 
 export const { useUploadFileMutation, useDeleteUploadMutation } = uploadApi;
+

@@ -22,3 +22,4 @@ export const adminApi = baseApi.injectEndpoints({
 });
 
 export const { useGetAdminOverviewQuery } = adminApi;
+

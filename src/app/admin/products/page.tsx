@@ -17,124 +17,199 @@ import {
   Popconfirm,
   message,
   Image,
+  Upload,
+  Spin,
 } from "antd";
 import {
   PlusOutlined,
   SearchOutlined,
   DeleteOutlined,
   EditOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
+  UploadOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
-import { ALL_PRODUCTS, Product } from "@/data/gridData";
+import {
+  useGetProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+  IProductItem,
+} from "@/redux/service/productApi";
+import { useGetCategoriesQuery, ICategoryItem } from "@/redux/service/categoryApi";
+import { useUploadFileMutation } from "@/redux/service/uploadApi";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>(ALL_PRODUCTS);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<IProductItem | null>(null);
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [form] = Form.useForm();
 
+  // RTK Queries
+  const {
+    data: productsData,
+    isLoading: isProductsLoading,
+    refetch: refetchProducts,
+  } = useGetProductsQuery({ limit: 100 });
+
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
+
+  // RTK Mutations
+  const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+  const [uploadFile] = useUploadFileMutation();
+
+  const productsList: IProductItem[] = productsData?.data || [];
+  const categoriesList: ICategoryItem[] = categoriesData?.data || [];
+
   // Open modal for Create or Edit
-  const handleOpenModal = (product?: Product) => {
+  const handleOpenModal = (product?: IProductItem) => {
     if (product) {
       setEditingProduct(product);
+      setImageUrls(product.images || []);
+      const categoryId =
+        typeof product.category === "object" ? product.category._id : product.category;
+
       form.setFieldsValue({
-        title: product.title,
-        category: product.category,
-        priceNumber: product.priceNumber,
-        originalPriceNumber: product.originalPrice
-          ? parseInt(product.originalPrice.replace(/[^0-9]/g, ""), 10)
-          : undefined,
-        imageUrl: product.images[0] || "",
-        description: product.description,
-        inStock: product.inStock,
-        tag: product.tag || "",
+        name: product.name,
+        category: categoryId,
+        price: product.price,
+        discountPrice: product.discountPrice,
+        stock: product.stock ?? 50,
+        sku: product.sku || "",
+        material: product.material || "",
+        description: product.description || "",
+        isAvailable: product.isAvailable ?? true,
+        isFeatured: product.isFeatured ?? false,
+        imageUrlInput: product.images?.[0] || "",
       });
     } else {
       setEditingProduct(null);
+      setImageUrls([]);
       form.resetFields();
-      form.setFieldsValue({ inStock: true, category: "Chair" });
+      const firstCatId = categoriesList[0]?._id;
+      form.setFieldsValue({
+        isAvailable: true,
+        isFeatured: false,
+        stock: 50,
+        category: firstCatId,
+      });
     }
     setIsModalOpen(true);
   };
 
-  // Save product (create or update)
-  const handleSaveProduct = (values: any) => {
-    const formattedPrice = `from Tk ${values.priceNumber.toLocaleString("en-BD")}.00`;
-    const formattedOriginal = values.originalPriceNumber
-      ? `Tk ${values.originalPriceNumber.toLocaleString("en-BD")}.00`
-      : undefined;
+  // Upload image to backend Cloudinary
+  const handleImageUpload = async (file: File) => {
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append("files", file);
 
-    if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((item) =>
-          item.id === editingProduct.id
-            ? {
-                ...item,
-                title: values.title,
-                category: values.category,
-                priceNumber: values.priceNumber,
-                priceText: formattedPrice,
-                originalPrice: formattedOriginal,
-                description: values.description,
-                inStock: values.inStock,
-                tag: values.tag,
-                images: values.imageUrl ? [values.imageUrl] : item.images,
-              }
-            : item
-        )
-      );
-      message.success("Product updated successfully!");
-    } else {
-      const newProduct: Product = {
-        id: `prod-${Date.now()}`,
-        title: values.title,
-        category: values.category,
-        link: `/products/${values.title.toLowerCase().replace(/\s+/g, "-")}`,
-        priceNumber: values.priceNumber,
-        priceText: formattedPrice,
-        originalPrice: formattedOriginal,
-        images: values.imageUrl
-          ? [values.imageUrl]
-          : ["https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385"],
-        rating: 5,
-        description: values.description || "",
-        inStock: values.inStock,
-        tag: values.tag,
-      };
-      setProducts((prev) => [newProduct, ...prev]);
-      message.success("New product published successfully!");
+      const res = await uploadFile(formData).unwrap();
+      if (res.success && res.data) {
+        const uploadedUrl = Array.isArray(res.data) ? res.data[0]?.url : res.data?.url;
+        if (uploadedUrl) {
+          setImageUrls((prev) => [...prev, uploadedUrl]);
+          form.setFieldsValue({ imageUrlInput: uploadedUrl });
+          message.success("Image uploaded to Cloudinary successfully!");
+        }
+      }
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to upload image to Cloudinary");
+    } finally {
+      setIsUploading(false);
     }
-    setIsModalOpen(false);
+    return false; // Prevent Ant Design default XHR upload
   };
 
-  // Toggle inStock status
-  const handleToggleStock = (id: string, currentStatus: boolean) => {
-    setProducts((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, inStock: !currentStatus } : item
-      )
-    );
-    message.info(`Stock status updated to ${!currentStatus ? "In Stock" : "Out of Stock"}`);
+  // Save product (create or update)
+  const handleSaveProduct = async (values: any) => {
+    try {
+      let finalImages = [...imageUrls];
+      if (values.imageUrlInput && !finalImages.includes(values.imageUrlInput)) {
+        finalImages.push(values.imageUrlInput);
+      }
+      if (finalImages.length === 0) {
+        finalImages = ["https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385"];
+      }
+
+      const payload: Partial<IProductItem> = {
+        name: values.name,
+        category: values.category,
+        price: Number(values.price),
+        discountPrice: values.discountPrice ? Number(values.discountPrice) : undefined,
+        stock: Number(values.stock || 0),
+        sku: values.sku || undefined,
+        material: values.material || undefined,
+        description: values.description || "Premium contract-grade furniture design.",
+        images: finalImages,
+        isAvailable: values.isAvailable ?? true,
+        isFeatured: values.isFeatured ?? false,
+      };
+
+      if (editingProduct) {
+        await updateProduct({ id: editingProduct._id, body: payload }).unwrap();
+        message.success("Product updated successfully!");
+      } else {
+        await createProduct(payload).unwrap();
+        message.success("New product published successfully!");
+      }
+
+      setIsModalOpen(false);
+      refetchProducts();
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to save product. Please check required fields.");
+    }
+  };
+
+  // Toggle inStock / isAvailable status
+  const handleToggleStock = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateProduct({
+        id,
+        body: { isAvailable: !currentStatus },
+      }).unwrap();
+      message.info(`Product is now ${!currentStatus ? "In Stock" : "Out of Stock"}`);
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to update stock status");
+    }
   };
 
   // Delete product
-  const handleDeleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((item) => item.id !== id));
-    message.success("Product deleted successfully");
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await deleteProduct(id).unwrap();
+      message.success("Product deleted successfully");
+      refetchProducts();
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to delete product");
+    }
   };
 
-  // Filter products
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch = p.title.toLowerCase().includes(searchText.toLowerCase());
+  // Filter products by search and category
+  const filteredProducts = productsList.filter((p) => {
+    const matchesSearch =
+      p.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      p.sku?.toLowerCase().includes(searchText.toLowerCase()) ||
+      p.material?.toLowerCase().includes(searchText.toLowerCase());
+
+    const productCategory =
+      typeof p.category === "object" ? p.category : categoriesList.find((c) => c._id === p.category);
+    const categoryName = productCategory?.name || (typeof p.category === "string" ? p.category : "");
+    const categoryId = productCategory?._id || p.category;
+
     const matchesCategory =
-      selectedCategory === "ALL" || p.category === selectedCategory;
+      selectedCategory === "ALL" ||
+      categoryId === selectedCategory ||
+      categoryName?.toLowerCase() === selectedCategory.toLowerCase();
+
     return matchesSearch && matchesCategory;
   });
 
@@ -156,17 +231,24 @@ export default function AdminProductsPage() {
       ),
     },
     {
-      title: "Product Title",
-      dataIndex: "title",
-      key: "title",
-      render: (title: string, record: Product) => (
+      title: "Product Title & SKU",
+      dataIndex: "name",
+      key: "name",
+      render: (name: string, record: IProductItem) => (
         <div>
-          <div style={{ fontWeight: 600, color: "#1f1f1f" }}>{title}</div>
-          {record.tag && (
-            <Tag color="orange" style={{ fontSize: 11, marginTop: 4 }}>
-              {record.tag}
-            </Tag>
-          )}
+          <div style={{ fontWeight: 600, color: "#1f1f1f" }}>{name}</div>
+          <Space size={4} style={{ marginTop: 4 }}>
+            {record.sku && (
+              <Tag color="default" style={{ fontSize: 11 }}>
+                SKU: {record.sku}
+              </Tag>
+            )}
+            {record.isFeatured && (
+              <Tag color="gold" style={{ fontSize: 11 }}>
+                Featured
+              </Tag>
+            )}
+          </Space>
         </div>
       ),
     },
@@ -174,44 +256,57 @@ export default function AdminProductsPage() {
       title: "Category",
       dataIndex: "category",
       key: "category",
-      width: 120,
-      render: (cat: string) => <Tag color="blue">{cat}</Tag>,
+      width: 130,
+      render: (cat: any) => {
+        const catName =
+          typeof cat === "object"
+            ? cat?.name
+            : categoriesList.find((c) => c._id === cat)?.name || cat || "General";
+        return <Tag color="blue">{catName}</Tag>;
+      },
     },
     {
       title: "Price (BDT)",
-      dataIndex: "priceNumber",
-      key: "priceNumber",
+      dataIndex: "price",
+      key: "price",
       width: 150,
-      render: (price: number, record: Product) => (
+      render: (price: number, record: IProductItem) => (
         <div>
-          <div style={{ fontWeight: 700 }}>Tk {price.toLocaleString("en-BD")}</div>
-          {record.originalPrice && (
+          <div style={{ fontWeight: 700 }}>Tk {price?.toLocaleString("en-BD")}</div>
+          {record.discountPrice && (
             <div style={{ fontSize: 12, color: "#8c8c8c", textDecoration: "line-through" }}>
-              {record.originalPrice}
+              Tk {record.discountPrice?.toLocaleString("en-BD")}
             </div>
           )}
         </div>
       ),
     },
     {
+      title: "Stock / Units",
+      dataIndex: "stock",
+      key: "stock",
+      width: 110,
+      render: (stock: number) => <span>{stock ?? 0} units</span>,
+    },
+    {
       title: "Inventory",
-      dataIndex: "inStock",
-      key: "inStock",
+      dataIndex: "isAvailable",
+      key: "isAvailable",
       width: 130,
-      render: (inStock: boolean, record: Product) => (
+      render: (isAvailable: boolean, record: IProductItem) => (
         <Switch
           checkedChildren="In Stock"
           unCheckedChildren="Out"
-          checked={inStock}
-          onChange={() => handleToggleStock(record.id, inStock)}
+          checked={isAvailable ?? true}
+          onChange={() => handleToggleStock(record._id, isAvailable ?? true)}
         />
       ),
     },
     {
       title: "Actions",
       key: "actions",
-      width: 130,
-      render: (_: any, record: Product) => (
+      width: 110,
+      render: (_: any, record: IProductItem) => (
         <Space size="small">
           <Button
             type="text"
@@ -221,12 +316,12 @@ export default function AdminProductsPage() {
           <Popconfirm
             title="Delete product"
             description="Are you sure you want to delete this furniture item?"
-            onConfirm={() => handleDeleteProduct(record.id)}
+            onConfirm={() => handleDeleteProduct(record._id)}
             okText="Yes, delete"
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} />
+            <Button type="text" danger icon={<DeleteOutlined />} loading={isDeleting} />
           </Popconfirm>
         </Space>
       ),
@@ -251,7 +346,7 @@ export default function AdminProductsPage() {
             Products & Catalog Management
           </Title>
           <Text type="secondary">
-            Manage your furniture catalog, upload new items, update stock, and pricing.
+            Live database catalog with MongoDB backend & Cloudinary image support.
           </Text>
         </div>
         <Button
@@ -270,28 +365,30 @@ export default function AdminProductsPage() {
         <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
           <Space wrap>
             <Input
-              placeholder="Search product name..."
+              placeholder="Search product name, SKU, material..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 240 }}
+              style={{ width: 280 }}
               allowClear
             />
             <Select
               value={selectedCategory}
               onChange={setSelectedCategory}
-              style={{ width: 160 }}
+              style={{ width: 180 }}
+              loading={isCategoriesLoading}
             >
               <Option value="ALL">All Categories</Option>
-              <Option value="Chair">Chairs</Option>
-              <Option value="Table">Tables & Desks</Option>
-              <Option value="Sofa">Sofas</Option>
-              <Option value="Storage">Storage & Cabinets</Option>
+              {categoriesList.map((cat) => (
+                <Option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </Option>
+              ))}
             </Select>
           </Space>
 
           <Text type="secondary">
-            Showing <strong>{filteredProducts.length}</strong> items
+            Showing <strong>{filteredProducts.length}</strong> live catalog items
           </Text>
         </Space>
       </Card>
@@ -300,7 +397,8 @@ export default function AdminProductsPage() {
       <Table
         dataSource={filteredProducts}
         columns={columns}
-        rowKey="id"
+        rowKey="_id"
+        loading={isProductsLoading}
         scroll={{ x: 800 }}
         pagination={{
           defaultPageSize: 8,
@@ -320,84 +418,126 @@ export default function AdminProductsPage() {
 
       {/* Upload / Edit Product Modal */}
       <Modal
-        title={editingProduct ? "Edit Product Details" : "Upload New Furniture Product"}
+        title={editingProduct ? `Edit "${editingProduct.name}"` : "Upload New Furniture Product"}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         onOk={() => form.submit()}
+        confirmLoading={isCreating || isUpdating}
         okText={editingProduct ? "Save Changes" : "Publish Product"}
         okButtonProps={{ style: { background: "#09090b" } }}
-        width="min(95vw, 650px)"
+        width="min(95vw, 680px)"
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleSaveProduct} style={{ marginTop: 16 }}>
           <Form.Item
-            name="title"
+            name="name"
             label="Product Title"
             rules={[{ required: true, message: "Please enter product title" }]}
           >
             <Input placeholder="e.g. GRID Ergonomic Executive Chair" />
           </Form.Item>
 
-          <Space orientation="horizontal" style={{ width: "100%", display: "flex" }} size="middle">
+          <Space style={{ width: "100%", display: "flex" }} size="middle">
             <Form.Item
               name="category"
               label="Category"
               style={{ flex: 1 }}
               rules={[{ required: true, message: "Select a category" }]}
             >
-              <Select orientation="horizontal">
-                <Option value="Chair">Chair</Option>
-                <Option value="Table">Table / Desk</Option>
-                <Option value="Sofa">Sofa</Option>
-                <Option value="Storage">Storage</Option>
+              <Select placeholder="Select category" loading={isCategoriesLoading}>
+                {categoriesList.map((cat) => (
+                  <Option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
 
             <Form.Item
-              name="priceNumber"
+              name="price"
               label="Selling Price (BDT Tk)"
               style={{ flex: 1 }}
               rules={[{ required: true, message: "Enter selling price" }]}
             >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={1}
-                placeholder="e.g. 85000"
-              />
+              <InputNumber style={{ width: "100%" }} min={1} placeholder="e.g. 85000" />
             </Form.Item>
 
             <Form.Item
-              name="originalPriceNumber"
+              name="discountPrice"
               label="Original / Strike Price"
               style={{ flex: 1 }}
             >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={1}
-                placeholder="e.g. 95000 (Optional)"
-              />
+              <InputNumber style={{ width: "100%" }} min={1} placeholder="e.g. 95000 (Optional)" />
             </Form.Item>
           </Space>
 
-          <Form.Item
-            name="imageUrl"
-            label="Product Image URL"
-            extra="Direct image link for high resolution preview"
-          >
-            <Input placeholder="https://example.com/product.jpg" />
-          </Form.Item>
+          <Space style={{ width: "100%", display: "flex" }} size="middle">
+            <Form.Item name="stock" label="Stock Quantity" style={{ flex: 1 }}>
+              <InputNumber style={{ width: "100%" }} min={0} placeholder="e.g. 50" />
+            </Form.Item>
 
-          <Form.Item name="tag" label="Promo Badge / Tag (Optional)">
-            <Input placeholder="e.g. Save Tk 5,000 or Popular" />
+            <Form.Item name="sku" label="SKU Code" style={{ flex: 1 }}>
+              <Input placeholder="e.g. CHR-ST-LEAP-01" />
+            </Form.Item>
+
+            <Form.Item name="material" label="Material / Finish" style={{ flex: 1 }}>
+              <Input placeholder="e.g. Solid Teak / Italian Mesh" />
+            </Form.Item>
+          </Space>
+
+          {/* Cloudinary Image Upload or Direct URL */}
+          <Form.Item label="Product Image">
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <Space wrap>
+                <Upload
+                  beforeUpload={handleImageUpload}
+                  showUploadList={false}
+                  accept="image/*"
+                >
+                  <Button icon={isUploading ? <LoadingOutlined /> : <UploadOutlined />} disabled={isUploading}>
+                    {isUploading ? "Uploading to Cloudinary..." : "Upload Image to Cloudinary"}
+                  </Button>
+                </Upload>
+                {imageUrls.length > 0 && (
+                  <Text type="secondary">{imageUrls.length} image(s) attached</Text>
+                )}
+              </Space>
+
+              <Form.Item name="imageUrlInput" noStyle>
+                <Input placeholder="Or paste direct image URL (https://...)" />
+              </Form.Item>
+
+              {imageUrls.length > 0 && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                  {imageUrls.map((url, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <Image
+                        src={url}
+                        alt="Preview"
+                        width={60}
+                        height={60}
+                        style={{ objectFit: "cover", borderRadius: 4, border: "1px solid #e5e7eb" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Space>
           </Form.Item>
 
           <Form.Item name="description" label="Product Description & Ergonomics">
             <Input.TextArea rows={3} placeholder="Provide key product details..." />
           </Form.Item>
 
-          <Form.Item name="inStock" valuePropName="checked" label="Stock Availability">
-            <Switch checkedChildren="In Stock" unCheckedChildren="Out of Stock" />
-          </Form.Item>
+          <Space size="large">
+            <Form.Item name="isAvailable" valuePropName="checked" label="Stock Status">
+              <Switch checkedChildren="In Stock" unCheckedChildren="Out of Stock" />
+            </Form.Item>
+
+            <Form.Item name="isFeatured" valuePropName="checked" label="Featured on Homepage">
+              <Switch checkedChildren="Yes" unCheckedChildren="No" />
+            </Form.Item>
+          </Space>
         </Form>
       </Modal>
     </div>

@@ -22,187 +22,98 @@ import {
   ClockCircleOutlined,
   CarOutlined,
   CloseCircleOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
+import {
+  useGetAllOrdersQuery,
+  useUpdateOrderStatusMutation,
+  IOrder,
+} from "@/redux/service/orderApi";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-export interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-export interface Order {
-  id: string;
-  customerName: string;
-  phone: string;
-  address: string;
-  city: string;
-  items: OrderItem[];
-  subtotal: number;
-  deliveryFee: number;
-  total: number;
-  orderDate: string;
-  orderStatus: "Pending" | "Confirmed" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
-  paymentStatus: "Paid" | "Pending" | "Refunded";
-  paymentMethod: "bKash" | "Card" | "Nagad" | "COD";
-}
-
-const mockOrders: Order[] = [
-  {
-    id: "ORD-9421",
-    customerName: "Rahim Chowdhury",
-    phone: "+880 1712-345678",
-    address: "House 42, Road 11, Banani",
-    city: "Dhaka",
-    items: [
-      { id: "1", name: "GRID x Steelcase Leap (Pepper Black)", quantity: 1, price: 175000 },
-    ],
-    subtotal: 175000,
-    deliveryFee: 500,
-    total: 175500,
-    orderDate: "2026-11-01 14:20",
-    orderStatus: "Processing",
-    paymentStatus: "Paid",
-    paymentMethod: "bKash",
-  },
-  {
-    id: "ORD-9420",
-    customerName: "Tanvir Ahmed",
-    phone: "+880 1819-876543",
-    address: "Plot 15, Sector 4, Uttara",
-    city: "Dhaka",
-    items: [
-      { id: "2", name: "Indie Motorized Standing Desk (140x70cm)", quantity: 1, price: 65000 },
-      { id: "3", name: "Aeva Minimalist Single Lounge Chair", quantity: 1, price: 42000 },
-    ],
-    subtotal: 107000,
-    deliveryFee: 500,
-    total: 107500,
-    orderDate: "2026-11-01 11:45",
-    orderStatus: "Confirmed",
-    paymentStatus: "Paid",
-    paymentMethod: "Card",
-  },
-  {
-    id: "ORD-9419",
-    customerName: "Sadia Sultana",
-    phone: "+880 1911-223344",
-    address: "East Nasirabad, GEC Circle",
-    city: "Chittagong",
-    items: [
-      { id: "4", name: "GRID x Steelcase Gesture Chair", quantity: 1, price: 195000 },
-    ],
-    subtotal: 195000,
-    deliveryFee: 1500,
-    total: 196500,
-    orderDate: "2026-10-31 18:30",
-    orderStatus: "Shipped",
-    paymentStatus: "Paid",
-    paymentMethod: "Card",
-  },
-  {
-    id: "ORD-9418",
-    customerName: "Mahmud Hasan",
-    phone: "+880 1622-998877",
-    address: "Dhanmondi 27, Apt 4B",
-    city: "Dhaka",
-    items: [
-      { id: "5", name: "Modern Office Credenza / Storage Unit", quantity: 1, price: 48000 },
-    ],
-    subtotal: 48000,
-    deliveryFee: 500,
-    total: 48500,
-    orderDate: "2026-10-31 09:15",
-    orderStatus: "Pending",
-    paymentStatus: "Pending",
-    paymentMethod: "COD",
-  },
-  {
-    id: "ORD-9417",
-    customerName: "Farzana Yasmin",
-    phone: "+880 1733-445566",
-    address: "Sylhet Sadar, Zindabazar",
-    city: "Sylhet",
-    items: [
-      { id: "6", name: "GRID Ergonomic Headrest Edition", quantity: 2, price: 54000 },
-    ],
-    subtotal: 108000,
-    deliveryFee: 1500,
-    total: 109500,
-    orderDate: "2026-10-30 16:00",
-    orderStatus: "Delivered",
-    paymentStatus: "Paid",
-    paymentMethod: "Nagad",
-  },
-];
-
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  const handleStatusChange = (orderId: string, newStatus: Order["orderStatus"]) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, orderStatus: newStatus } : o))
-    );
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder((prev) => (prev ? { ...prev, orderStatus: newStatus } : null));
+  // RTK Query & Mutation
+  const { data: ordersData, isLoading, refetch } = useGetAllOrdersQuery();
+  const [updateOrderStatus, { isLoading: isUpdatingStatus }] = useUpdateOrderStatusMutation();
+
+  const ordersList: IOrder[] = ordersData?.data || [];
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await updateOrderStatus({
+        id: orderId,
+        status: newStatus.toLowerCase(),
+      }).unwrap();
+      message.success(`Order status updated to ${newStatus}`);
+      if (selectedOrder && selectedOrder._id === orderId) {
+        setSelectedOrder((prev) => (prev ? { ...prev, orderStatus: newStatus.toLowerCase() as any } : null));
+      }
+      refetch();
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to update order status");
     }
-    message.success(`Order ${orderId} marked as ${newStatus}`);
   };
 
-  const getStatusTag = (status: Order["orderStatus"]) => {
-    switch (status) {
-      case "Pending":
+  const getStatusTag = (status: string) => {
+    const s = (status || "").toLowerCase();
+    switch (s) {
+      case "pending":
         return <Tag color="gold" icon={<ClockCircleOutlined />}>Pending</Tag>;
-      case "Confirmed":
-        return <Tag color="blue">Confirmed</Tag>;
-      case "Processing":
-        return <Tag color="cyan">Processing</Tag>;
-      case "Shipped":
+      case "processing":
+      case "confirmed":
+        return <Tag color="cyan" icon={<SyncOutlined spin />}>Processing</Tag>;
+      case "shipped":
         return <Tag color="purple" icon={<CarOutlined />}>Shipped</Tag>;
-      case "Delivered":
+      case "delivered":
         return <Tag color="green" icon={<CheckCircleOutlined />}>Delivered</Tag>;
-      case "Cancelled":
+      case "cancelled":
         return <Tag color="red" icon={<CloseCircleOutlined />}>Cancelled</Tag>;
       default:
         return <Tag>{status}</Tag>;
     }
   };
 
-  const getPaymentTag = (status: Order["paymentStatus"]) => {
-    switch (status) {
-      case "Paid":
+  const getPaymentTag = (status: string) => {
+    const s = (status || "").toLowerCase();
+    switch (s) {
+      case "paid":
         return <Tag color="green">Paid</Tag>;
-      case "Pending":
+      case "pending":
         return <Tag color="orange">Unpaid / COD</Tag>;
-      case "Refunded":
+      case "refunded":
         return <Tag color="volcano">Refunded</Tag>;
       default:
         return <Tag>{status}</Tag>;
     }
   };
 
-  const filteredOrders = orders.filter((o) => {
+  const filteredOrders = ordersList.filter((o) => {
+    const orderNo = o.orderNumber || o._id || "";
+    const custName = o.customer?.name || "";
+    const phone = o.customer?.phone || "";
     const matchesSearch =
-      o.id.toLowerCase().includes(searchText.toLowerCase()) ||
-      o.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
-      o.phone.includes(searchText);
-    const matchesStatus = statusFilter === "ALL" || o.orderStatus === statusFilter;
+      orderNo.toLowerCase().includes(searchText.toLowerCase()) ||
+      custName.toLowerCase().includes(searchText.toLowerCase()) ||
+      phone.includes(searchText);
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      (o.orderStatus || "").toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
   const columns = [
     {
       title: "Order ID",
-      dataIndex: "id",
-      key: "id",
-      render: (id: string, record: Order) => (
+      dataIndex: "orderNumber",
+      key: "orderNumber",
+      render: (num: string, record: IOrder) => (
         <a
           onClick={() => {
             setSelectedOrder(record);
@@ -210,43 +121,44 @@ export default function AdminOrdersPage() {
           }}
           style={{ fontWeight: 700, color: "#09090b" }}
         >
-          #{id}
+          #{num || record._id.slice(-6).toUpperCase()}
         </a>
       ),
     },
     {
       title: "Customer",
-      dataIndex: "customerName",
-      key: "customerName",
-      render: (name: string, record: Order) => (
+      key: "customer",
+      render: (_: any, record: IOrder) => (
         <div>
-          <div style={{ fontWeight: 600 }}>{name}</div>
-          <div style={{ fontSize: 12, color: "#8c8c8c" }}>{record.phone}</div>
+          <div style={{ fontWeight: 600 }}>{record.customer?.name || "Customer"}</div>
+          <div style={{ fontSize: 12, color: "#8c8c8c" }}>{record.customer?.phone || record.customer?.email}</div>
         </div>
       ),
     },
     {
       title: "Location",
-      dataIndex: "city",
-      key: "city",
-      render: (city: string) => <Tag>{city}</Tag>,
+      key: "location",
+      render: (_: any, record: IOrder) => (
+        <Tag>{record.shippingAddress?.city || "Dhaka"}</Tag>
+      ),
     },
     {
       title: "Total Amount",
-      dataIndex: "total",
-      key: "total",
-      render: (total: number) => (
-        <span style={{ fontWeight: 700 }}>Tk {total.toLocaleString("en-BD")}</span>
+      dataIndex: "finalAmount",
+      key: "finalAmount",
+      render: (amount: number, record: IOrder) => (
+        <span style={{ fontWeight: 700 }}>
+          Tk {(amount || record.totalAmount || 0).toLocaleString("en-BD")}
+        </span>
       ),
     },
     {
       title: "Payment",
-      dataIndex: "paymentStatus",
-      key: "paymentStatus",
-      render: (status: Order["paymentStatus"], record: Order) => (
+      key: "payment",
+      render: (_: any, record: IOrder) => (
         <div>
-          {getPaymentTag(status)}
-          <span style={{ fontSize: 11, color: "#8c8c8c", marginLeft: 4 }}>
+          {getPaymentTag(record.paymentStatus)}
+          <span style={{ fontSize: 11, color: "#8c8c8c", marginLeft: 4, textTransform: "uppercase" }}>
             ({record.paymentMethod})
           </span>
         </div>
@@ -256,18 +168,22 @@ export default function AdminOrdersPage() {
       title: "Order Status",
       dataIndex: "orderStatus",
       key: "orderStatus",
-      render: (status: Order["orderStatus"]) => getStatusTag(status),
+      render: (status: string) => getStatusTag(status),
     },
     {
       title: "Date",
-      dataIndex: "orderDate",
-      key: "orderDate",
-      render: (date: string) => <span style={{ fontSize: 12, color: "#595959" }}>{date}</span>,
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => (
+        <span style={{ fontSize: 12, color: "#595959" }}>
+          {date ? new Date(date).toLocaleDateString("en-BD", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}
+        </span>
+      ),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: Order) => (
+      render: (_: any, record: IOrder) => (
         <Button
           type="link"
           icon={<EyeOutlined />}
@@ -312,12 +228,11 @@ export default function AdminOrdersPage() {
               style={{ width: 160 }}
             >
               <Option value="ALL">All Statuses</Option>
-              <Option value="Pending">Pending</Option>
-              <Option value="Confirmed">Confirmed</Option>
-              <Option value="Processing">Processing</Option>
-              <Option value="Shipped">Shipped</Option>
-              <Option value="Delivered">Delivered</Option>
-              <Option value="Cancelled">Cancelled</Option>
+              <Option value="pending">Pending</Option>
+              <Option value="processing">Processing</Option>
+              <Option value="shipped">Shipped</Option>
+              <Option value="delivered">Delivered</Option>
+              <Option value="cancelled">Cancelled</Option>
             </Select>
           </Space>
 
@@ -331,7 +246,8 @@ export default function AdminOrdersPage() {
       <Table
         dataSource={filteredOrders}
         columns={columns}
-        rowKey="id"
+        rowKey="_id"
+        loading={isLoading}
         scroll={{ x: 880 }}
         pagination={{
           defaultPageSize: 8,
@@ -351,7 +267,7 @@ export default function AdminOrdersPage() {
 
       {/* Order Detail Drawer */}
       <Drawer
-        title={selectedOrder ? `Order #${selectedOrder.id}` : "Order Details"}
+        title={selectedOrder ? `Order #${selectedOrder.orderNumber || selectedOrder._id.slice(-6).toUpperCase()}` : "Order Details"}
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         width="min(95vw, 560px)"
@@ -368,30 +284,36 @@ export default function AdminOrdersPage() {
             >
               <div>
                 <Text type="secondary">Placed On: </Text>
-                <Text strong>{selectedOrder.orderDate}</Text>
+                <Text strong>
+                  {selectedOrder.createdAt
+                    ? new Date(selectedOrder.createdAt).toLocaleString("en-BD")
+                    : "N/A"}
+                </Text>
               </div>
               <Select
                 value={selectedOrder.orderStatus}
-                onChange={(val) => handleStatusChange(selectedOrder.id, val)}
+                onChange={(val) => handleStatusChange(selectedOrder._id, val)}
+                loading={isUpdatingStatus}
                 style={{ width: 140 }}
               >
-                <Option value="Pending">Pending</Option>
-                <Option value="Confirmed">Confirmed</Option>
-                <Option value="Processing">Processing</Option>
-                <Option value="Shipped">Shipped</Option>
-                <Option value="Delivered">Delivered</Option>
-                <Option value="Cancelled">Cancelled</Option>
+                <Option value="pending">Pending</Option>
+                <Option value="processing">Processing</Option>
+                <Option value="shipped">Shipped</Option>
+                <Option value="delivered">Delivered</Option>
+                <Option value="cancelled">Cancelled</Option>
               </Select>
             </div>
 
             <Descriptions title="Customer Information" bordered size="small" column={1}>
-              <Descriptions.Item label="Name">{selectedOrder.customerName}</Descriptions.Item>
-              <Descriptions.Item label="Phone">{selectedOrder.phone}</Descriptions.Item>
+              <Descriptions.Item label="Name">{selectedOrder.customer?.name}</Descriptions.Item>
+              <Descriptions.Item label="Phone">{selectedOrder.customer?.phone}</Descriptions.Item>
+              <Descriptions.Item label="Email">{selectedOrder.customer?.email}</Descriptions.Item>
               <Descriptions.Item label="Delivery Address">
-                {selectedOrder.address}, {selectedOrder.city}
+                {selectedOrder.shippingAddress?.street}, {selectedOrder.shippingAddress?.city}
+                {selectedOrder.shippingAddress?.postalCode ? ` - ${selectedOrder.shippingAddress?.postalCode}` : ""}
               </Descriptions.Item>
               <Descriptions.Item label="Payment Details">
-                {getPaymentTag(selectedOrder.paymentStatus)} via {selectedOrder.paymentMethod}
+                {getPaymentTag(selectedOrder.paymentStatus)} via {selectedOrder.paymentMethod?.toUpperCase()}
               </Descriptions.Item>
             </Descriptions>
 
@@ -399,9 +321,9 @@ export default function AdminOrdersPage() {
 
             <Title level={5}>Items Ordered</Title>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {selectedOrder.items.map((item) => (
+              {selectedOrder.items?.map((item, idx) => (
                 <div
-                  key={item.id}
+                  key={idx}
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
@@ -413,11 +335,11 @@ export default function AdminOrdersPage() {
                   <div>
                     <div style={{ fontWeight: 600 }}>{item.name}</div>
                     <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-                      Qty: {item.quantity} × Tk {item.price.toLocaleString("en-BD")}
+                      Qty: {item.quantity} × Tk {item.price?.toLocaleString("en-BD")}
                     </div>
                   </div>
                   <div style={{ fontWeight: 700 }}>
-                    Tk {(item.price * item.quantity).toLocaleString("en-BD")}
+                    Tk {((item.price || 0) * (item.quantity || 1)).toLocaleString("en-BD")}
                   </div>
                 </div>
               ))}
@@ -428,17 +350,19 @@ export default function AdminOrdersPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <Text type="secondary">Subtotal:</Text>
-                <Text strong>Tk {selectedOrder.subtotal.toLocaleString("en-BD")}</Text>
+                <Text strong>Tk {(selectedOrder.totalAmount || 0).toLocaleString("en-BD")}</Text>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Text type="secondary">Delivery Fee ({selectedOrder.city}):</Text>
-                <Text strong>Tk {selectedOrder.deliveryFee.toLocaleString("en-BD")}</Text>
-              </div>
+              {selectedOrder.discountAmount ? (
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <Text type="secondary">Discount:</Text>
+                  <Text type="danger">-Tk {selectedOrder.discountAmount.toLocaleString("en-BD")}</Text>
+                </div>
+              ) : null}
               <Divider style={{ margin: "8px 0" }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16 }}>
                 <Text strong>Grand Total:</Text>
                 <Text strong style={{ color: "#09090b", fontSize: 18 }}>
-                  Tk {selectedOrder.total.toLocaleString("en-BD")}
+                  Tk {(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString("en-BD")}
                 </Text>
               </div>
             </div>
