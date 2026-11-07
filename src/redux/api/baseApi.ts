@@ -12,7 +12,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl:
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    "https://api.aiarealty.code-commando.com/api/v1",
+    "http://localhost:5000/api/v1",
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth?.accessToken;
     if (token) {
@@ -58,7 +58,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["auth", "user", "profile", "contact"],
+  tagTypes: ["auth", "user", "profile", "contact", "Product", "Category", "Order", "AdminOverview"],
   endpoints: () => ({}),
 });
 
