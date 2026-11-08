@@ -22,6 +22,7 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 import { useAppSelector } from "@/redux";
+import { useChangePasswordMutation } from "@/redux/service/auth/authApi";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -34,17 +35,27 @@ export default function AdminSettingsPage() {
   const [privacyForm] = Form.useForm();
   const [termsForm] = Form.useForm();
 
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+
   const handleProfileSave = (values: any) => {
     message.success("Admin profile updated successfully!");
   };
 
-  const handlePasswordSave = (values: any) => {
+  const handlePasswordSave = async (values: any) => {
     if (values.newPassword !== values.confirmPassword) {
       message.error("New password and confirm password do not match!");
       return;
     }
-    passwordForm.resetFields();
-    message.success("Password changed successfully!");
+    try {
+      await changePassword({
+        oldPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      }).unwrap();
+      passwordForm.resetFields();
+      message.success("Password changed successfully in database!");
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to change password");
+    }
   };
 
   const handleContentSave = (section: string) => {
@@ -116,6 +127,7 @@ export default function AdminSettingsPage() {
           htmlType="submit"
           icon={<SaveOutlined />}
           size="large"
+          loading={isChangingPassword}
           style={{ background: "#09090b" }}
         >
           Save Profile
@@ -165,6 +177,7 @@ export default function AdminSettingsPage() {
           htmlType="submit"
           icon={<SaveOutlined />}
           size="large"
+          loading={isChangingPassword}
           style={{ background: "#09090b" }}
         >
           Update Password
@@ -202,6 +215,7 @@ export default function AdminSettingsPage() {
           htmlType="submit"
           icon={<SaveOutlined />}
           size="large"
+          loading={isChangingPassword}
           style={{ background: "#09090b" }}
         >
           Save About Us
@@ -239,6 +253,7 @@ export default function AdminSettingsPage() {
           htmlType="submit"
           icon={<SaveOutlined />}
           size="large"
+          loading={isChangingPassword}
           style={{ background: "#09090b" }}
         >
           Save Privacy Policy
@@ -276,6 +291,7 @@ export default function AdminSettingsPage() {
           htmlType="submit"
           icon={<SaveOutlined />}
           size="large"
+          loading={isChangingPassword}
           style={{ background: "#09090b" }}
         >
           Save Terms & Conditions
