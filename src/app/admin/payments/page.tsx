@@ -13,6 +13,9 @@ import {
   Select,
   Input,
   Button,
+  Modal,
+  Descriptions,
+  Divider,
 } from "antd";
 import {
   DollarOutlined,
@@ -21,194 +24,168 @@ import {
   CloseCircleOutlined,
   SearchOutlined,
   CreditCardOutlined,
+  EyeOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
+import { useGetAllOrdersQuery, IOrder } from "@/redux/service/orderApi";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-export interface Transaction {
-  id: string;
-  orderId: string;
-  customerName: string;
-  phone: string;
-  amount: number;
-  method: "bKash" | "Nagad" | "Card" | "COD" | "Bank Transfer";
-  status: "Completed" | "Pending" | "Failed" | "Refunded";
-  timestamp: string;
-  transactionRef: string;
-}
-
-const mockTransactions: Transaction[] = [
-  {
-    id: "TXN-8849101",
-    orderId: "ORD-9421",
-    customerName: "Rahim Chowdhury",
-    phone: "+880 1712-345678",
-    amount: 175500,
-    method: "bKash",
-    status: "Completed",
-    timestamp: "2026-11-01 14:22",
-    transactionRef: "BKH920491823",
-  },
-  {
-    id: "TXN-8849102",
-    orderId: "ORD-9420",
-    customerName: "Tanvir Ahmed",
-    phone: "+880 1819-876543",
-    amount: 107500,
-    method: "Card",
-    status: "Completed",
-    timestamp: "2026-11-01 11:47",
-    transactionRef: "AUTH_CARD_99210",
-  },
-  {
-    id: "TXN-8849103",
-    orderId: "ORD-9419",
-    customerName: "Sadia Sultana",
-    phone: "+880 1911-223344",
-    amount: 196500,
-    method: "Card",
-    status: "Completed",
-    timestamp: "2026-10-31 18:32",
-    transactionRef: "AUTH_CARD_99201",
-  },
-  {
-    id: "TXN-8849104",
-    orderId: "ORD-9418",
-    customerName: "Mahmud Hasan",
-    phone: "+880 1622-998877",
-    amount: 48500,
-    method: "COD",
-    status: "Pending",
-    timestamp: "2026-10-31 09:15",
-    transactionRef: "COD_RECEIVABLE",
-  },
-  {
-    id: "TXN-8849105",
-    orderId: "ORD-9417",
-    customerName: "Farzana Yasmin",
-    phone: "+880 1733-445566",
-    amount: 109500,
-    method: "Nagad",
-    status: "Completed",
-    timestamp: "2026-10-30 16:05",
-    transactionRef: "NGD83921049",
-  },
-];
-
 export default function AdminPaymentsPage() {
-  const [transactions] = useState<Transaction[]>(mockTransactions);
+  const { data: ordersData, isLoading } = useGetAllOrdersQuery();
   const [searchText, setSearchText] = useState("");
   const [methodFilter, setMethodFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [selectedPayment, setSelectedPayment] = useState<IOrder | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const getMethodTag = (method: Transaction["method"]) => {
-    switch (method) {
-      case "bKash":
-        return <Tag color="#e2136e">bKash</Tag>;
-      case "Nagad":
-        return <Tag color="#f7941d">Nagad</Tag>;
-      case "Card":
-        return <Tag color="#1890ff">Credit/Debit Card</Tag>;
-      case "COD":
+  const orders: IOrder[] = ordersData?.data || [];
+
+  const getMethodTag = (method: string) => {
+    const m = (method || "").toLowerCase();
+    switch (m) {
+      case "sslcommerz":
+        return <Tag color="#e2136e">SSLCommerz (bKash/Cards)</Tag>;
+      case "stripe":
+        return <Tag color="#1890ff">Stripe (International Cards)</Tag>;
+      case "cod":
         return <Tag color="#722ed1">Cash on Delivery</Tag>;
       default:
-        return <Tag>{method}</Tag>;
+        return <Tag color="blue">{method?.toUpperCase() || "COD"}</Tag>;
     }
   };
 
-  const getStatusTag = (status: Transaction["status"]) => {
-    switch (status) {
-      case "Completed":
-        return <Tag color="green" icon={<CheckCircleOutlined />}>Completed</Tag>;
-      case "Pending":
-        return <Tag color="orange" icon={<ClockCircleOutlined />}>Pending</Tag>;
-      case "Failed":
+  const getStatusTag = (status: string) => {
+    const s = (status || "").toLowerCase();
+    switch (s) {
+      case "paid":
+        return <Tag color="green" icon={<CheckCircleOutlined />}>Paid / Settled</Tag>;
+      case "pending":
+        return <Tag color="orange" icon={<ClockCircleOutlined />}>Pending Payment</Tag>;
+      case "failed":
         return <Tag color="red" icon={<CloseCircleOutlined />}>Failed</Tag>;
-      case "Refunded":
+      case "refunded":
         return <Tag color="volcano">Refunded</Tag>;
       default:
         return <Tag>{status}</Tag>;
     }
   };
 
-  const filteredTransactions = transactions.filter((t) => {
-    const matchesSearch =
-      t.id.toLowerCase().includes(searchText.toLowerCase()) ||
-      t.orderId.toLowerCase().includes(searchText.toLowerCase()) ||
-      t.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
-      t.transactionRef.toLowerCase().includes(searchText.toLowerCase());
+  const filteredOrders = orders.filter((o) => {
+    const orderNo = o.orderNumber || o._id || "";
+    const custName = o.customer?.name || "";
+    const phone = o.customer?.phone || "";
+    const method = (o.paymentMethod || "cod").toLowerCase();
+    const status = (o.paymentStatus || "pending").toLowerCase();
 
-    const matchesMethod = methodFilter === "ALL" || t.method === methodFilter;
-    const matchesStatus = statusFilter === "ALL" || t.status === statusFilter;
+    const matchesSearch =
+      orderNo.toLowerCase().includes(searchText.toLowerCase()) ||
+      custName.toLowerCase().includes(searchText.toLowerCase()) ||
+      phone.includes(searchText);
+
+    const matchesMethod = methodFilter === "ALL" || method === methodFilter.toLowerCase();
+    const matchesStatus = statusFilter === "ALL" || status === statusFilter.toLowerCase();
 
     return matchesSearch && matchesMethod && matchesStatus;
   });
 
-  const totalSettled = transactions
-    .filter((t) => t.status === "Completed")
-    .reduce((acc, curr) => acc + curr.amount, 0);
+  const getOrderTotal = (o: IOrder) =>
+    (o as any).pricing?.total || o.finalAmount || o.totalAmount || 0;
 
-  const pendingAmount = transactions
-    .filter((t) => t.status === "Pending")
-    .reduce((acc, curr) => acc + curr.amount, 0);
+  const totalSettled = orders
+    .filter((o) => (o.paymentStatus || "").toLowerCase() === "paid")
+    .reduce((acc, curr) => acc + getOrderTotal(curr), 0);
+
+  const pendingAmount = orders
+    .filter((o) => (o.paymentStatus || "").toLowerCase() === "pending")
+    .reduce((acc, curr) => acc + getOrderTotal(curr), 0);
+
+  const totalRevenueAll = orders.reduce((acc, curr) => acc + getOrderTotal(curr), 0);
 
   const columns = [
     {
-      title: "Transaction ID",
-      dataIndex: "id",
-      key: "id",
-      render: (id: string, record: Transaction) => (
+      title: "Transaction / Order Ref",
+      key: "ref",
+      render: (_: any, record: IOrder) => {
+        const tranId =
+          (record as any).payment?.transactionId ||
+          `TXN-${record.orderNumber || record._id.slice(-6).toUpperCase()}`;
+        return (
+          <div>
+            <div style={{ fontWeight: 700, color: "#09090b" }}>{tranId}</div>
+            <div style={{ fontSize: 11, color: "#8c8c8c" }}>
+              Order: #{record.orderNumber || record._id.slice(-6).toUpperCase()}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Customer Details",
+      key: "customer",
+      render: (_: any, record: IOrder) => (
         <div>
-          <div style={{ fontWeight: 700, color: "#09090b" }}>{id}</div>
-          <div style={{ fontSize: 11, color: "#8c8c8c" }}>Ref: {record.transactionRef}</div>
+          <div style={{ fontWeight: 600 }}>{record.customer?.name || "Customer"}</div>
+          <div style={{ fontSize: 12, color: "#8c8c8c" }}>
+            {record.customer?.phone || record.customer?.email}
+          </div>
         </div>
       ),
     },
     {
-      title: "Order ID",
-      dataIndex: "orderId",
-      key: "orderId",
-      render: (orderId: string) => <Tag color="default">#{orderId}</Tag>,
-    },
-    {
-      title: "Customer",
-      dataIndex: "customerName",
-      key: "customerName",
-      render: (name: string, record: Transaction) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>{name}</div>
-          <div style={{ fontSize: 12, color: "#8c8c8c" }}>{record.phone}</div>
-        </div>
-      ),
-    },
-    {
-      title: "Payment Method",
-      dataIndex: "method",
-      key: "method",
-      render: (method: Transaction["method"]) => getMethodTag(method),
+      title: "Channel / Gateway",
+      dataIndex: "paymentMethod",
+      key: "paymentMethod",
+      render: (method: string) => getMethodTag(method),
     },
     {
       title: "Amount (BDT)",
-      dataIndex: "amount",
       key: "amount",
-      render: (amount: number) => (
+      render: (_: any, record: IOrder) => (
         <span style={{ fontWeight: 700, fontSize: 14 }}>
-          Tk {amount.toLocaleString("en-BD")}
+          Tk {getOrderTotal(record).toLocaleString("en-BD")}
         </span>
       ),
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status: Transaction["status"]) => getStatusTag(status),
+      title: "Payment Status",
+      dataIndex: "paymentStatus",
+      key: "paymentStatus",
+      render: (status: string) => getStatusTag(status),
     },
     {
-      title: "Timestamp",
-      dataIndex: "timestamp",
-      key: "timestamp",
-      render: (time: string) => <span style={{ fontSize: 12, color: "#595959" }}>{time}</span>,
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => (
+        <span style={{ fontSize: 12, color: "#595959" }}>
+          {date
+            ? new Date(date).toLocaleDateString("en-BD", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: IOrder) => (
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => {
+            setSelectedPayment(record);
+            setIsModalOpen(true);
+          }}
+        >
+          Details
+        </Button>
+      ),
     },
   ];
 
@@ -217,64 +194,67 @@ export default function AdminPaymentsPage() {
       {/* Title */}
       <div style={{ marginBottom: 20 }}>
         <Title level={3} style={{ margin: 0 }}>
-          Payment & Transaction Reconciliation
+          Payment & Transaction Log
         </Title>
         <Text type="secondary">
-          Monitor payment receipts across bKash, Nagad, Credit Cards, and Cash on Delivery.
+          Monitor incoming payments across SSLCommerz, Credit Cards, and Cash on Delivery.
         </Text>
       </div>
 
       {/* KPI Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={8}>
           <Card bordered hoverable>
             <Statistic
-              title="Total Settled Payments"
+              title="Settled Revenue (Paid)"
               value={totalSettled}
               prefix="Tk "
               valueStyle={{ color: "#3f8600", fontWeight: 700 }}
+              loading={isLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Successfully processed transactions
+              Verified gateway & settled transactions
             </Text>
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={8}>
           <Card bordered hoverable>
             <Statistic
-              title="Pending Receivable / COD"
+              title="Pending Receivables (COD / Unpaid)"
               value={pendingAmount}
               prefix="Tk "
-              valueStyle={{ color: "#faad14", fontWeight: 700 }}
+              valueStyle={{ color: "#fa8c16", fontWeight: 700 }}
+              loading={isLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Awaiting cash collection on delivery
+              Awaiting delivery collection
             </Text>
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={8}>
           <Card bordered hoverable>
             <Statistic
-              title="Settled Transactions"
-              value={transactions.filter((t) => t.status === "Completed").length}
-              suffix={`/ ${transactions.length}`}
+              title="Total Transactions Volume"
+              value={orders.length}
+              prefix={<WalletOutlined />}
               valueStyle={{ color: "#09090b", fontWeight: 700 }}
+              loading={isLoading}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              100% gateway reconciliation rate
+              Gross value: Tk {totalRevenueAll.toLocaleString("en-BD")}
             </Text>
           </Card>
         </Col>
       </Row>
 
-      {/* Filters */}
+      {/* Filter Card */}
       <Card bodyStyle={{ padding: "16px 20px" }} style={{ marginBottom: 16 }}>
         <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
           <Space wrap>
             <Input
-              placeholder="Search by ID, Order, Customer, Ref..."
+              placeholder="Search by Order ID, Name, Phone..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -286,36 +266,36 @@ export default function AdminPaymentsPage() {
               onChange={setMethodFilter}
               style={{ width: 170 }}
             >
-              <Option value="ALL">All Methods</Option>
-              <Option value="bKash">bKash</Option>
-              <Option value="Nagad">Nagad</Option>
-              <Option value="Card">Credit/Debit Card</Option>
-              <Option value="COD">Cash on Delivery</Option>
+              <Option value="ALL">All Payment Channels</Option>
+              <Option value="sslcommerz">SSLCommerz</Option>
+              <Option value="stripe">Stripe</Option>
+              <Option value="cod">Cash on Delivery</Option>
             </Select>
             <Select
               value={statusFilter}
               onChange={setStatusFilter}
-              style={{ width: 150 }}
+              style={{ width: 160 }}
             >
               <Option value="ALL">All Statuses</Option>
-              <Option value="Completed">Completed</Option>
-              <Option value="Pending">Pending</Option>
-              <Option value="Failed">Failed</Option>
-              <Option value="Refunded">Refunded</Option>
+              <Option value="paid">Paid / Settled</Option>
+              <Option value="pending">Pending</Option>
+              <Option value="failed">Failed</Option>
+              <Option value="refunded">Refunded</Option>
             </Select>
           </Space>
 
           <Text type="secondary">
-            Transactions: <strong>{filteredTransactions.length}</strong>
+            Showing <strong>{filteredOrders.length}</strong> transactions
           </Text>
         </Space>
       </Card>
 
-      {/* Transaction Table */}
+      {/* Table */}
       <Table
-        dataSource={filteredTransactions}
+        dataSource={filteredOrders}
         columns={columns}
-        rowKey="id"
+        rowKey="_id"
+        loading={isLoading}
         scroll={{ x: 800 }}
         pagination={{
           defaultPageSize: 8,
@@ -325,13 +305,90 @@ export default function AdminPaymentsPage() {
           responsive: true,
           showTotal: (total, range) => (
             <span style={{ fontSize: 13, color: "#595959" }}>
-              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> transactions
+              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> records
             </span>
           ),
           position: ["bottomRight"],
           style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
         }}
       />
+
+      {/* Details Modal */}
+      <Modal
+        title={
+          selectedPayment
+            ? `Transaction Details - #${selectedPayment.orderNumber || selectedPayment._id.slice(-6).toUpperCase()}`
+            : "Transaction Details"
+        }
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={[
+          <Button key="close" type="primary" style={{ background: "#09090b" }} onClick={() => setIsModalOpen(false)}>
+            Close
+          </Button>,
+        ]}
+        width="min(95vw, 560px)"
+      >
+        {selectedPayment && (
+          <div style={{ marginTop: 16 }}>
+            <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label="Order Number">
+                #{selectedPayment.orderNumber || selectedPayment._id.slice(-6).toUpperCase()}
+              </Descriptions.Item>
+              <Descriptions.Item label="Customer">
+                {selectedPayment.customer?.name} ({selectedPayment.customer?.phone})
+              </Descriptions.Item>
+              <Descriptions.Item label="Email">
+                {selectedPayment.customer?.email}
+              </Descriptions.Item>
+              <Descriptions.Item label="Payment Gateway">
+                {getMethodTag(selectedPayment.paymentMethod)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Payment Status">
+                {getStatusTag(selectedPayment.paymentStatus)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Total Amount">
+                Tk {getOrderTotal(selectedPayment).toLocaleString("en-BD")}
+              </Descriptions.Item>
+              <Descriptions.Item label="Delivery Address">
+                {selectedPayment.shippingAddress?.street}, {selectedPayment.shippingAddress?.city}
+              </Descriptions.Item>
+              <Descriptions.Item label="Order Placed At">
+                {selectedPayment.createdAt
+                  ? new Date(selectedPayment.createdAt).toLocaleString("en-BD")
+                  : "N/A"}
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Divider style={{ margin: "16px 0" }} />
+            <Title level={5}>Ordered Items</Title>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {selectedPayment.items?.map((item, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 12px",
+                    background: "#f9f9f9",
+                    borderRadius: 6,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{item.name}</div>
+                    <div style={{ fontSize: 12, color: "#8c8c8c" }}>
+                      Qty: {item.quantity} × Tk {item.price?.toLocaleString("en-BD")}
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: 700 }}>
+                    Tk {((item.price || 0) * (item.quantity || 1)).toLocaleString("en-BD")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
