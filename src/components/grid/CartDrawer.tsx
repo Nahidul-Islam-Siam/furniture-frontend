@@ -16,7 +16,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useCreateOrderMutation } from "@/redux/service/orderApi";
+import { useCreateOrderMutation, useInitiateSSLCommerzMutation } from "@/redux/service/orderApi";
 import { useAppSelector } from "@/redux";
 
 export const CartDrawer: React.FC = () => {
@@ -34,6 +34,7 @@ export const CartDrawer: React.FC = () => {
 
   const { user } = useAppSelector((state) => state.auth);
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
+  const [initiateSSLCommerz, { isLoading: isInitiatingSSL }] = useInitiateSSLCommerzMutation();
 
   const [step, setStep] = useState<"cart" | "checkout">("cart");
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -97,7 +98,26 @@ export const CartDrawer: React.FC = () => {
       const res = await createOrder(orderPayload as any).unwrap();
 
       if (res.success && res.data) {
+        const orderId = res.data._id;
         const orderNo = res.data.orderNumber || res.data._id.slice(-6).toUpperCase();
+
+        if (paymentMethod === "sslcommerz") {
+          toast.loading("Connecting to SSLCommerz Payment Gateway...");
+          try {
+            const sslRes = await initiateSSLCommerz(orderId).unwrap();
+            if (sslRes?.data?.gatewayUrl) {
+              clearCart();
+              window.location.href = sslRes.data.gatewayUrl;
+              return;
+            }
+          } catch (sslErr: any) {
+            toast.error(
+              sslErr?.data?.message ||
+                "Payment gateway unavailable. Order saved as Cash on Delivery."
+            );
+          }
+        }
+
         setPlacedOrderNumber(orderNo);
         setOrderSuccess(true);
         clearCart();
@@ -473,13 +493,16 @@ export const CartDrawer: React.FC = () => {
                 <button
                   type="submit"
                   form="checkout-form"
-                  disabled={isCreatingOrder}
+                  disabled={isCreatingOrder || isInitiatingSSL}
                   className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-medium text-sm rounded-full flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99] disabled:opacity-75"
                 >
-                  {isCreatingOrder ? (
-                    <span>Placing Order in Database...</span>
+                  {isCreatingOrder || isInitiatingSSL ? (
+                    <span>Processing & Connecting...</span>
                   ) : (
-                    <span>Confirm Order • Tk {(subtotal + (subtotal >= freeDeliveryThreshold ? 0 : 500)).toLocaleString()}</span>
+                    <span>
+                      {paymentMethod === "sslcommerz" ? "Pay via SSLCommerz" : "Confirm Order"} • Tk{" "}
+                      {(subtotal + (subtotal >= freeDeliveryThreshold ? 0 : 500)).toLocaleString()}
+                    </span>
                   )}
                 </button>
               </>
