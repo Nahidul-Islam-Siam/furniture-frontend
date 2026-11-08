@@ -237,16 +237,17 @@ export default function Collections() {
                 >
                   {/* Card Image */}
                   <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-50 border border-neutral-100 cursor-pointer">
-                    <img
-                      src={
-                        isHovered && hasAltImage
-                          ? product.images[1]
-                          : product.images[0]
-                      }
-                      alt={product.title}
-                      className="w-full h-full object-cover object-center transition-all duration-500 ease-out group-hover:scale-105"
-                      onClick={() => openQuickView(product)}
-                    />
+                    <Link to={product.link} className="block w-full h-full">
+                      <img
+                        src={
+                          isHovered && hasAltImage
+                            ? product.images[1]
+                            : product.images[0]
+                        }
+                        alt={product.title}
+                        className="w-full h-full object-cover object-center transition-all duration-500 ease-out group-hover:scale-105"
+                      />
+                    </Link>
 
                     {product.tag && (
                       <span
@@ -295,11 +296,13 @@ export default function Collections() {
                         ))}
                       </div>
 
-                      <h3
-                        onClick={() => openQuickView(product)}
-                        className="font-sans font-medium text-xs sm:text-sm text-neutral-800 hover:text-black line-clamp-2 cursor-pointer transition-colors"
-                      >
-                        {product.title}
+                      <h3>
+                        <Link
+                          to={product.link}
+                          className="font-sans font-medium text-xs sm:text-sm text-neutral-800 hover:text-black line-clamp-2 transition-colors no-underline"
+                        >
+                          {product.title}
+                        </Link>
                       </h3>
                     </div>
 

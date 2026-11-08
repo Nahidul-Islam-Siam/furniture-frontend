@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { CHAIR_PRODUCTS, TABLE_PRODUCTS, Product } from '../../data/gridData';
 import { useQuickView } from '../../context/QuickViewContext';
 import { useCart } from '../../context/CartContext';
@@ -175,11 +176,13 @@ export const CollectionSwitcher = () => {
                         ))}
                       </div>
 
-                      <h3
-                        onClick={() => openQuickView(product)}
-                        className="font-sans font-medium text-xs sm:text-sm text-neutral-800 hover:text-black line-clamp-2 cursor-pointer transition-colors"
-                      >
-                        {product.title}
+                      <h3>
+                        <Link
+                          href={product.link}
+                          className="font-sans font-medium text-xs sm:text-sm text-neutral-800 hover:text-black line-clamp-2 transition-colors no-underline"
+                        >
+                          {product.title}
+                        </Link>
                       </h3>
                     </div>
 

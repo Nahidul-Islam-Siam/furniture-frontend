@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  ShoppingBag,
   User as UserIcon,
   CreditCard,
   Settings,
@@ -34,8 +35,8 @@ export default function DashboardLayout({
 
   const navItems = [
     { name: "Dashboard Overview", path: "/dashboard", icon: LayoutDashboard, end: true },
+    { name: "My Orders", path: "/dashboard/orders", icon: ShoppingBag },
     { name: "My Profile", path: "/dashboard/profile", icon: UserIcon },
-    { name: "Billing & Plans", path: "/dashboard/billing", icon: CreditCard },
     { name: "Account Settings", path: "/dashboard/settings", icon: Settings },
   ];
 
