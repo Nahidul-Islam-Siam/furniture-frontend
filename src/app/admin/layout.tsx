@@ -22,6 +22,7 @@ import {
   OrderedListOutlined,
   CreditCardOutlined,
   SettingOutlined,
+  StarOutlined,
   LogoutOutlined,
   HomeOutlined,
   BellOutlined,
@@ -78,6 +79,11 @@ export default function AdminLayout({
       key: "/admin/payments",
       icon: <CreditCardOutlined />,
       label: <Link href="/admin/payments">Payments</Link>,
+    },
+    {
+      key: "/admin/reviews",
+      icon: <StarOutlined />,
+      label: <Link href="/admin/reviews">Reviews</Link>,
     },
     {
       key: "/admin/settings",
