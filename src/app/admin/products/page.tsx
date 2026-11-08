@@ -45,18 +45,35 @@ export default function AdminProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<IProductItem | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const [form] = Form.useForm();
 
-  // RTK Queries
+  // Debounce search input
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchText.trim());
+      setCurrentPage(1);
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [searchText]);
+
+  // RTK Queries with real Server-Side Pagination
   const {
     data: productsData,
     isLoading: isProductsLoading,
     refetch: refetchProducts,
-  } = useGetProductsQuery({ limit: 100 });
+  } = useGetProductsQuery({
+    page: currentPage,
+    limit: pageSize,
+    searchTerm: debouncedSearch || undefined,
+    category: selectedCategory !== "ALL" ? selectedCategory : undefined,
+  });
 
   const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
 
@@ -388,20 +405,26 @@ export default function AdminProductsPage() {
           </Space>
 
           <Text type="secondary">
-            Showing <strong>{filteredProducts.length}</strong> live catalog items
+            Showing <strong>{productsData?.meta?.total ?? productsList.length}</strong> live catalog items
           </Text>
         </Space>
       </Card>
 
       {/* Product List Table */}
       <Table
-        dataSource={filteredProducts}
+        dataSource={productsList}
         columns={columns}
         rowKey="_id"
         loading={isProductsLoading}
         scroll={{ x: 800 }}
         pagination={{
-          defaultPageSize: 8,
+          current: currentPage,
+          pageSize: pageSize,
+          total: productsData?.meta?.total ?? productsList.length,
+          onChange: (page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          },
           pageSizeOptions: ["8", "16", "24", "48"],
           showSizeChanger: true,
           showQuickJumper: true,

@@ -1,31 +1,39 @@
 import { useState } from 'react';
 import { FooterPromotions } from '../components/grid/FooterPromotions';
 import { toast } from 'sonner';
-import { CheckCircle2, MapPin } from 'lucide-react';
+import { CheckCircle2, MapPin, Loader2 } from 'lucide-react';
+import { useAddContactMutation } from '@/redux/service/contactApi/contactApi';
 
 export default function Contact() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [addContact, { isLoading }] = useAddContactMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await addContact({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        subject: 'General Customer Contact',
+        message: message.trim(),
+      }).unwrap();
+
       setIsSubmitted(true);
-      toast.success('Thanks for contacting us. We’ll get back to you as soon as possible.');
+      toast.success('Thanks for contacting us. We will get back to you as soon as possible.');
       setName('');
       setEmail('');
       setMessage('');
-    }, 600);
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to submit message. Please try again.');
+    }
   };
 
   return (

@@ -16,8 +16,18 @@ export default function Collections() {
   const { openQuickView } = useQuickView();
   const { addToCart } = useCart();
 
-  // Live Backend Data
-  const { data: backendProductsData, isLoading: isProductsLoading } = useGetProductsQuery({ limit: 100 });
+  const sortParam = useMemo(() => {
+    if (selectedSort === 'price-asc') return 'price';
+    if (selectedSort === 'price-desc') return '-price';
+    if (selectedSort === 'name') return 'name';
+    return '-isFeatured,-createdAt';
+  }, [selectedSort]);
+
+  // Live Backend Data with responsive page sizing and sorting
+  const { data: backendProductsData, isLoading: isProductsLoading } = useGetProductsQuery({
+    limit: 24,
+    sort: sortParam,
+  });
   const { data: categoriesData } = useGetCategoriesQuery();
 
   // Normalize category name
