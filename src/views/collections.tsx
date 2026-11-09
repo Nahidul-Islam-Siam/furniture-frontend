@@ -275,18 +275,15 @@ export default function Collections() {
                       </span>
                     )}
 
-                    {/* Quick Shop Overlay */}
+                    {/* View Details Overlay */}
                     <div className="absolute inset-x-3 bottom-3 hidden sm:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openQuickView(product);
-                        }}
-                        className="flex-1 py-2 px-3 bg-white/95 backdrop-blur-sm text-neutral-900 text-xs font-semibold rounded-full shadow-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-1.5"
+                      <Link
+                        href={product.link}
+                        className="flex-1 py-2 px-3 bg-white/95 backdrop-blur-sm text-neutral-900 text-xs font-semibold rounded-full shadow-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-1.5 no-underline"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        Quick Shop
-                      </button>
+                        View Details
+                      </Link>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

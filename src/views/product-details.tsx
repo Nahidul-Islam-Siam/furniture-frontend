@@ -81,6 +81,25 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
     ];
   }, [product]);
 
+  const renderRichDescription = (text: string) => {
+    if (!text) return "";
+    let html = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    html = html.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-neutral-900 mt-3 mb-1.5">$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-neutral-900 mt-4 mb-2 pb-1 border-b border-neutral-100">$1</h2>');
+    html = html.replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-neutral-900">$1</strong>');
+    html = html.replace(/\*(.*?)\*/gim, '<em class="italic">$1</em>');
+    html = html.replace(/__(.*?)__/gim, '<u class="underline">$1</u>');
+    html = html.replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-[#e07548] pl-3 py-1 my-2 bg-neutral-50 text-neutral-700 italic">$1</blockquote>');
+    html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="list-disc ml-5 my-0.5">$1</li>');
+    html = html.replace(/^\s*\*\s+(.*$)/gim, '<li class="list-disc ml-5 my-0.5">$1</li>');
+    html = html.replace(/\n{2,}/g, '</p><p class="my-2">');
+    return `<p class="my-1">${html}</p>`;
+  };
+
   const currentImage = images[selectedImageIndex] || images[0];
 
   const categoryName = useMemo(() => {
@@ -384,10 +403,13 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                 </span>
               </div>
 
-              {/* Description Excerpt */}
-              <p className="text-sm text-neutral-600 leading-relaxed pt-2">
-                {product.description}
-              </p>
+              {/* Description Excerpt with Rich Formatting */}
+              <div
+                className="text-sm text-neutral-600 leading-relaxed pt-2"
+                dangerouslySetInnerHTML={{
+                  __html: renderRichDescription(product.description || ""),
+                }}
+              />
 
               {/* Color / Variant Swatches */}
               {product.colors && product.colors.length > 0 && (
@@ -532,7 +554,12 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
           <div className="max-w-4xl mx-auto py-8 text-neutral-700 leading-relaxed">
             {activeTab === "desc" && (
               <div className="space-y-4">
-                <p>{product.description}</p>
+                <div
+                  className="leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: renderRichDescription(product.description || ""),
+                  }}
+                />
                 <p>
                   Every piece in the {categoryName} collection is designed to
                   balance ergonomic functionality with Scandinavian minimalist

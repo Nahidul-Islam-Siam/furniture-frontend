@@ -101,31 +101,32 @@ export const CollectionSwitcher = () => {
                   {/* Product Image Card with Image Crossfade */}
                   <div
                     className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-50 border border-neutral-100 cursor-pointer"
-                    onClick={() => openQuickView(product)}
                   >
-                    {/* Primary Image */}
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      className={`w-full h-full object-cover object-center transition-all duration-700 ease-out ${
-                        isHovered && hasAltImage
-                          ? 'opacity-0 scale-105'
-                          : 'opacity-100 scale-100 group-hover:scale-105'
-                      }`}
-                    />
-
-                    {/* Secondary Angle Image on Hover */}
-                    {hasAltImage && (
+                    <Link href={product.link} className="block w-full h-full">
+                      {/* Primary Image */}
                       <img
-                        src={product.images[1]}
+                        src={product.images[0]}
                         alt={product.title}
-                        className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
-                          isHovered
-                            ? 'opacity-100 scale-105'
-                            : 'opacity-0 scale-100 pointer-events-none'
+                        className={`w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+                          isHovered && hasAltImage
+                            ? 'opacity-0 scale-105'
+                            : 'opacity-100 scale-100 group-hover:scale-105'
                         }`}
                       />
-                    )}
+
+                      {/* Secondary Angle Image on Hover */}
+                      {hasAltImage && (
+                        <img
+                          src={product.images[1]}
+                          alt={product.title}
+                          className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+                            isHovered
+                              ? 'opacity-100 scale-105'
+                              : 'opacity-0 scale-100 pointer-events-none'
+                          }`}
+                        />
+                      )}
+                    </Link>
 
                     {/* Badge */}
                     {product.tag && (
@@ -140,18 +141,16 @@ export const CollectionSwitcher = () => {
                       </span>
                     )}
 
-                    {/* Quick Shop Floating Overlay on Desktop */}
+                    {/* View Details Floating Overlay on Desktop */}
                     <div className="absolute inset-x-3 bottom-3 hidden sm:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-3 group-hover:translate-y-0 z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openQuickView(product);
-                        }}
-                        className="flex-1 py-2 px-3 bg-white/95 backdrop-blur-sm text-neutral-900 text-xs font-semibold rounded-full shadow-lg hover:bg-black hover:text-white transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                      <Link
+                        href={product.link}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 py-2 px-3 bg-white/95 backdrop-blur-sm text-neutral-900 text-xs font-semibold rounded-full shadow-lg hover:bg-black hover:text-white transition-all flex items-center justify-center gap-1.5 active:scale-95 no-underline"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        Quick Shop
-                      </button>
+                        View Details
+                      </Link>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

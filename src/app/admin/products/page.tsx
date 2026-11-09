@@ -27,7 +27,9 @@ import {
   EditOutlined,
   UploadOutlined,
   LoadingOutlined,
+  CloseCircleFilled,
 } from "@ant-design/icons";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
   useGetProductsQuery,
   useCreateProductMutation,
@@ -122,28 +124,71 @@ export default function AdminProductsPage() {
     setIsModalOpen(true);
   };
 
-  // Upload image to backend Cloudinary
+  // Upload image to backend Cloudinary with instant FileReader fallback
   const handleImageUpload = async (file: File) => {
+    setIsUploading(true);
+    let previewBase64 = "";
+
+    // 1. Instant local preview via FileReader
     try {
-      setIsUploading(true);
+      const reader = new FileReader();
+      const readPromise = new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      previewBase64 = await readPromise;
+    } catch {
+      // FileReader error silent
+    }
+
+    // 2. Upload to Cloudinary via backend
+    try {
       const formData = new FormData();
       formData.append("files", file);
 
       const res = await uploadFile(formData).unwrap();
       if (res.success && res.data) {
-        const uploadedUrl = Array.isArray(res.data) ? res.data[0]?.url : res.data?.url;
+        const uploadedUrl = Array.isArray(res.data) ? res.data[0]?.url : (res.data as any)?.url;
         if (uploadedUrl) {
           setImageUrls((prev) => [...prev, uploadedUrl]);
-          form.setFieldsValue({ imageUrlInput: uploadedUrl });
+          form.setFieldsValue({ imageUrlInput: "" });
           message.success("Image uploaded to Cloudinary successfully!");
+          return false;
         }
       }
     } catch (err: any) {
-      message.error(err?.data?.message || "Failed to upload image to Cloudinary");
+      // If backend is offline or network fails, attach base64 preview so user is NEVER blocked
+      if (previewBase64) {
+        setImageUrls((prev) => [...prev, previewBase64]);
+        form.setFieldsValue({ imageUrlInput: "" });
+        message.warning("Backend upload offline: Image attached locally and will be saved with product!");
+        return false;
+      }
+      message.error(err?.data?.message || "Failed to upload image. Please try pasting an image URL.");
     } finally {
       setIsUploading(false);
     }
     return false; // Prevent Ant Design default XHR upload
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setImageUrls((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    message.info("Image removed from gallery");
+  };
+
+  const handleAddDirectUrl = (url: string) => {
+    const cleanUrl = url.trim();
+    if (!cleanUrl) {
+      message.warning("Please enter a valid image URL");
+      return;
+    }
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("data:image/")) {
+      message.warning("Image URL must start with http:// or https://");
+      return;
+    }
+    setImageUrls((prev) => [...prev, cleanUrl]);
+    form.setFieldsValue({ imageUrlInput: "" });
+    message.success("Image URL added to gallery!");
   };
 
   // Save product (create or update)
@@ -509,38 +554,97 @@ export default function AdminProductsPage() {
           </Space>
 
           {/* Cloudinary Image Upload or Direct URL */}
-          <Form.Item label="Product Image">
+          <Form.Item label="Product Gallery & Cover Images" required>
             <Space direction="vertical" style={{ width: "100%" }}>
               <Space wrap>
                 <Upload
                   beforeUpload={handleImageUpload}
                   showUploadList={false}
+                  multiple={true}
                   accept="image/*"
                 >
                   <Button icon={isUploading ? <LoadingOutlined /> : <UploadOutlined />} disabled={isUploading}>
-                    {isUploading ? "Uploading to Cloudinary..." : "Upload Image to Cloudinary"}
+                    {isUploading ? "Uploading to Cloudinary..." : "Upload Image(s) from Device"}
                   </Button>
                 </Upload>
                 {imageUrls.length > 0 && (
-                  <Text type="secondary">{imageUrls.length} image(s) attached</Text>
+                  <Tag color="green">{imageUrls.length} image(s) in gallery</Tag>
                 )}
               </Space>
 
+              {/* Direct URL input with Add button */}
               <Form.Item name="imageUrlInput" noStyle>
-                <Input placeholder="Or paste direct image URL (https://...)" />
+                <Input.Search
+                  placeholder="Or paste external/Cloudinary image URL (https://...)"
+                  enterButton="+ Add URL"
+                  onSearch={(val) => handleAddDirectUrl(val)}
+                />
               </Form.Item>
 
+              {/* Thumbnails with delete button */}
               {imageUrls.length > 0 && (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 }}>
                   {imageUrls.map((url, idx) => (
-                    <div key={idx} style={{ position: "relative" }}>
+                    <div
+                      key={idx}
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        borderRadius: 6,
+                        overflow: "hidden",
+                        border: idx === 0 ? "2px solid #e07548" : "1px solid #e5e7eb",
+                      }}
+                    >
                       <Image
                         src={url}
                         alt="Preview"
-                        width={60}
-                        height={60}
-                        style={{ objectFit: "cover", borderRadius: 4, border: "1px solid #e5e7eb" }}
+                        width={70}
+                        height={70}
+                        style={{ objectFit: "cover" }}
                       />
+                      {idx === 0 && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            background: "#e07548",
+                            color: "#fff",
+                            fontSize: 9,
+                            fontWeight: 700,
+                            textAlign: "center",
+                            textTransform: "uppercase",
+                            padding: "1px 0",
+                          }}
+                        >
+                          Cover
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        style={{
+                          position: "absolute",
+                          top: 2,
+                          right: 2,
+                          background: "rgba(0,0,0,0.65)",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: 18,
+                          height: 18,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                          lineHeight: 1,
+                        }}
+                        title="Remove image"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -548,8 +652,13 @@ export default function AdminProductsPage() {
             </Space>
           </Form.Item>
 
-          <Form.Item name="description" label="Product Description & Ergonomics">
-            <Input.TextArea rows={3} placeholder="Provide key product details..." />
+          {/* Rich Text Editor for Product Description */}
+          <Form.Item
+            name="description"
+            label="Product Description & Ergonomics (Rich Text Editor)"
+            tooltip="Use the toolbar to add headings, bold text, bullet points, and specifications table"
+          >
+            <RichTextEditor placeholder="Enter full product description, ergonomic features, warranty details..." />
           </Form.Item>
 
           <Space size="large">

@@ -180,15 +180,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                     key={product.id}
                     className="flex gap-3.5 p-3 rounded-xl border border-neutral-100 hover:border-neutral-300 hover:shadow-sm transition-all group bg-white"
                   >
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      className="w-20 h-20 object-cover rounded-lg bg-neutral-50 cursor-pointer"
-                      onClick={() => {
-                        onClose();
-                        openQuickView(product);
-                      }}
-                    />
+                    <Link
+                      href={`/products/${product.id}`}
+                      onClick={onClose}
+                      className="block shrink-0"
+                    >
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        className="w-20 h-20 object-cover rounded-lg bg-neutral-50 cursor-pointer hover:opacity-90 transition-opacity"
+                      />
+                    </Link>
                     <div className="flex-1 flex flex-col justify-between min-w-0">
                       <div>
                         <div className="flex items-start justify-between">

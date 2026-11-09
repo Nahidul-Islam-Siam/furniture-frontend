@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuickView } from '../../context/QuickViewContext';
 import { useCart } from '../../context/CartContext';
 import { X, Star, CheckCircle, Truck, ShieldCheck, Plus, Minus, ShoppingBag } from 'lucide-react';
@@ -171,6 +172,14 @@ export const QuickViewModal: React.FC = () => {
                     Buy it Now
                   </button>
                 </div>
+
+                <Link
+                  href={selectedProduct.link || `/products/${selectedProduct.id}`}
+                  onClick={closeQuickView}
+                  className="w-full py-2.5 px-4 bg-neutral-100 hover:bg-black hover:text-white text-neutral-800 text-xs font-semibold rounded-full flex items-center justify-center gap-1.5 transition-colors no-underline text-center"
+                >
+                  View Full Product Details Page →
+                </Link>
 
                 {/* Assurance Badges */}
                 <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-neutral-500">
