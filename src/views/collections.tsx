@@ -1,5 +1,8 @@
+"use client";
+
 import { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { ALL_PRODUCTS, Product } from '../data/gridData';
 import { useQuickView } from '../context/QuickViewContext';
 import { useCart } from '../context/CartContext';
@@ -9,7 +12,8 @@ import { useGetProductsQuery, IProductItem } from '@/redux/service/productApi';
 import { useGetCategoriesQuery } from '@/redux/service/categoryApi';
 
 export default function Collections() {
-  const { category } = useParams<{ category?: string }>();
+  const params = useParams<{ category?: string }>();
+  const category = params?.category;
   const [selectedSort, setSelectedSort] = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
@@ -110,11 +114,11 @@ export default function Collections() {
         
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-neutral-500 mb-6 font-sans">
-          <Link to="/" className="hover:text-black transition-colors">
+          <Link href="/" className="hover:text-black transition-colors">
             Home
           </Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <Link to="/collections" className="hover:text-black transition-colors">
+          <Link href="/collections" className="hover:text-black transition-colors">
             Collections
           </Link>
           {category && (
@@ -141,7 +145,7 @@ export default function Collections() {
           {/* Category Quick Pills */}
           <div className="flex flex-wrap items-center gap-2 mt-6">
             <Link
-              to="/collections"
+              href="/collections"
               className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
                 !category
                   ? 'bg-black text-white border-black'
@@ -151,7 +155,7 @@ export default function Collections() {
               All Products ({liveProducts.length})
             </Link>
             <Link
-              to="/collections/chair"
+              href="/collections/chair"
               className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
                 category?.toLowerCase() === 'chair'
                   ? 'bg-black text-white border-black'
@@ -161,7 +165,7 @@ export default function Collections() {
               Chairs
             </Link>
             <Link
-              to="/collections/table"
+              href="/collections/table"
               className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
                 category?.toLowerCase() === 'table'
                   ? 'bg-black text-white border-black'
@@ -171,7 +175,7 @@ export default function Collections() {
               Tables & Desks
             </Link>
             <Link
-              to="/collections/sofa"
+              href="/collections/sofa"
               className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
                 category?.toLowerCase() === 'sofa'
                   ? 'bg-black text-white border-black'
@@ -247,7 +251,7 @@ export default function Collections() {
                 >
                   {/* Card Image */}
                   <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-50 border border-neutral-100 cursor-pointer">
-                    <Link to={product.link} className="block w-full h-full">
+                    <Link href={product.link} className="block w-full h-full">
                       <img
                         src={
                           isHovered && hasAltImage
@@ -308,7 +312,7 @@ export default function Collections() {
 
                       <h3>
                         <Link
-                          to={product.link}
+                          href={product.link}
                           className="font-sans font-medium text-xs sm:text-sm text-neutral-800 hover:text-black line-clamp-2 transition-colors no-underline"
                         >
                           {product.title}

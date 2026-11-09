@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ShieldCheck, Truck, Award, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function About() {
@@ -80,7 +80,7 @@ export default function About() {
         {/* CTA */}
         <div className="text-center pt-8">
           <Link
-            to="/collections"
+            href="/collections"
             className="inline-flex items-center gap-2 px-8 py-4 bg-black hover:bg-neutral-800 text-white text-sm font-semibold rounded-full shadow-lg transition-all"
           >
             <span>Explore The Collection</span>

@@ -1,5 +1,5 @@
 import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link } from 'next/link';
 
 export default function Footer() {
   return (
@@ -45,22 +45,22 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-foreground">Product</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/features" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/features" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Features
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/pricing" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link to="/docs" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/docs" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/blog" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Updates
                 </Link>
               </li>
@@ -72,17 +72,17 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-foreground">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/blog" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Contact
                 </Link>
               </li>
@@ -104,17 +104,17 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-foreground">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/security" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link href="/security" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Security
                 </Link>
               </li>

@@ -1,5 +1,7 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 export const HeroSection = () => {
   return (
@@ -47,23 +49,17 @@ export const HeroSection = () => {
         {/* Single Outline Shop Now Button matching screenshot */}
         <div className="pt-4 hero-cta-anim flex items-center justify-center">
           <Link
-            to="/collections"
-            className="group px-8 py-3 bg-black/25 hover:bg-white hover:text-black text-white font-medium text-sm tracking-wider uppercase transition-all duration-300 border border-white backdrop-blur-[2px] flex items-center gap-2"
+            href="/collections"
+            className="group inline-flex items-center gap-3 px-8 sm:px-10 py-3.5 sm:py-4 rounded-full border-[1.5px] border-white/90 text-white hover:bg-white hover:text-black font-sans text-xs sm:text-sm font-semibold tracking-widest uppercase transition-all duration-300 backdrop-blur-[2px] shadow-lg no-underline hover:no-underline"
           >
-            <span className="mb-1">Shop Now</span>
-            <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+            <span>Shop Now</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </div>
-        {/* <div className="pt-4 hero-cta-anim flex items-center justify-center">
-          <Link
-            to="/collections"
-            className="px-8 py-3 bg-black/25 hover:bg-white hover:text-black text-white font-medium text-sm tracking-wider uppercase transition-all duration-300 border border-white backdrop-blur-[2px] flex"
-          >
-          <span className='mb-1'>  Shop Now </span>  
-          <ArrowRight className=''></ArrowRight>
-          </Link>
-        </div> */}
       </div>
+
+      {/* Bottom fade into white background */}
+      <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none" />
     </section>
   );
 };

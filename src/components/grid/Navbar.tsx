@@ -1,5 +1,8 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import { Search, ShoppingBag, User, Menu, X, ChevronDown } from "lucide-react";
 
@@ -13,10 +16,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collectionDropdownOpen, setCollectionDropdownOpen] = useState(false);
   const [logoLoadFailed, setLogoLoadFailed] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const isHome = location.pathname === "/";
+  const isHome = pathname === "/";
   const isTransparent = isHome && !isScrolled;
 
   useEffect(() => {
@@ -67,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             {/* Exact Orange GRID Badge Logo */}
             <Link
-              to="/"
+              href="/"
               className="flex items-center group no-underline hover:no-underline"
               aria-label="GRID Furniture"
             >
@@ -96,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             >
               <button
                 type="button"
-                onClick={() => navigate("/collections")}
+                onClick={() => router.push("/collections")}
                 className={`bg-transparent border-0 outline-none cursor-pointer flex items-center gap-1 transition-colors ${
                   isTransparent
                     ? "text-white hover:text-white/85"
@@ -113,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                   {collectionLinks.map((item) => (
                     <Link
                       key={item.label}
-                      to={item.href}
+                      href={item.href}
                       className="block px-5 py-2.5 text-sm text-neutral-800 hover:text-black hover:bg-neutral-50 font-normal no-underline hover:no-underline transition-colors"
                       onClick={() => setCollectionDropdownOpen(false)}
                     >
@@ -125,7 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </div>
 
             <Link
-              to="/collections/table"
+              href="/collections/table"
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
@@ -136,7 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </Link>
 
             <Link
-              to="/pages/grid-studio"
+              href="/pages/grid-studio"
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
@@ -160,7 +163,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </a>
 
             <Link
-              to="/blog"
+              href="/blog"
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
@@ -171,7 +174,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </Link>
 
             <Link
-              to="/about"
+              href="/about"
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
@@ -182,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </Link>
 
             <Link
-              to="/contact"
+              href="/contact"
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
@@ -197,7 +200,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
           <div className="flex items-center gap-3 sm:gap-4">
             {/* 1. Account / User Profile */}
             <Link
-              to="/login"
+              href="/login"
               className={`p-1.5 rounded-full transition-colors no-underline hover:no-underline ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
@@ -238,7 +241,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             >
               <div className="relative">
                 <ShoppingBag className="w-5 h-5 stroke-[1.6]" />
-                {/* Red dot badge matching screenshot */}
                 <span
                   className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#e24434] rounded-full ring-[1.5px] ring-white shadow-sm flex items-center justify-center"
                   aria-label={
@@ -287,7 +289,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                     {collectionLinks.map((item) => (
                       <Link
                         key={item.label}
-                        to={item.href}
+                        href={item.href}
                         className="block hover:text-black py-1 no-underline hover:no-underline"
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -298,14 +300,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                 </div>
 
                 <Link
-                  to="/collections/table"
+                  href="/collections/table"
                   className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Elevating Desk Series
                 </Link>
                 <Link
-                  to="/pages/grid-studio"
+                  href="/pages/grid-studio"
                   className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -320,28 +322,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                   Videos
                 </a>
                 <Link
-                  to="/blog"
+                  href="/blog"
                   className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Articles
                 </Link>
                 <Link
-                  to="/about"
+                  href="/about"
                   className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   About
                 </Link>
                 <Link
-                  to="/contact"
+                  href="/contact"
                   className="block text-neutral-800 font-medium hover:text-black py-1 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Contact
                 </Link>
                 <Link
-                  to="/login"
+                  href="/login"
                   className="block text-neutral-800 font-medium hover:text-black pt-2 border-t border-neutral-100 no-underline hover:no-underline"
                   onClick={() => setMobileMenuOpen(false)}
                 >

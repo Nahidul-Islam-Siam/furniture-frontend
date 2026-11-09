@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+"use client";
+
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MotionHeading } from './MotionHeading';
@@ -84,7 +86,7 @@ export const MeaningfulDesignSection = () => {
             {/* CTA */}
             <div className="pt-4">
               <Link
-                to="/collections"
+                href="/collections"
                 className="inline-flex items-center gap-2 px-9 py-4 bg-black hover:bg-neutral-800 text-white text-sm font-semibold rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
               >
                 <span>Shop Now</span>

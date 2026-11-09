@@ -1,22 +1,18 @@
-import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom';
+"use client";
+
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api/utils/error-handler';
 import { motion } from 'framer-motion';
 import { Home, RefreshCw } from 'lucide-react';
 
-export default function ErrorPage() {
-    const error = useRouteError();
-    let errorMessage = 'An unexpected error occurred';
+export default function ErrorPage({ error }: { error?: Error }) {
+    let errorMessage = error?.message || 'An unexpected error occurred';
     let errorStatus = 500;
 
-    if (isRouteErrorResponse(error)) {
-        errorMessage = error.statusText || error.data?.message || errorMessage;
-        errorStatus = error.status;
-    } else if (error instanceof ApiError) {
+    if (error instanceof ApiError) {
         errorMessage = error.message;
         errorStatus = error.status;
-    } else if (error instanceof Error) {
-        errorMessage = error.message;
     }
 
     return (
@@ -40,7 +36,7 @@ export default function ErrorPage() {
                         className="w-full"
                         size="lg"
                     >
-                        <Link to="/">
+                        <Link href="/">
                             <Home className="mr-2 h-4 w-4" />
                             Back to Home
                         </Link>
@@ -58,4 +54,4 @@ export default function ErrorPage() {
             </motion.div>
         </div>
     );
-} 
+}

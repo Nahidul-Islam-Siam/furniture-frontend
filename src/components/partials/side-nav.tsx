@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { HiOutlineXMark } from "react-icons/hi2";
-import { Link } from 'react-router-dom';
+import { Link } from 'next/link';
 import { ModeToggle } from '../mode-toggle';
 import Text from '../custom-ui/text';
 import { 
@@ -112,7 +112,7 @@ export default function SideNav({ isOpen, handleClose }: { isOpen: boolean, hand
                                             transition={{ delay: 0.1 * (index + itemIndex + 1) }}
                                         >
                                             <Link 
-                                                to={item.to} 
+                                                href={item.to} 
                                                 className='flex items-center gap-3 px-2 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-all duration-200 hover:translate-x-1'
                                                 onClick={handleClose}
                                             >

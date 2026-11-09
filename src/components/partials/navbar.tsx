@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "next/link";
 import { useState, useEffect } from "react";
 import { CiMenuFries } from "react-icons/ci";
 import { Button } from "../ui/button";
@@ -50,7 +50,7 @@ export default function Navbar() {
         onClick={handleNavClick}
       >
         <div className="flex items-center gap-10">
-          <Link to='/'>
+          <Link href='/'>
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -68,7 +68,7 @@ export default function Navbar() {
                 whileTap={{ y: 0 }}
               >
                 <Link
-                  to={link.to}
+                  href={link.to}
                   className="text-sm font-medium text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors relative group"
                 >
                   {link.label}
@@ -83,14 +83,14 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                to='/login'
+                href='/login'
                 className="text-sm font-medium text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors"
               >
                 Sign in
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link to='/signup'>
+              <Link href='/signup'>
                 <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                   Get Started
                 </Button>

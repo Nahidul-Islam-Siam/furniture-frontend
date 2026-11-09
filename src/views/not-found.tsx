@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import Seo from '../components/Seo'
 import { motion } from 'framer-motion'
 import { HiOutlineArrowLeft, HiOutlineHome } from 'react-icons/hi2'
@@ -58,7 +58,7 @@ export default function NotFound() {
                             <HiOutlineArrowLeft className="mr-2 h-5 w-5" />
                             Go Back
                         </Button>
-                        <Link to='/' className="w-full sm:w-auto">
+                        <Link href='/' className="w-full sm:w-auto">
                             <Button className="w-full">
                                 <HiOutlineHome className="mr-2 h-5 w-5" />
                                 Back to Home

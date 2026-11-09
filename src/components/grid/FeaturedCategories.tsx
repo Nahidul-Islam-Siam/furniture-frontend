@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+"use client";
+
+import Link from 'next/link';
 import { CATEGORIES } from '../../data/gridData';
 import { motion } from 'framer-motion';
 
@@ -19,7 +21,7 @@ export const FeaturedCategories = () => {
             }}
           >
             <Link
-              to={`/collections/${cat.slug}`}
+              href={`/collections/${cat.slug}`}
               className="group relative aspect-square w-full overflow-hidden block bg-neutral-900"
             >
               {/* Image with zoom transition */}

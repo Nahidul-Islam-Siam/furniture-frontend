@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Instagram, Facebook, Youtube, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,7 +24,7 @@ export const Footer: React.FC = () => {
           
           {/* Col 1: Brand & Mission */}
           <div className="space-y-4">
-            <Link to="/" className="inline-block">
+            <Link href="/" className="inline-block">
               <span className="font-heading font-black tracking-widest text-2xl text-white">
                 GRID
               </span>
@@ -69,32 +71,32 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-sm text-neutral-400 font-normal">
               <li>
-                <Link to="/" className="hover:text-white transition-colors">
+                <Link href="/" className="hover:text-white transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/collections" className="hover:text-white transition-colors">
+                <Link href="/collections" className="hover:text-white transition-colors">
                   Search & Explore
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="hover:text-white transition-colors">
+                <Link href="/about" className="hover:text-white transition-colors">
                   Know More About GRID
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-white transition-colors">
+                <Link href="/contact" className="hover:text-white transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link to="/pages/warranty" className="hover:text-white transition-colors">
+                <Link href="/pages/warranty" className="hover:text-white transition-colors">
                   Return & Warranty Policy
                 </Link>
               </li>
               <li>
-                <Link to="/policies/terms-of-service" className="hover:text-white transition-colors">
+                <Link href="/policies/terms-of-service" className="hover:text-white transition-colors">
                   Terms of Service
                 </Link>
               </li>
@@ -108,32 +110,32 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-sm text-neutral-400 font-normal">
               <li>
-                <Link to="/collections/chair" className="hover:text-white transition-colors">
+                <Link href="/collections/chair" className="hover:text-white transition-colors">
                   GRID Chair Collection
                 </Link>
               </li>
               <li>
-                <Link to="/collections/chair" className="hover:text-white transition-colors">
+                <Link href="/collections/chair" className="hover:text-white transition-colors">
                   Steelcase Chair Collection
                 </Link>
               </li>
               <li>
-                <Link to="/collections/table" className="hover:text-white transition-colors">
+                <Link href="/collections/table" className="hover:text-white transition-colors">
                   GRID Table & Desk Collection
                 </Link>
               </li>
               <li>
-                <Link to="/collections/sofa" className="hover:text-white transition-colors">
+                <Link href="/collections/sofa" className="hover:text-white transition-colors">
                   GRID Sofa Collection
                 </Link>
               </li>
               <li>
-                <Link to="/collections/storage" className="hover:text-white transition-colors">
+                <Link href="/collections/storage" className="hover:text-white transition-colors">
                   GRID Storage Solutions
                 </Link>
               </li>
               <li>
-                <Link to="/collections" className="hover:text-white transition-colors">
+                <Link href="/collections" className="hover:text-white transition-colors">
                   All Collections
                 </Link>
               </li>
