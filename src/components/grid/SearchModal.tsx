@@ -75,6 +75,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           warranty: "5-Year Manufacturer Warranty",
           delivery: "Free Delivery in Dhaka",
           inStock: p.stock > 0 && p.isAvailable !== false,
+          link: `/products/${p.slug || p._id}`,
           finishes: ["Matte Black", "Solid Walnut", "Brushed Aluminum"],
           colors: [
             { name: "Charcoal", hex: "#2b2b2b" },

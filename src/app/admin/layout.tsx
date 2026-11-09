@@ -13,6 +13,7 @@ import {
   Badge,
   Space,
   Tag,
+  Spin,
 } from "antd";
 import type { MenuProps } from "antd";
 import {
@@ -44,6 +45,47 @@ export default function AdminLayout({
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const [adminAvatar, setAdminAvatar] = useState<string>("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // Guard: Protect Admin routes from unauthorized visitors
+  React.useEffect(() => {
+    const getCookie = (name: string) => {
+      if (typeof document === "undefined") return null;
+      const match = document.cookie.match(
+        new RegExp("(^| )" + name + "=([^;]+)")
+      );
+      return match ? match[2] : null;
+    };
+
+    const token = getCookie("accessToken") || getCookie("token");
+    const cookieRole = (getCookie("role") || "").toUpperCase();
+
+    const userRole = (user?.role as string)?.toUpperCase() || "";
+    const isAdmin =
+      cookieRole === "ADMIN" ||
+      cookieRole === "SUPER_ADMIN" ||
+      userRole === "ADMIN" ||
+      userRole === "SUPER_ADMIN";
+
+    if (!token && !user) {
+      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (!isAdmin) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    setIsAuthorized(true);
+    setCheckingAuth(false);
+  }, [user, pathname, router]);
+
+  const effectiveAvatar =
+    adminAvatar ||
+    (typeof user?.avatar === "string" ? user.avatar : user?.avatar?.url) ||
+    "";
 
   React.useEffect(() => {
     try {
@@ -132,6 +174,27 @@ export default function AdminLayout({
       onClick: handleLogout,
     },
   ];
+
+  if (checkingAuth || !isAuthorized) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f8f9fa",
+          gap: 16,
+        }}
+      >
+        <Spin size="large" />
+        <span style={{ fontSize: 14, color: "#666", fontWeight: 500 }}>
+          Verifying administrator credentials...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <AntdProvider>
@@ -264,11 +327,11 @@ export default function AdminLayout({
               >
                 <Space style={{ cursor: "pointer", padding: "4px 8px", borderRadius: 6 }}>
                   <Avatar
-                    src={adminAvatar || undefined}
+                    src={effectiveAvatar || undefined}
                     style={{ backgroundColor: "#09090b", verticalAlign: "middle" }}
                     size="small"
                   >
-                    {!adminAvatar && (user?.name ? user.name[0].toUpperCase() : "A")}
+                    {!effectiveAvatar && (user?.name ? user.name[0].toUpperCase() : "A")}
                   </Avatar>
                   <span
                     style={{

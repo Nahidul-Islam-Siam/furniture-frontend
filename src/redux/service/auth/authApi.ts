@@ -58,6 +58,12 @@ export interface UserType {
   region?: string | null;
   country?: string | null;
   Image?: string[];
+  avatar?:
+    | {
+        url: string;
+        publicId?: string;
+      }
+    | string;
   exp?: number;
   iat?: number;
   userId?: string;

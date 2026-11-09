@@ -6,11 +6,11 @@ import Link from "next/link";
 export const HeroSection = () => {
   return (
     <section className="relative w-full min-h-[580px] sm:min-h-[660px] md:min-h-[740px] lg:min-h-[820px] flex items-center justify-center overflow-hidden bg-neutral-950">
-      {/* Background Image matching user banner screenshot */}
+      {/* Background Image matching original banner */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src="/images/hero-banner.jpg"
-          alt="GRID Modern Work Furniture"
+          alt="Modern Work Furniture"
           className="w-full h-full object-cover object-[center_top] hero-zoom-bg"
           onError={(e) => {
             e.currentTarget.src =
@@ -46,7 +46,7 @@ export const HeroSection = () => {
           </p>
         </div>
 
-        {/* Single Outline Shop Now Button matching screenshot */}
+        {/* Single Outline Shop Now Button */}
         <div className="pt-4 hero-cta-anim flex items-center justify-center">
           <Link
             href="/collections"
@@ -63,3 +63,5 @@ export const HeroSection = () => {
     </section>
   );
 };
+
+export default HeroSection;

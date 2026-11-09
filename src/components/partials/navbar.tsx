@@ -1,4 +1,4 @@
-import { Link } from "next/link";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { CiMenuFries } from "react-icons/ci";
 import { Button } from "../ui/button";

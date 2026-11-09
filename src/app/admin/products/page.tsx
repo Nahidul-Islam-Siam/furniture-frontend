@@ -39,6 +39,8 @@ import {
 } from "@/redux/service/productApi";
 import { useGetCategoriesQuery, ICategoryItem } from "@/redux/service/categoryApi";
 import { useUploadFileMutation } from "@/redux/service/uploadApi";
+import { useAppSelector } from "@/redux";
+import { uploadImageToCloudinary } from "@/lib/cloudinaryUpload";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -54,6 +56,7 @@ export default function AdminProductsPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
+  const { accessToken } = useAppSelector((state) => state.auth);
   const [form] = Form.useForm();
 
   // Debounce search input
@@ -124,47 +127,23 @@ export default function AdminProductsPage() {
     setIsModalOpen(true);
   };
 
-  // Upload image to backend Cloudinary with instant FileReader fallback
+  // Upload image to Cloudinary (backend with direct Cloudinary API fallback)
   const handleImageUpload = async (file: File) => {
     setIsUploading(true);
-    let previewBase64 = "";
+    message.loading({ content: "Uploading product photo to Cloudinary...", key: "prod_upload" });
 
-    // 1. Instant local preview via FileReader
     try {
-      const reader = new FileReader();
-      const readPromise = new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-      previewBase64 = await readPromise;
-    } catch {
-      // FileReader error silent
-    }
-
-    // 2. Upload to Cloudinary via backend
-    try {
-      const formData = new FormData();
-      formData.append("files", file);
-
-      const res = await uploadFile(formData).unwrap();
-      if (res.success && res.data) {
-        const uploadedUrl = Array.isArray(res.data) ? res.data[0]?.url : (res.data as any)?.url;
-        if (uploadedUrl) {
-          setImageUrls((prev) => [...prev, uploadedUrl]);
-          form.setFieldsValue({ imageUrlInput: "" });
-          message.success("Image uploaded to Cloudinary successfully!");
-          return false;
-        }
-      }
-    } catch (err: any) {
-      // If backend is offline or network fails, attach base64 preview so user is NEVER blocked
-      if (previewBase64) {
-        setImageUrls((prev) => [...prev, previewBase64]);
+      const uploadResult = await uploadImageToCloudinary(file, accessToken || undefined);
+      if (uploadResult.url) {
+        setImageUrls((prev) => [...prev, uploadResult.url]);
         form.setFieldsValue({ imageUrlInput: "" });
-        message.warning("Backend upload offline: Image attached locally and will be saved with product!");
+        message.success({ content: "Image uploaded to Cloudinary successfully!", key: "prod_upload" });
         return false;
       }
-      message.error(err?.data?.message || "Failed to upload image. Please try pasting an image URL.");
+      throw new Error("No URL returned from Cloudinary");
+    } catch (err: any) {
+      console.error("Product upload error:", err);
+      message.error({ content: err?.message || "Failed to upload image to Cloudinary.", key: "prod_upload" });
     } finally {
       setIsUploading(false);
     }

@@ -26,8 +26,8 @@ export const BillingPage: React.FC = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<IOrder | null>(null);
 
   const orders: IOrder[] = ordersData?.data || [];
-  const paidOrders = orders.filter((o) => o.payment?.status === "paid");
-  const totalSettled = paidOrders.reduce((sum, o) => sum + (o.pricing?.total || 0), 0);
+  const paidOrders = orders.filter((o) => (o.paymentStatus as any) === "paid");
+  const totalSettled = paidOrders.reduce((sum, o) => sum + (o.finalAmount || o.totalAmount || 0), 0);
 
   const getPaymentStatusTag = (status: string) => {
     switch ((status || "").toLowerCase()) {
@@ -81,7 +81,11 @@ export const BillingPage: React.FC = () => {
       key: "paymentMethod",
       render: (_, record) => (
         <span className="text-xs font-medium uppercase tracking-wider text-neutral-700">
-          {record.payment?.method === "sslcommerz" ? "SSLCommerz Online" : "Cash on Delivery (COD)"}
+          {record.paymentMethod === "sslcommerz"
+            ? "SSLCommerz Online"
+            : record.paymentMethod === "stripe"
+            ? "Stripe Card"
+            : "Cash on Delivery (COD)"}
         </span>
       ),
     },
@@ -90,14 +94,14 @@ export const BillingPage: React.FC = () => {
       key: "total",
       render: (_, record) => (
         <span className="font-heading font-bold text-neutral-900">
-          Tk {(record.pricing?.total || 0).toLocaleString()}
+          Tk {(record.finalAmount || record.totalAmount || 0).toLocaleString()}
         </span>
       ),
     },
     {
       title: "Payment Status",
       key: "status",
-      render: (_, record) => getPaymentStatusTag(record.payment?.status || record.status),
+      render: (_, record) => getPaymentStatusTag(record.paymentStatus || (record as any).status),
     },
     {
       title: "Action",
@@ -231,7 +235,7 @@ export const BillingPage: React.FC = () => {
               <span className="font-heading font-bold text-base">
                 Invoice #{selectedInvoice?.orderNumber || selectedInvoice?._id}
               </span>
-              {selectedInvoice && getPaymentStatusTag(selectedInvoice.payment?.status || selectedInvoice.status)}
+              {selectedInvoice && getPaymentStatusTag(selectedInvoice.paymentStatus || (selectedInvoice as any).status)}
             </div>
           }
           open={!!selectedInvoice}
@@ -280,10 +284,10 @@ export const BillingPage: React.FC = () => {
                   {selectedInvoice.shippingAddress?.postalCode}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Channel">
-                  {selectedInvoice.payment?.method?.toUpperCase() || "COD"}
+                  {selectedInvoice.paymentMethod?.toUpperCase() || "COD"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Transaction ID">
-                  {selectedInvoice.payment?.transactionId || "N/A (Cash on Delivery)"}
+                <Descriptions.Item label="Payment Status">
+                  {selectedInvoice.paymentStatus?.toUpperCase() || "PENDING"}
                 </Descriptions.Item>
               </Descriptions>
 
@@ -312,17 +316,11 @@ export const BillingPage: React.FC = () => {
                   </tbody>
                   <tfoot className="bg-neutral-50/70 border-t font-semibold">
                     <tr>
-                      <td colSpan={3} className="p-2.5 text-right text-neutral-600">Shipping Fee:</td>
-                      <td className="p-2.5 text-right">
-                        Tk {(selectedInvoice.pricing?.shippingFee || 0).toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr>
                       <td colSpan={3} className="p-2.5 text-right text-base font-bold text-neutral-900">
                         Grand Total:
                       </td>
                       <td className="p-2.5 text-right text-base font-bold text-neutral-900">
-                        Tk {(selectedInvoice.pricing?.total || 0).toLocaleString()}
+                        Tk {(selectedInvoice.finalAmount || selectedInvoice.totalAmount || 0).toLocaleString()}
                       </td>
                     </tr>
                   </tfoot>

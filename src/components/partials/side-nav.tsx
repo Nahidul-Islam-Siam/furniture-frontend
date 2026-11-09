@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { HiOutlineXMark } from "react-icons/hi2";
-import { Link } from 'next/link';
+import Link from 'next/link';
 import { ModeToggle } from '../mode-toggle';
 import Text from '../custom-ui/text';
 import { 
