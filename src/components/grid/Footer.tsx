@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Facebook, Phone, MessageCircle, Send, ShieldCheck, Truck, Factory } from "lucide-react";
+import { Facebook, Phone, MessageCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import { UEFLogo } from "../ui/UEFLogo";
 
@@ -19,39 +19,6 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-[#0b1322] text-neutral-300 pt-16 pb-12 border-t border-slate-800 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Value Proposition Highlights Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pb-12 mb-12 border-b border-slate-800 text-slate-300">
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center flex-shrink-0">
-              <Factory className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-white">নিজস্ব কারখানায় প্রস্তুত</div>
-              <div className="text-xs text-slate-400">Direct factory manufacturing &amp; pricing</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-white">১০০% কোয়ালিটি নিশ্চয়তা</div>
-              <div className="text-xs text-slate-400">High-grade MS/SS steel &amp; precision CNC</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center flex-shrink-0">
-              <Truck className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-white">সারা দেশে সরবরাহ</div>
-              <div className="text-xs text-slate-400">Safe doorstep delivery across all 64 districts</div>
-            </div>
-          </div>
-        </div>
-
         {/* Main 4-column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 pb-16 border-b border-slate-800">
           {/* Col 1: Brand & Mission */}
