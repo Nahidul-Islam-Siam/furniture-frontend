@@ -1,10 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { getStoreContent, DEFAULT_STORE_CONTENT } from "@/lib/storeContent";
+import { PolicyContentRenderer } from "@/components/ui/PolicyContentRenderer";
 
 export default function PrivacyPolicyPage() {
+  const [content, setContent] = useState<string>(DEFAULT_STORE_CONTENT.privacyText);
+
+  useEffect(() => {
+    setContent(getStoreContent<string>("privacyText"));
+
+    const handleUpdate = () => {
+      setContent(getStoreContent<string>("privacyText"));
+    };
+    window.addEventListener("grid_content_updated", handleUpdate);
+    return () => window.removeEventListener("grid_content_updated", handleUpdate);
+  }, []);
+
   return (
     <div className="bg-white min-h-screen py-12 sm:py-16 font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,7 +26,7 @@ export default function PrivacyPolicyPage() {
           <Link href="/" className="hover:text-black">
             Home
           </Link>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-neutral-900 font-medium">Privacy Policy</span>
         </div>
 
@@ -21,46 +35,12 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="text-xs text-neutral-500 mt-2">
-            Last Updated: November 2026 • GRID Ventures Ltd.
+            Last Updated: November 2026 • Published via GRID Store Administration
           </p>
         </div>
 
-        <div className="space-y-8 text-neutral-700 text-sm sm:text-base leading-relaxed">
-          <section className="space-y-3">
-            <h2 className="font-heading font-bold text-lg text-neutral-900">
-              Information We Collect
-            </h2>
-            <p>
-              When you purchase something from our store, as part of the buying and
-              selling process, we collect the personal information you give us such
-              as your name, address, phone number, and email address for order
-              fulfillment, assembly scheduling, and warranty records.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="font-heading font-bold text-lg text-neutral-900">
-              Payment Security
-            </h2>
-            <p>
-              All online payments are encrypted through SSLCommerz and adhere to
-              PCI-DSS requirements. GRID does not store your credit card or mobile
-              financial PIN numbers on our servers.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="font-heading font-bold text-lg text-neutral-900">
-              Contact Information
-            </h2>
-            <p>
-              If you have any questions regarding your personal information, please
-              contact our privacy officer at info@99grid.com or call +880 1700-009947.
-            </p>
-          </section>
-        </div>
+        <PolicyContentRenderer content={content} />
       </div>
     </div>
   );
 }
-

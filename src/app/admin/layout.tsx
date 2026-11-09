@@ -43,6 +43,29 @@ export default function AdminLayout({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const [adminAvatar, setAdminAvatar] = useState<string>("");
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem("grid_store_adminProfile");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.avatar) setAdminAvatar(parsed.avatar);
+      }
+    } catch {}
+
+    const handleUpdate = () => {
+      try {
+        const saved = localStorage.getItem("grid_store_adminProfile");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setAdminAvatar(parsed.avatar || "");
+        }
+      } catch {}
+    };
+    window.addEventListener("grid_content_updated", handleUpdate);
+    return () => window.removeEventListener("grid_content_updated", handleUpdate);
+  }, []);
 
   const handleLogout = () => {
     if (typeof document !== "undefined") {
@@ -241,10 +264,11 @@ export default function AdminLayout({
               >
                 <Space style={{ cursor: "pointer", padding: "4px 8px", borderRadius: 6 }}>
                   <Avatar
+                    src={adminAvatar || undefined}
                     style={{ backgroundColor: "#09090b", verticalAlign: "middle" }}
                     size="small"
                   >
-                    {user?.name ? user.name[0].toUpperCase() : "A"}
+                    {!adminAvatar && (user?.name ? user.name[0].toUpperCase() : "A")}
                   </Avatar>
                   <span
                     style={{

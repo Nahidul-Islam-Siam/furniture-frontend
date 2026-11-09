@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Tabs,
@@ -13,6 +13,9 @@ import {
   Col,
   Avatar,
   message,
+  Upload,
+  Tag,
+  Divider,
 } from "antd";
 import {
   UserOutlined,
@@ -20,25 +23,152 @@ import {
   FileTextOutlined,
   InfoCircleOutlined,
   SaveOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+  ShopOutlined,
+  SafetyCertificateOutlined,
+  PhoneOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useAppSelector } from "@/redux";
 import { useChangePasswordMutation } from "@/redux/service/auth/authApi";
+import { useUploadFileMutation } from "@/redux/service/uploadApi";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import {
+  getStoreContent,
+  saveStoreContent,
+  DEFAULT_STORE_CONTENT,
+} from "@/lib/storeContent";
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function AdminSettingsPage() {
   const { user } = useAppSelector((state) => state.auth);
 
+  // Forms
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
+  const [storeInfoForm] = Form.useForm();
   const [aboutForm] = Form.useForm();
   const [privacyForm] = Form.useForm();
   const [termsForm] = Form.useForm();
+  const [warrantyForm] = Form.useForm();
+
+  // Avatar state
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // Content states for Rich Editors
+  const [aboutText, setAboutText] = useState("");
+  const [privacyText, setPrivacyText] = useState("");
+  const [termsText, setTermsText] = useState("");
+  const [warrantyText, setWarrantyText] = useState("");
 
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [uploadFile] = useUploadFileMutation();
+
+  // Load saved settings on mount
+  useEffect(() => {
+    const savedProfile = getStoreContent<typeof DEFAULT_STORE_CONTENT.adminProfile>("adminProfile");
+    const savedStoreInfo = getStoreContent<typeof DEFAULT_STORE_CONTENT.storeInfo>("storeInfo");
+    const savedAbout = getStoreContent<string>("aboutText");
+    const savedPrivacy = getStoreContent<string>("privacyText");
+    const savedTerms = getStoreContent<string>("termsText");
+    const savedWarranty = getStoreContent<string>("warrantyText");
+
+    // Profile init
+    profileForm.setFieldsValue({
+      fullName: user?.name || savedProfile.fullName,
+      email: user?.email || savedProfile.email,
+      phone: savedProfile.phone,
+      designation: savedProfile.designation,
+    });
+    setAvatarUrl(savedProfile.avatar || "");
+
+    // Store Info init
+    storeInfoForm.setFieldsValue(savedStoreInfo);
+
+    // Legal / Content init
+    setAboutText(savedAbout);
+    aboutForm.setFieldsValue({ aboutText: savedAbout });
+
+    setPrivacyText(savedPrivacy);
+    privacyForm.setFieldsValue({ privacyText: savedPrivacy });
+
+    setTermsText(savedTerms);
+    termsForm.setFieldsValue({ termsText: savedTerms });
+
+    setWarrantyText(savedWarranty);
+    warrantyForm.setFieldsValue({ warrantyText: savedWarranty });
+  }, [user]);
+
+  // Avatar upload handler with FileReader + Cloudinary
+  const handleAvatarUpload = async (file: File) => {
+    setIsUploadingAvatar(true);
+    let previewBase64 = "";
+
+    try {
+      const reader = new FileReader();
+      const readPromise = new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      previewBase64 = await readPromise;
+    } catch {
+      // FileReader error
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("files", file);
+
+      const res = await uploadFile(formData).unwrap();
+      if (res.success && res.data) {
+        const uploadedUrl = Array.isArray(res.data) ? res.data[0]?.url : (res.data as any)?.url;
+        if (uploadedUrl) {
+          setAvatarUrl(uploadedUrl);
+          const currentProfile = getStoreContent<any>("adminProfile");
+          saveStoreContent("adminProfile", { ...currentProfile, avatar: uploadedUrl });
+          message.success("Profile photo uploaded to Cloudinary successfully!");
+          setIsUploadingAvatar(false);
+          return false;
+        }
+      }
+    } catch (err: any) {
+      if (previewBase64) {
+        setAvatarUrl(previewBase64);
+        const currentProfile = getStoreContent<any>("adminProfile");
+        saveStoreContent("adminProfile", { ...currentProfile, avatar: previewBase64 });
+        message.warning("Backend offline: Photo updated locally and saved to admin profile!");
+        setIsUploadingAvatar(false);
+        return false;
+      }
+      message.error("Failed to upload photo. Please check your image file.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+    return false;
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarUrl("");
+    const currentProfile = getStoreContent<any>("adminProfile");
+    saveStoreContent("adminProfile", { ...currentProfile, avatar: "" });
+    message.info("Profile photo removed");
+  };
 
   const handleProfileSave = (values: any) => {
-    message.success("Admin profile updated successfully!");
+    const updated = {
+      ...values,
+      avatar: avatarUrl,
+    };
+    saveStoreContent("adminProfile", updated);
+    message.success("Administrator profile & photo saved successfully!");
+  };
+
+  const handleStoreInfoSave = (values: any) => {
+    saveStoreContent("storeInfo", values);
+    message.success("Store contact information & showroom location updated!");
   };
 
   const handlePasswordSave = async (values: any) => {
@@ -54,72 +184,228 @@ export default function AdminSettingsPage() {
       passwordForm.resetFields();
       message.success("Password changed successfully in database!");
     } catch (err: any) {
-      message.error(err?.data?.message || "Failed to change password");
+      message.error(err?.data?.message || "Failed to change password. Verify your current password.");
     }
   };
 
-  const handleContentSave = (section: string) => {
-    message.success(`${section} updated successfully!`);
+  const handleSaveAbout = () => {
+    saveStoreContent("aboutText", aboutText);
+    message.success("About Us story updated and published to website!");
   };
 
-  // 1. Profile Tab
+  const handleSavePrivacy = () => {
+    saveStoreContent("privacyText", privacyText);
+    message.success("Privacy Policy updated with Rich Text formatting and published!");
+  };
+
+  const handleSaveTerms = () => {
+    saveStoreContent("termsText", termsText);
+    message.success("Terms of Service agreement updated and published!");
+  };
+
+  const handleSaveWarranty = () => {
+    saveStoreContent("warrantyText", warrantyText);
+    message.success("5-Year Warranty & Return Guarantee guidelines updated!");
+  };
+
+  // 1. Profile Tab with Photo Upload
   const profileTab = (
-    <Card bordered={false}>
-      <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28 }}>
-        <Avatar size={72} style={{ backgroundColor: "#09090b", fontSize: 28 }}>
-          {user?.name ? user.name[0].toUpperCase() : "A"}
-        </Avatar>
-        <div>
-          <Title level={4} style={{ margin: 0 }}>
-            {user?.name || "Store Administrator"}
+    <Card bordered={false} className="shadow-sm rounded-xl">
+      <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 32 }}>
+        <div style={{ position: "relative" }}>
+          <Avatar
+            size={88}
+            src={avatarUrl || undefined}
+            icon={!avatarUrl ? <UserOutlined /> : undefined}
+            style={{
+              backgroundColor: "#09090b",
+              fontSize: 32,
+              border: "3px solid #e07548",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            }}
+          >
+            {!avatarUrl && (user?.name ? user.name[0].toUpperCase() : "A")}
+          </Avatar>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <Title level={4} style={{ margin: 0, fontWeight: 700 }}>
+            {profileForm.getFieldValue("fullName") || user?.name || "Administrator"}
           </Title>
-          <Text type="secondary">{user?.email || "admin@gridfurniture.com"}</Text>
-          <div style={{ marginTop: 4 }}>
-            <span
-              style={{
-                fontSize: 12,
-                background: "#f5f5f5",
-                padding: "2px 8px",
-                borderRadius: 4,
-                color: "#595959",
-                fontWeight: 600,
-              }}
+          <Text type="secondary">{user?.email || "admin@furniture.com"}</Text>
+          <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+            <Tag color="orange" style={{ fontWeight: 600 }}>Super Administrator</Tag>
+            <Tag color="green" icon={<CheckCircleOutlined />}>Full Access Verified</Tag>
+          </div>
+
+          {/* Photo Actions */}
+          <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
+            <Upload
+              beforeUpload={handleAvatarUpload}
+              showUploadList={false}
+              accept="image/*"
             >
-              Super Administrator
-            </span>
+              <Button
+                icon={<UploadOutlined />}
+                size="small"
+                loading={isUploadingAvatar}
+              >
+                {avatarUrl ? "Change Photo" : "Upload Photo"}
+              </Button>
+            </Upload>
+
+            {avatarUrl && (
+              <Button
+                danger
+                size="small"
+                icon={<DeleteOutlined />}
+                onClick={handleRemoveAvatar}
+              >
+                Remove
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
+      <Divider style={{ margin: "20px 0" }} />
+
       <Form
         form={profileForm}
         layout="vertical"
-        initialValues={{
-          fullName: user?.name || "Admin Siam",
-          email: user?.email || "admin@gridfurniture.com",
-          phone: "+880 1712-345678",
-        }}
         onFinish={handleProfileSave}
-        style={{ maxWidth: 600 }}
+        style={{ maxWidth: 640 }}
       >
-        <Form.Item
-          name="fullName"
-          label="Full Name"
-          rules={[{ required: true, message: "Please enter your name" }]}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="fullName"
+              label="Full Name"
+              rules={[{ required: true, message: "Please enter your full name" }]}
+            >
+              <Input placeholder="Enter your full name" size="large" />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item
+              name="designation"
+              label="Admin Role / Designation"
+            >
+              <Input placeholder="e.g. Principal Store Administrator" size="large" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="email"
+              label="Admin Email Address"
+              rules={[{ required: true, type: "email", message: "Please enter valid email" }]}
+            >
+              <Input placeholder="Enter email" size="large" />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item name="phone" label="Official Phone / Mobile">
+              <Input placeholder="+880 1700-009947" size="large" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          size="large"
+          style={{ background: "#09090b", marginTop: 8 }}
         >
-          <Input placeholder="Enter your full name" size="large" />
+          Save Profile & Photo
+        </Button>
+      </Form>
+    </Card>
+  );
+
+  // 2. Store Info & Contact Settings
+  const storeInfoTab = (
+    <Card bordered={false} className="shadow-sm rounded-xl">
+      <Paragraph type="secondary" style={{ marginBottom: 24 }}>
+        Configure the public contact details, official hotline, Banani showroom address, and operating hours shown in the header, footer, and invoices.
+      </Paragraph>
+
+      <Form
+        form={storeInfoForm}
+        layout="vertical"
+        onFinish={handleStoreInfoSave}
+        style={{ maxWidth: 700 }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="storeName"
+              label="Store Brand Name"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="GRID Furniture Bangladesh" size="large" />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item
+              name="email"
+              label="Customer Support Email"
+              rules={[{ required: true, type: "email" }]}
+            >
+              <Input placeholder="support@99grid.com" size="large" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="hotline"
+              label="Customer Service Hotline"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="+880 1700-009947" size="large" />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item
+              name="whatsapp"
+              label="WhatsApp Orders Number"
+            >
+              <Input placeholder="+880 1700-009947" size="large" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="showroom"
+          label="Physical Showroom Location"
+          rules={[{ required: true }]}
+        >
+          <Input placeholder="GRID Experience Center, Level 4, Banani, Dhaka" size="large" />
         </Form.Item>
 
         <Form.Item
-          name="email"
-          label="Email Address"
-          rules={[{ required: true, type: "email", message: "Please enter valid email" }]}
+          name="address"
+          label="Registered Corporate / Warehouse Address"
+          rules={[{ required: true }]}
         >
-          <Input placeholder="Enter admin email address" size="large" />
+          <Input placeholder="Plot 42, Road 11, Block D, Banani, Dhaka 1213" size="large" />
         </Form.Item>
 
-        <Form.Item name="phone" label="Phone Number">
-          <Input placeholder="+880 1..." size="large" />
+        <Form.Item
+          name="workingHours"
+          label="Showroom Operating Hours"
+          rules={[{ required: true }]}
+        >
+          <Input placeholder="Saturday - Thursday: 10:00 AM - 8:30 PM" size="large" />
         </Form.Item>
 
         <Button
@@ -127,20 +413,151 @@ export default function AdminSettingsPage() {
           htmlType="submit"
           icon={<SaveOutlined />}
           size="large"
-          loading={isChangingPassword}
-          style={{ background: "#09090b" }}
+          style={{ background: "#09090b", marginTop: 8 }}
         >
-          Save Profile
+          Save Store Information
         </Button>
       </Form>
     </Card>
   );
 
-  // 2. Change Password Tab
+  // 3. Privacy Policy Tab with Rich Text Editor
+  const privacyTab = (
+    <Card bordered={false} className="shadow-sm rounded-xl">
+      <div style={{ marginBottom: 18 }}>
+        <Title level={4} style={{ margin: 0 }}>
+          Privacy Policy & Customer Data Charter
+        </Title>
+        <Text type="secondary">
+          Use the full React Rich Text Editor to format sections, bullet points, payment encryption clauses, and customer rights.
+        </Text>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <RichTextEditor
+          value={privacyText}
+          onChange={(val) => setPrivacyText(val)}
+          placeholder="Enter Privacy Policy guidelines and legal clauses..."
+          minHeight={320}
+        />
+      </div>
+
+      <Button
+        type="primary"
+        onClick={handleSavePrivacy}
+        icon={<SaveOutlined />}
+        size="large"
+        style={{ background: "#09090b" }}
+      >
+        Publish Privacy Policy
+      </Button>
+    </Card>
+  );
+
+  // 4. Terms & Conditions Tab with Rich Text Editor
+  const termsTab = (
+    <Card bordered={false} className="shadow-sm rounded-xl">
+      <div style={{ marginBottom: 18 }}>
+        <Title level={4} style={{ margin: 0 }}>
+          Terms of Service & Sales Agreement
+        </Title>
+        <Text type="secondary">
+          Define contract-grade purchasing terms, delivery timelines, assembly agreements, and order cancellation policies.
+        </Text>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <RichTextEditor
+          value={termsText}
+          onChange={(val) => setTermsText(val)}
+          placeholder="Enter Terms and Conditions clauses..."
+          minHeight={320}
+        />
+      </div>
+
+      <Button
+        type="primary"
+        onClick={handleSaveTerms}
+        icon={<SaveOutlined />}
+        size="large"
+        style={{ background: "#09090b" }}
+      >
+        Publish Terms of Service
+      </Button>
+    </Card>
+  );
+
+  // 5. About Us Tab with Rich Text Editor
+  const aboutTab = (
+    <Card bordered={false} className="shadow-sm rounded-xl">
+      <div style={{ marginBottom: 18 }}>
+        <Title level={4} style={{ margin: 0 }}>
+          About Us Brand Story
+        </Title>
+        <Text type="secondary">
+          Craft your company background, Steelcase partnership, Banani showroom introduction, and engineering standards.
+        </Text>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <RichTextEditor
+          value={aboutText}
+          onChange={(val) => setAboutText(val)}
+          placeholder="Write your company background and design philosophy..."
+          minHeight={320}
+        />
+      </div>
+
+      <Button
+        type="primary"
+        onClick={handleSaveAbout}
+        icon={<SaveOutlined />}
+        size="large"
+        style={{ background: "#09090b" }}
+      >
+        Publish About Us Story
+      </Button>
+    </Card>
+  );
+
+  // 6. Warranty & Return Policy Tab with Rich Text Editor
+  const warrantyTab = (
+    <Card bordered={false} className="shadow-sm rounded-xl">
+      <div style={{ marginBottom: 18 }}>
+        <Title level={4} style={{ margin: 0 }}>
+          5-Year Warranty & 7-Day Return Guarantee
+        </Title>
+        <Text type="secondary">
+          Outline official manufacturer warranty coverage windows for desks, ergonomic chairs, and Dhaka technician inspection.
+        </Text>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <RichTextEditor
+          value={warrantyText}
+          onChange={(val) => setWarrantyText(val)}
+          placeholder="Specify 5-Year warranty rules and replacement guarantees..."
+          minHeight={320}
+        />
+      </div>
+
+      <Button
+        type="primary"
+        onClick={handleSaveWarranty}
+        icon={<SaveOutlined />}
+        size="large"
+        style={{ background: "#09090b" }}
+      >
+        Publish Warranty & Return Policy
+      </Button>
+    </Card>
+  );
+
+  // 7. Change Password Tab
   const passwordTab = (
-    <Card bordered={false} style={{ maxWidth: 600 }}>
+    <Card bordered={false} style={{ maxWidth: 580 }} className="shadow-sm rounded-xl">
       <Paragraph type="secondary" style={{ marginBottom: 24 }}>
-        Ensure your account uses a strong, random password to maintain administrative security.
+        Ensure your administrative portal uses a strong password to protect store operations, customer data, and payment orders.
       </Paragraph>
 
       <Form
@@ -161,7 +578,7 @@ export default function AdminSettingsPage() {
           label="New Password"
           rules={[{ required: true, min: 6, message: "Minimum 6 characters required" }]}
         >
-          <Input.Password placeholder="Enter new password" size="large" />
+          <Input.Password placeholder="Enter new password (min 6 characters)" size="large" />
         </Form.Item>
 
         <Form.Item
@@ -178,123 +595,9 @@ export default function AdminSettingsPage() {
           icon={<SaveOutlined />}
           size="large"
           loading={isChangingPassword}
-          style={{ background: "#09090b" }}
+          style={{ background: "#09090b", marginTop: 8 }}
         >
-          Update Password
-        </Button>
-      </Form>
-    </Card>
-  );
-
-  // 3. About Us Tab
-  const aboutTab = (
-    <Card bordered={false}>
-      <Paragraph type="secondary" style={{ marginBottom: 20 }}>
-        Edit the About Us story and brand background shown to website visitors.
-      </Paragraph>
-
-      <Form
-        form={aboutForm}
-        layout="vertical"
-        initialValues={{
-          aboutText:
-            "GRID is a modern work lifestyle brand committed to reimagining ergonomics, craftsmanship, and aesthetic balance for forward-thinking workspaces. In partnership with global ergonomic pioneers like Steelcase, we craft high-performance desks, seating systems, and modular furniture engineered for peak focus and wellness.",
-        }}
-        onFinish={() => handleContentSave("About Us")}
-      >
-        <Form.Item
-          name="aboutText"
-          label="About Us Content"
-          rules={[{ required: true }]}
-        >
-          <Input.TextArea rows={8} placeholder="Write store story..." />
-        </Form.Item>
-
-        <Button
-          type="primary"
-          htmlType="submit"
-          icon={<SaveOutlined />}
-          size="large"
-          loading={isChangingPassword}
-          style={{ background: "#09090b" }}
-        >
-          Save About Us
-        </Button>
-      </Form>
-    </Card>
-  );
-
-  // 4. Privacy Policy Tab
-  const privacyTab = (
-    <Card bordered={false}>
-      <Paragraph type="secondary" style={{ marginBottom: 20 }}>
-        Manage customer data privacy, information protection, and store checkout policies.
-      </Paragraph>
-
-      <Form
-        form={privacyForm}
-        layout="vertical"
-        initialValues={{
-          privacyText:
-            "At GRID Furniture, your privacy is our highest priority. We collect customer information exclusively to fulfill furniture orders, process secure payments, and coordinate doorstep delivery across Bangladesh. We never share, sell, or disclose personal customer data to unauthorized third parties.",
-        }}
-        onFinish={() => handleContentSave("Privacy Policy")}
-      >
-        <Form.Item
-          name="privacyText"
-          label="Privacy Policy Statement"
-          rules={[{ required: true }]}
-        >
-          <Input.TextArea rows={8} placeholder="Write privacy terms..." />
-        </Form.Item>
-
-        <Button
-          type="primary"
-          htmlType="submit"
-          icon={<SaveOutlined />}
-          size="large"
-          loading={isChangingPassword}
-          style={{ background: "#09090b" }}
-        >
-          Save Privacy Policy
-        </Button>
-      </Form>
-    </Card>
-  );
-
-  // 5. Terms & Conditions Tab
-  const termsTab = (
-    <Card bordered={false}>
-      <Paragraph type="secondary" style={{ marginBottom: 20 }}>
-        Specify terms of service, product warranties, return windows, and delivery terms.
-      </Paragraph>
-
-      <Form
-        form={termsForm}
-        layout="vertical"
-        initialValues={{
-          termsText:
-            "All GRID ergonomic chairs and motorized standing desks carry authentic manufacturer warranties (up to 5 years on selected models). Deliveries inside Dhaka are completed within 48 hours; nationwide delivery takes 3-5 business days. Returns or replacements for transit defects are honored within 7 days of delivery inspection.",
-        }}
-        onFinish={() => handleContentSave("Terms & Conditions")}
-      >
-        <Form.Item
-          name="termsText"
-          label="Terms & Conditions Agreement"
-          rules={[{ required: true }]}
-        >
-          <Input.TextArea rows={8} placeholder="Write terms and conditions..." />
-        </Form.Item>
-
-        <Button
-          type="primary"
-          htmlType="submit"
-          icon={<SaveOutlined />}
-          size="large"
-          loading={isChangingPassword}
-          style={{ background: "#09090b" }}
-        >
-          Save Terms & Conditions
+          Update Password in Database
         </Button>
       </Form>
     </Card>
@@ -304,39 +607,29 @@ export default function AdminSettingsPage() {
     {
       key: "profile",
       label: (
-        <span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <UserOutlined />
-          Admin Profile
+          Admin Profile & Photo
         </span>
       ),
       children: profileTab,
     },
     {
-      key: "password",
+      key: "store",
       label: (
-        <span>
-          <LockOutlined />
-          Change Password
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <ShopOutlined />
+          Store & Hotline Info
         </span>
       ),
-      children: passwordTab,
-    },
-    {
-      key: "about",
-      label: (
-        <span>
-          <InfoCircleOutlined />
-          About Us
-        </span>
-      ),
-      children: aboutTab,
+      children: storeInfoTab,
     },
     {
       key: "privacy",
       label: (
-        <span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <FileTextOutlined />
-          Privacy Policy
+          Privacy Policy (Rich Editor)
         </span>
       ),
       children: privacyTab,
@@ -344,23 +637,53 @@ export default function AdminSettingsPage() {
     {
       key: "terms",
       label: (
-        <span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <FileTextOutlined />
-          Terms & Conditions
+          Terms of Service (Rich Editor)
         </span>
       ),
       children: termsTab,
+    },
+    {
+      key: "about",
+      label: (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <InfoCircleOutlined />
+          About Us (Rich Editor)
+        </span>
+      ),
+      children: aboutTab,
+    },
+    {
+      key: "warranty",
+      label: (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <SafetyCertificateOutlined />
+          5-Year Warranty Policy (Rich Editor)
+        </span>
+      ),
+      children: warrantyTab,
+    },
+    {
+      key: "password",
+      label: (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <LockOutlined />
+          Security & Password
+        </span>
+      ),
+      children: passwordTab,
     },
   ];
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <Title level={3} style={{ margin: 0 }}>
-          Admin & Content Settings
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ margin: 0, fontWeight: 700 }}>
+          Store Settings & Legal Content Management
         </Title>
         <Text type="secondary">
-          Manage your personal administrator credentials and update store public legal content.
+          Upload administrator avatars, manage store contact info, and publish rich formatted legal policies.
         </Text>
       </div>
 

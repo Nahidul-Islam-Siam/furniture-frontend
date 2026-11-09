@@ -1,10 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { RotateCcw, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { getStoreContent, DEFAULT_STORE_CONTENT } from "@/lib/storeContent";
+import { PolicyContentRenderer } from "@/components/ui/PolicyContentRenderer";
 
 export default function RefundPolicyPage() {
+  const [content, setContent] = useState<string>(DEFAULT_STORE_CONTENT.warrantyText);
+
+  useEffect(() => {
+    setContent(getStoreContent<string>("warrantyText"));
+
+    const handleUpdate = () => {
+      setContent(getStoreContent<string>("warrantyText"));
+    };
+    window.addEventListener("grid_content_updated", handleUpdate);
+    return () => window.removeEventListener("grid_content_updated", handleUpdate);
+  }, []);
+
   return (
     <div className="bg-white min-h-screen py-12 sm:py-16 font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,44 +26,21 @@ export default function RefundPolicyPage() {
           <Link href="/" className="hover:text-black">
             Home
           </Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-neutral-900 font-medium">Refund & Replacement Policy</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <span className="text-neutral-900 font-medium">Refund & Warranty Policy</span>
         </div>
 
         <div className="border-b border-neutral-100 pb-8 mb-8">
           <h1 className="font-heading font-black text-3xl sm:text-4xl text-neutral-900">
-            Refund & Replacement Policy
+            Refund, Replacement & Warranty
           </h1>
           <p className="text-xs text-neutral-500 mt-2">
-            Last Updated: November 2026 • GRID Ventures Ltd.
+            Last Updated: November 2026 • Published via GRID Store Administration
           </p>
         </div>
 
-        <div className="space-y-8 text-neutral-700 text-sm sm:text-base leading-relaxed">
-          <section className="space-y-3">
-            <h2 className="font-heading font-bold text-lg text-neutral-900">
-              7-Day Defect Replacement
-            </h2>
-            <p>
-              If your furniture arrives damaged or exhibits any manufacturing defects
-              during our technician&apos;s white-glove installation, we will immediately
-              replace the affected component or entire unit at zero additional cost.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="font-heading font-bold text-lg text-neutral-900">
-              Refund Processing
-            </h2>
-            <p>
-              Once your return request is inspected and approved, your refund will be
-              processed back to your original payment method (SSLCommerz, bKash, or
-              bank transfer) within 7 to 10 working days.
-            </p>
-          </section>
-        </div>
+        <PolicyContentRenderer content={content} />
       </div>
     </div>
   );
 }
-
