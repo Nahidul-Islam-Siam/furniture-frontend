@@ -57,7 +57,7 @@ export default function Warranty() {
             </h2>
           </div>
           <p>
-            Inside Dhaka city, all orders over ৳10,000 enjoy 100% FREE doorstep delivery including professional technician assembly within 3 working days.
+            Inside Dhaka city, all orders over BDT 10,000 enjoy 100% FREE doorstep delivery including professional technician assembly within 3 working days.
             Delivery to any district across Bangladesh takes 5–7 working days via courier.
           </p>
         </div>

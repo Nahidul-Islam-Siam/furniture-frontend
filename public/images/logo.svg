@@ -1,1 +1,110 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" width="100%" height="100%">
+  <defs>
+    <!-- Cyan-Blue Metallic Gradient for U and Gear -->
+    <linearGradient id="uefBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="35%" stop-color="#0ea5e9" />
+      <stop offset="70%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+
+    <!-- Gunmetal Dark Metallic Gradient for E & F -->
+    <linearGradient id="uefGunmetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="40%" stop-color="#1e293b" />
+      <stop offset="80%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Chrome Metallic Sheen Highlight -->
+    <linearGradient id="uefSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+
+    <!-- Drop Shadow for 3D Badging -->
+    <filter id="uefShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <g id="uef-emblem" filter="url(#uefShadow)">
+    <!-- 1. Top Gear Crown Arch -->
+    <g fill="url(#uefBlueGrad)">
+      <!-- Gear Outer Arch -->
+      <path d="M 160 160 A 75 75 0 0 1 300 155 L 290 185 A 45 45 0 0 0 178 188 Z" />
+      <!-- Gear Teeth Around Arch -->
+      <rect x="155" y="148" width="16" height="22" rx="3" transform="rotate(-40 163 159)" />
+      <rect x="180" y="112" width="16" height="22" rx="3" transform="rotate(-20 188 123)" />
+      <rect x="220" y="92" width="18" height="24" rx="3" transform="rotate(0 229 104)" />
+      <rect x="264" y="104" width="16" height="22" rx="3" transform="rotate(22 272 115)" />
+      <rect x="296" y="132" width="16" height="22" rx="3" transform="rotate(45 304 143)" />
+    </g>
+
+    <!-- 2. Stylized "U" with Keyhole Cutout (Electric Cyan/Blue) -->
+    <g fill="url(#uefBlueGrad)">
+      <!-- Outer U contour -->
+      <path d="M 175 140 L 212 140 L 212 210 C 212 245 258 245 258 210 L 258 140 L 278 140 L 278 215 C 278 275 175 275 175 215 Z" />
+      <!-- Center Slot Cutout Accent -->
+      <rect x="223" y="100" width="12" height="65" rx="6" fill="url(#uefBlueGrad)" />
+    </g>
+
+    <!-- 3. Stylized "EF" with Aerodynamic Wings (Gunmetal Black) -->
+    <g fill="url(#uefGunmetal)">
+      <!-- E Base & Upper Wing -->
+      <path d="M 282 170 L 360 170 L 350 192 L 282 192 Z" />
+      <!-- Middle Wing -->
+      <path d="M 282 202 L 345 202 L 335 224 L 282 224 Z" />
+      <!-- Lower Wing of E/F -->
+      <path d="M 282 234 L 335 234 L 325 256 L 282 256 Z" />
+      <!-- Vertical Backbone connecting E/F -->
+      <path d="M 276 170 L 296 170 L 296 256 L 276 256 Z" />
+    </g>
+  </g>
+
+  <!-- 4. Black Rectangular Plate with "UNIQUE ENGINEERING &" -->
+  <g id="uef-badge" filter="url(#uefShadow)">
+    <rect x="35" y="275" width="430" height="48" rx="6" fill="#090d16" stroke="#1e293b" stroke-width="2" />
+    <text
+      x="250"
+      y="308"
+      text-anchor="middle"
+      fill="#ffffff"
+      font-size="21"
+      font-weight="900"
+      font-family="'Montserrat', 'Arial Black', sans-serif"
+      letter-spacing="0.12em"
+    >
+      UNIQUE ENGINEERING &amp;
+    </text>
+  </g>
+
+  <!-- 5. Blue "FURNITURE" with Speed Accents -->
+  <g id="uef-furniture">
+    <!-- Left Speed Lines -->
+    <path d="M 50 350 L 105 350" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round" />
+    <path d="M 65 358 L 105 358" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" />
+    <path d="M 75 366 L 105 366" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round" />
+
+    <!-- Center Word: FURNITURE -->
+    <text
+      x="250"
+      y="368"
+      text-anchor="middle"
+      fill="url(#uefBlueGrad)"
+      font-size="34"
+      font-weight="900"
+      font-family="'Montserrat', 'Arial Black', sans-serif"
+      letter-spacing="0.22em"
+      filter="url(#uefShadow)"
+    >
+      FURNITURE
+    </text>
+
+    <!-- Right Speed Lines -->
+    <path d="M 395 350 L 450 350" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round" />
+    <path d="M 395 358 L 435 358" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" />
+    <path d="M 395 366 L 425 366" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+</svg>

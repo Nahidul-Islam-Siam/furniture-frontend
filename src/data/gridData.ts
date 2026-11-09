@@ -655,7 +655,7 @@ export const COMPANY_LOGOS = [
 export const FOOTER_PROMOTIONS = [
   {
     title: 'Exceptional Furniture For Work & Gaming',
-    text: 'Unique Engineering & Furniture: সুনিপুণ মেটাল ডিজাইন ও CNC লেজার কাটিং। আমরা সরাসরি নিজস্ব কারখানায় তৈরি করি, ফলে সাশ্রয়ী মূল্যে ১০০% কোয়ালিটি সম্পন্ন প্রিমিয়াম ফার্নিচার সরবরাহ করা সম্ভব হয়।',
+    text: 'Unique Engineering & Furniture: Precision metal design & CNC laser cutting. Direct factory manufacturing ensures top-tier quality at unbeatable direct pricing.',
     image: 'https://99grid.com/cdn/shop/files/Group_834_600x.png?v=1633346197'
   },
   {
@@ -665,7 +665,7 @@ export const FOOTER_PROMOTIONS = [
   },
   {
     title: 'Nationwide Delivery & Custom Sizing',
-    text: '১০০% কোয়ালিটি নিশ্চয়তার সাথে কাস্টম সাইজে প্রস্তুত করা হয়, নিজস্ব কারখানায় তৈরি করে সারা দেশে সরবরাহ করা হয়। Call or WhatsApp: 01755-348053.',
+    text: '100% quality guaranteed custom manufacturing. Handcrafted in our own factory and delivered safely across all 64 districts. Call or WhatsApp: +880 1755-348053.',
     image: 'https://99grid.com/cdn/shop/files/5A2A5635_600x.jpg?v=1613715225'
   }
 ];

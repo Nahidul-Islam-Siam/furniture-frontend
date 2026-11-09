@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
               <UEFLogo size="md" variant="white" showText={true} />
             </Link>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-normal">
-              CNC লেজার কাটিং এর মাধ্যমে সুনিপুণ মেটাল ডিজাইন। ১০০% কোয়ালিটি নিশ্চয়তার সাথে কাস্টম সাইজে প্রস্তুত করা হয়, নিজস্ব কারখানায় তৈরি করে সারা দেশে সরবরাহ করা হয়।
+              Precision CNC laser cutting and custom metal fabrication. Engineered to perfection in our own factory with 100% quality assurance and nationwide delivery.
             </p>
 
             {/* Social & Contact Buttons */}
@@ -138,18 +138,18 @@ export const Footer: React.FC = () => {
               Factory &amp; Hotline
             </h4>
             <p className="text-xs sm:text-sm text-slate-400 font-light leading-relaxed">
-              সরাসরি কল বা WhatsApp-এ ড্রয়িং পাঠিয়ে আপনার কাস্টম সাইজের অর্ডার কনফার্ম করতে পারেন।
+              Call us directly or share your custom drawings via WhatsApp for immediate fabrication quotes.
             </p>
 
             <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
               <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
                 <Phone className="w-4 h-4" />
                 <a href="tel:01755348053" className="text-white hover:text-cyan-300 no-underline">
-                  01755-348053
+                  +880 1755-348053
                 </a>
               </div>
               <div className="text-[11px] text-slate-400">
-                Direct WhatsApp &amp; Call (সকাল ৯টা - রাত ৯টা)
+                Direct WhatsApp &amp; Call Hotline (9:00 AM - 9:00 PM)
               </div>
             </div>
 

@@ -70,7 +70,7 @@ export default function Contact() {
               </a>
             </p>
             <p className="text-sm text-neutral-500 pt-1">
-              WhatsApp / Hotline: 01755-348053 (সকাল ৯টা - রাত ৯টা)
+              WhatsApp / Hotline: +880 1755-348053 (9:00 AM - 9:00 PM)
             </p>
           </div>
         </div>
@@ -87,9 +87,7 @@ export default function Contact() {
               Unique Engineering &amp; CNC Laser Cutting Furniture
             </p>
             <p className="text-sm text-neutral-600 max-w-lg mx-auto">
-              CNC লেজার কাটিং এর মাধ্যমে সুনিপুণ মেটাল ডিজাইন • ১০০% কোয়ালিটি
-              নিশ্চয়তার সাথে কাস্টম সাইজে প্রস্তুত • নিজস্ব কারখানা থেকে সারা দেশে
-              সরবরাহ।
+              Precision CNC laser cutting &amp; custom metal engineering • 100% quality guarantee with custom dimensions • Factory-direct production delivered nationwide across all 64 districts.
             </p>
             <p className="text-sm text-neutral-500 pt-1">
               Facebook:&nbsp;
