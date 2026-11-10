@@ -72,14 +72,17 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="antialiased bg-background text-foreground min-h-screen">
+      <body
+        suppressHydrationWarning
+        className="antialiased bg-background text-foreground min-h-screen"
+      >
         <ReduxProvider>
           {children}
           <Toaster position="top-right" richColors />
