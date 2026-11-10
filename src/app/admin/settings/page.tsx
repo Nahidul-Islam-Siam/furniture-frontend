@@ -561,7 +561,7 @@ export default function AdminSettingsPage() {
               label="Customer Support Email"
               rules={[{ required: true, type: "email" }]}
             >
-              <Input placeholder="support@99grid.com" size="large" />
+              <Input placeholder="info@uniqueengineeringbd.com" size="large" />
             </Form.Item>
           </Col>
         </Row>
