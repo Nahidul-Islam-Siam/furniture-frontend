@@ -22,7 +22,7 @@ export const AuthCardShell: React.FC<AuthCardShellProps> = ({
   children,
 }) => {
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 flex items-center justify-center bg-[#dce7f1] relative overflow-hidden font-sans">
+    <div className="min-h-screen py-10 px-4 flex items-center justify-center bg-[#dce7f1] relative overflow-hidden font-sans">
       {/* Subtle organic atmospheric background waves */}
       <div
         aria-hidden="true"
