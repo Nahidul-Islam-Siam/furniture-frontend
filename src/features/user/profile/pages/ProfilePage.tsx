@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Loader2,
   Calendar,
+  MapPin,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -40,6 +41,9 @@ export const ProfilePage: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarPublicId, setAvatarPublicId] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
 
   useEffect(() => {
     if (currentUser) {
@@ -53,6 +57,16 @@ export const ProfilePage: React.FC = () => {
       if (typeof currentUser.avatar === "object" && currentUser.avatar?.publicId) {
         setAvatarPublicId(currentUser.avatar.publicId);
       }
+      try {
+        const addrKey = `uef_user_address_${currentUser.email || "default"}`;
+        const saved = localStorage.getItem(addrKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setStreet(parsed.street || "");
+          setCity(parsed.city || "");
+          setPostalCode(parsed.postalCode || "");
+        }
+      } catch {}
     }
   }, [currentUser]);
 
@@ -128,6 +142,18 @@ export const ProfilePage: React.FC = () => {
         publicId: avatarPublicId || undefined,
       };
     }
+
+    try {
+      const addrKey = `uef_user_address_${currentUser?.email || "default"}`;
+      localStorage.setItem(
+        addrKey,
+        JSON.stringify({
+          street: street.trim(),
+          city: city.trim(),
+          postalCode: postalCode.trim(),
+        })
+      );
+    } catch {}
 
     try {
       const res = await updateProfile(payload).unwrap();
@@ -290,12 +316,59 @@ export const ProfilePage: React.FC = () => {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+8801700000000"
+                placeholder="+880 1755-348053"
                 className="w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Used for delivery status updates and checkout confirmation.
               </p>
+            </div>
+          </div>
+
+          {/* Default Delivery Address */}
+          <div className="pt-4 border-t space-y-4">
+            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary" /> Saved Delivery Address
+            </h4>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="sm:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">
+                  Street / House &amp; Road
+                </label>
+                <input
+                  type="text"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  placeholder="House, Road, Area"
+                  className="w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:col-span-1">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
+                    City / District
+                  </label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Dhaka"
+                    className="w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
+                    Postal Code
+                  </label>
+                  <input
+                    type="text"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    placeholder="1212"
+                    className="w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

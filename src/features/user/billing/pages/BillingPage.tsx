@@ -38,6 +38,41 @@ export const BillingPage: React.FC = () => {
     0
   );
 
+  const handlePrintInvoice = (inv: IOrder) => {
+    const esc = (s: unknown) =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    const win = window.open("", "_blank", "width=800,height=900");
+    if (!win) {
+      window.print();
+      return;
+    }
+    const rows = (inv.items || [])
+      .map(
+        (i) =>
+          `<tr><td>${esc(i.name)}</td><td style="text-align:center">${esc(i.quantity)}</td><td style="text-align:right">Tk ${Number(i.price || 0).toLocaleString()}</td><td style="text-align:right;font-weight:700">Tk ${((i.price || 0) * (i.quantity || 1)).toLocaleString()}</td></tr>`
+      )
+      .join("");
+    win.document.write(`<!doctype html><html><head><title>Invoice #${esc(inv.orderNumber || inv._id)}</title>
+      <style>body{font-family:system-ui,-apple-system,sans-serif;padding:32px;color:#0f172a}h1{margin:0;font-size:20px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:left}th{background:#f8fafc;color:#475569}.meta{display:flex;justify-content:space-between;background:#f8fafc;padding:16px;border-radius:8px;margin:16px 0;font-size:13px}.total{text-align:right;font-size:18px;font-weight:800;margin-top:16px}</style>
+      </head><body>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f172a;padding-bottom:12px">
+        <div><h1>Unique Engineering &amp; Furniture</h1><div style="font-size:12px;color:#64748b">Dhaka, Bangladesh • Hotline: +880 1755-348053</div></div>
+        <div style="text-align:right"><strong>Invoice #${esc(inv.orderNumber || inv._id)}</strong><div style="font-size:12px;color:#64748b">${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString("en-GB") : ""}</div></div>
+      </div>
+      <div class="meta">
+        <div><strong>Bill To:</strong><br/>${esc(inv.customer?.name)}<br/>${esc(inv.customer?.phone)}<br/>${esc(inv.shippingAddress?.street)}, ${esc(inv.shippingAddress?.city)}</div>
+        <div style="text-align:right"><strong>Payment Channel:</strong> ${esc(getPaymentMethod(inv).toUpperCase())}<br/><strong>Status:</strong> ${esc(getPaymentStatus(inv).toUpperCase())}</div>
+      </div>
+      <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Line Total</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="total">Grand Total: Tk ${getOrderAmount(inv).toLocaleString("en-BD")}</div>
+      <script>window.onload=()=>{window.print();}</script>
+      </body></html>`);
+    win.document.close();
+  };
+
   const getPaymentStatusTag = (status: string) => {
     switch ((status || "").toLowerCase()) {
       case "paid":
@@ -266,7 +301,7 @@ export const BillingPage: React.FC = () => {
             <Button
               key="print"
               type="primary"
-              onClick={() => window.print()}
+              onClick={() => selectedInvoice && handlePrintInvoice(selectedInvoice)}
               className="bg-black text-white hover:bg-neutral-800"
             >
               Print / Save PDF

@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Table, Tag, Button, Modal, Popconfirm } from "antd";
+import { Table, Tag, Button, Modal, Popconfirm, Input } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import AntdProvider from "@/lib/antd/AntdProvider";
-import { ShoppingBag, Eye, XCircle } from "lucide-react";
+import { ShoppingBag, Eye, XCircle, Search } from "lucide-react";
+import { OrderProgressStepper } from "@/components/dashboard/OrderProgressStepper";
 import {
   useGetMyOrdersQuery,
   useCancelOrderMutation,
@@ -24,8 +25,23 @@ export default function MyOrdersPage() {
     useGetMyOrdersQuery();
   const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const orders: IOrder[] = ordersData?.data || [];
+
+  const filteredOrders = orders.filter((o) => {
+    const q = searchText.trim().toLowerCase();
+    const orderNo = (o.orderNumber || o._id || "").toLowerCase();
+    const itemsText = (o.items || []).map((i) => i.name).join(" ").toLowerCase();
+    const matchesSearch = !q || orderNo.includes(q) || itemsText.includes(q);
+    const status = getOrderStatus(o);
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      status === statusFilter.toLowerCase() ||
+      (statusFilter === "processing" && status === "confirmed");
+    return matchesSearch && matchesStatus;
+  });
 
   const handleCancelOrder = async (orderId: string) => {
     try {
@@ -147,6 +163,39 @@ export default function MyOrdersPage() {
           </Link>
         </div>
 
+        {/* Search & Status Filter Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border bg-white p-3.5 shadow-sm">
+          <Input
+            placeholder="Search by Order ID or item..."
+            prefix={<Search className="w-3.5 h-3.5 text-neutral-400 mr-1" />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            className="sm:max-w-xs"
+          />
+          <div className="flex flex-wrap items-center gap-1.5">
+            {["ALL", "pending", "processing", "shipped", "delivered", "cancelled"].map(
+              (st) => {
+                const active = statusFilter === st;
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setStatusFilter(st)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium capitalize border cursor-pointer transition-colors ${
+                      active
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    {st === "ALL" ? "All" : st}
+                  </button>
+                );
+              }
+            )}
+          </div>
+        </div>
+
         <div className="rounded-xl border bg-white shadow-sm overflow-hidden p-4">
           {isError ? (
             <div className="py-10 text-center space-y-2">
@@ -161,20 +210,26 @@ export default function MyOrdersPage() {
             <Table
               rowKey="_id"
               columns={columns}
-              dataSource={orders}
+              dataSource={filteredOrders}
               loading={isLoading}
               scroll={{ x: 650 }}
               pagination={{ pageSize: 10 }}
               locale={{
                 emptyText: (
                   <div className="py-10 text-center text-neutral-500 space-y-2">
-                    <p>You haven&apos;t placed any orders yet.</p>
-                    <Link
-                      href="/collections"
-                      className="text-primary hover:underline text-xs font-semibold"
-                    >
-                      Explore our furniture collections
-                    </Link>
+                    <p>
+                      {orders.length > 0
+                        ? "No orders match this filter."
+                        : "You haven't placed any orders yet."}
+                    </p>
+                    {orders.length === 0 && (
+                      <Link
+                        href="/collections"
+                        className="text-primary hover:underline text-xs font-semibold"
+                      >
+                        Explore our furniture collections
+                      </Link>
+                    )}
                   </div>
                 ),
               }}
@@ -223,6 +278,11 @@ export default function MyOrdersPage() {
         >
           {selectedOrder && (
             <div className="space-y-5 pt-3">
+              {/* Visual Order Tracking Stepper */}
+              <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                <OrderProgressStepper status={getOrderStatus(selectedOrder)} />
+              </div>
+
               <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 border border-neutral-100 text-xs">
                 <div>
                   <span className="text-neutral-400 block">Status</span>

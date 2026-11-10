@@ -29,6 +29,7 @@ import {
   BellOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import {
   useAppDispatch,
@@ -185,6 +186,11 @@ export default function AdminLayout({
       key: "/admin/reviews",
       icon: <StarOutlined />,
       label: <Link href="/admin/reviews">Reviews</Link>,
+    },
+    {
+      key: "/admin/users",
+      icon: <UserOutlined />,
+      label: <Link href="/admin/users">Customers</Link>,
     },
     {
       key: "/admin/settings",

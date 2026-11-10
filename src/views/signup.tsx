@@ -18,7 +18,12 @@ const schema = z.object({
   firstName: z.string().min(2, "First name required"),
   lastName: z.string().min(1, "Last name required"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Include at least 1 uppercase letter")
+    .regex(/[0-9]/, "Include at least 1 number")
+    .regex(/[!@#$%^&*]/, "Include at least 1 special character (!@#$%^&*)"),
 });
 
 type Inputs = z.infer<typeof schema>;

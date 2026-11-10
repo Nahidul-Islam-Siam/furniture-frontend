@@ -48,3 +48,4 @@ export function getPaymentTransactionId(order: Partial<IOrder> | any): string {
     `TXN-${order.orderNumber || order._id?.slice(-6)?.toUpperCase() || "UEF"}`
   );
 }
+
