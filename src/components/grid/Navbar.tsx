@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useCart } from "../../context/CartContext";
 import {
   Search,
   ShoppingBag,
@@ -11,38 +10,165 @@ import {
   Menu,
   X,
   ChevronDown,
-  Phone,
+  ChevronRight,
+  ChevronLeft,
   MessageCircle,
+  LayoutDashboard,
+  ShieldCheck,
+  Package,
+  Settings,
+  LogOut,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { UEFLogo } from "../ui/UEFLogo";
-import { useAppSelector } from "@/redux";
-import { getClientCookie, getHomeRouteForRole, isJwtTokenValid, parseJwtPayload } from "@/lib/authCookies";
+import { useCart } from "../../context/CartContext";
+import { useAppDispatch, useAppSelector, logout, setUser, UserRole } from "@/redux";
+import {
+  clearAuthCookies,
+  getClientCookie,
+  getHomeRouteForRole,
+  isAdminRole,
+  isJwtTokenValid,
+  normalizeRoleString,
+  parseJwtPayload,
+} from "@/lib/authCookies";
+import { useGetUserQuery } from "@/redux/service/profileData";
+import { useLogoutMutation } from "@/redux/service/auth/authApi";
+import { FOOTER_PROMOTIONS } from "@/data/gridData";
 
 interface NavbarProps {
   onOpenSearch: () => void;
 }
 
+interface MobileCategoryGroup {
+  label: string;
+  href?: string;
+  subItems?: { label: string; href: string; tag?: string }[];
+}
+
+const MOBILE_CATEGORIES: MobileCategoryGroup[] = [
+  {
+    label: "New & Featured",
+    subItems: [
+      { label: "All Collections", href: "/collections", tag: "Catalog" },
+      { label: "CNC Laser Cut Desks", href: "/collections/table" },
+      { label: "Ergonomic Seating", href: "/collections/chair" },
+      { label: "Metal Racks & Storage", href: "/collections/storage" },
+    ],
+  },
+  {
+    label: "Desks & Workstations",
+    subItems: [
+      { label: "All Tables & Desks", href: "/collections/table" },
+      { label: "Gaming & Dual-Setup Desks", href: "/collections/table" },
+      { label: "Executive Office Tables", href: "/collections/table" },
+      { label: "Custom Size Desk Quote", href: "/contact", tag: "Bespoke" },
+    ],
+  },
+  {
+    label: "Ergonomic Chairs",
+    subItems: [
+      { label: "All Seating", href: "/collections/chair" },
+      { label: "Pro Ergonomic Mesh", href: "/collections/chair" },
+      { label: "Studio & Task Chairs", href: "/collections/chair" },
+    ],
+  },
+  {
+    label: "Storage & Steel Racks",
+    subItems: [
+      { label: "All Storage Systems", href: "/collections/storage" },
+      { label: "Slotted Metal Racks", href: "/collections/storage" },
+      { label: "Credenzas & Organizers", href: "/collections/storage" },
+    ],
+  },
+  {
+    label: "CNC Laser Fabrication",
+    subItems: [
+      { label: "Custom Laser-Cut Gates & Panels", href: "/contact" },
+      { label: "Electrical Panel Enclosures", href: "/contact" },
+      { label: "Grid Studio & Corporate Projects", href: "/pages/grid-studio" },
+    ],
+  },
+  {
+    label: "Custom Size Order",
+    href: "/contact",
+  },
+  {
+    label: "5-Year Warranty",
+    href: "/warranty",
+  },
+];
+
 export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
   const { totalItems, setIsCartOpen } = useCart();
+  const dispatch = useAppDispatch();
   const { user, accessToken } = useAppSelector((state) => state.auth);
+  const [triggerLogout] = useLogoutMutation();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState<MobileCategoryGroup | null>(
+    null
+  );
   const [collectionDropdownOpen, setCollectionDropdownOpen] = useState(false);
-  const [accountHref, setAccountHref] = useState("/login");
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+  const [cookieRole, setCookieRole] = useState<string | null>(null);
+  const [tokenEmail, setTokenEmail] = useState<string | null>(null);
+
+  const mobileDrawerRef = useRef<HTMLDivElement>(null);
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null);
+  const accountDropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
 
+  // Check client session on mount / auth changes without SSR mismatch
   useEffect(() => {
-    const token = accessToken || getClientCookie("accessToken") || getClientCookie("token");
+    const token =
+      accessToken || getClientCookie("accessToken") || getClientCookie("token");
     if (token && isJwtTokenValid(token)) {
       const payload = parseJwtPayload(token);
-      setAccountHref(
-        getHomeRouteForRole(user?.role || payload?.role || getClientCookie("role"))
-      );
+      setHasSession(true);
+      setCookieRole(payload?.role || getClientCookie("role") || null);
+      setTokenEmail(payload?.email || null);
     } else {
-      setAccountHref("/login");
+      setHasSession(false);
+      setCookieRole(null);
+      setTokenEmail(null);
     }
-  }, [user?.role, accessToken, pathname]);
+  }, [user, accessToken, pathname]);
+
+  // Hydrate Redux user profile seamlessly across storefront pages when session cookie exists
+  const { data: profileRes } = useGetUserQuery(undefined, {
+    skip: !hasSession || !!user,
+  });
+
+  useEffect(() => {
+    if (profileRes?.data && !user && hasSession) {
+      const token =
+        accessToken || getClientCookie("accessToken") || getClientCookie("token");
+      const normalizedRoleStr = normalizeRoleString(profileRes.data.role);
+      if (typeof document !== "undefined") {
+        document.cookie = `role=${normalizedRoleStr}; path=/; max-age=86400; SameSite=Lax`;
+      }
+      dispatch(
+        setUser({
+          user: {
+            id: profileRes.data._id || profileRes.data.id || "",
+            name: profileRes.data.name,
+            email: profileRes.data.email,
+            phone: profileRes.data.phone,
+            role: UserRole[normalizedRoleStr],
+            avatar: profileRes.data.avatar,
+          },
+          accessToken: token,
+          refreshToken: null,
+        })
+      );
+    }
+  }, [profileRes, user, hasSession, accessToken, dispatch]);
 
   const isHome = pathname === "/";
   const isTransparent = isHome && !isScrolled;
@@ -55,6 +181,105 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close desktop account dropdown on outside click or Escape
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        accountDropdownRef.current &&
+        !accountDropdownRef.current.contains(e.target as Node)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAccountMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [accountMenuOpen]);
+
+  // Lock background scroll & support Escape when mobile menu is open
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      setActiveSubmenu(null);
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    mobileDrawerRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (activeSubmenu) {
+          setActiveSubmenu(null);
+        } else {
+          setMobileMenuOpen(false);
+          mobileTriggerRef.current?.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileMenuOpen, activeSubmenu]);
+
+  // Close open menus on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setActiveSubmenu(null);
+    setAccountMenuOpen(false);
+  }, [pathname]);
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setActiveSubmenu(null);
+    mobileTriggerRef.current?.focus();
+  };
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await triggerLogout().unwrap();
+    } catch {}
+    clearAuthCookies();
+    dispatch(logout());
+    setHasSession(false);
+    setAccountMenuOpen(false);
+    setMobileMenuOpen(false);
+    setIsLoggingOut(false);
+    toast.success("Signed out successfully");
+    router.refresh();
+  };
+
+  const normalizedRoleStr = normalizeRoleString(user?.role || cookieRole);
+  const userIsAdmin = hasSession && isAdminRole(normalizedRoleStr);
+  const portalHref = hasSession ? getHomeRouteForRole(normalizedRoleStr) : "/login";
+  const displayName =
+    user?.name ||
+    profileRes?.data?.name ||
+    tokenEmail?.split("@")[0] ||
+    "Account";
+  const firstName = displayName.split(" ")[0] || "Account";
+  const displayEmail =
+    user?.email || profileRes?.data?.email || tokenEmail || "";
+  const avatarUrl =
+    typeof user?.avatar === "string"
+      ? user.avatar
+      : user?.avatar?.url || profileRes?.data?.avatar?.url || "";
+  const avatarInitial = (displayName[0] || "U").toUpperCase();
+
   const collectionLinks = [
     { label: "All Furniture Collections", href: "/collections" },
     { label: "Gaming & Workstation Desks", href: "/collections/table" },
@@ -64,6 +289,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     { label: "Ergonomic & Office Chairs", href: "/collections/chair" },
     { label: "Custom Fabrication & Gates", href: "/contact" },
   ];
+
+  const portalLabel = userIsAdmin ? "Admin Portal" : "My Dashboard";
 
   return (
     <>
@@ -81,8 +308,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
           {/* Left: Mobile hamburger & Brand Logo */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
+              ref={mobileTriggerRef}
               type="button"
               onClick={() => setMobileMenuOpen(true)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-editorial-menu"
               className={`lg:hidden p-1.5 bg-transparent border-0 outline-none cursor-pointer transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/80"
@@ -90,10 +320,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               }`}
               aria-label="Open menu"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6" aria-hidden="true" />
             </button>
 
-            {/* Unique Engineering & Furniture Logo Component */}
             <Link
               href="/"
               className="flex items-center group no-underline hover:no-underline"
@@ -108,7 +337,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
           </div>
 
           {/* Center: Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 font-sans text-[14px] font-medium tracking-[0.015em]">
+          <nav
+            aria-label="Primary"
+            className="hidden lg:flex items-center gap-5 xl:gap-7 font-sans text-[14px] font-medium tracking-[0.015em]"
+          >
             {/* All Collection Dropdown */}
             <div
               className="relative group py-2"
@@ -125,10 +357,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                 }`}
               >
                 <span>Collections</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180" />
+                <ChevronDown
+                  className="w-3.5 h-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180"
+                  aria-hidden="true"
+                />
               </button>
 
-              {/* Dropdown Menu */}
               {collectionDropdownOpen && (
                 <div className="absolute top-full left-0 w-64 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-neutral-100 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   {collectionLinks.map((item) => (
@@ -190,33 +424,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             </Link>
           </nav>
 
-          {/* Right: User, Search, Cart */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* 1. Account / User Profile */}
-            <Link
-              href={accountHref}
-              className={`p-1.5 rounded-full transition-colors no-underline hover:no-underline ${
-                isTransparent
-                  ? "text-white hover:text-white/80 hover:bg-white/10"
-                  : "text-neutral-800 hover:text-black hover:bg-neutral-100"
-              }`}
-              title={
-                accountHref === "/admin"
-                  ? "Admin Portal"
-                  : accountHref === "/dashboard"
-                  ? "Customer Dashboard"
-                  : "Sign In"
-              }
-              aria-label="User Account"
-            >
-              <User className="w-5 h-5 stroke-[1.6]" />
-            </Link>
-
-            {/* 2. Search Trigger */}
+          {/* Right: Search, Cart, & Auth-Aware Account Trigger */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* 1. Search Trigger */}
             <button
               type="button"
               onClick={onOpenSearch}
-              className={`p-1.5 rounded-full bg-transparent border-0 outline-none cursor-pointer transition-colors ${
+              className={`p-2 rounded-full bg-transparent border-0 outline-none cursor-pointer transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
                   : "text-neutral-800 hover:text-black hover:bg-neutral-100"
@@ -224,14 +438,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               title="Search furniture &amp; metal products"
               aria-label="Search"
             >
-              <Search className="w-5 h-5 stroke-[1.6]" />
+              <Search className="w-5 h-5 stroke-[1.6]" aria-hidden="true" />
             </button>
 
-            {/* 3. Shopping Bag / Cart */}
+            {/* 2. Shopping Bag / Cart */}
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className={`p-1.5 rounded-full bg-transparent border-0 outline-none cursor-pointer transition-colors relative ${
+              className={`p-2 rounded-full bg-transparent border-0 outline-none cursor-pointer transition-colors relative ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
                   : "text-neutral-900 hover:text-black hover:bg-neutral-100"
@@ -240,123 +454,579 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               aria-label="Shopping Cart"
             >
               <div className="relative">
-                <ShoppingBag className="w-5 h-5 stroke-[1.6]" />
-                <span
-                  className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-cyan-600 rounded-full ring-[1.5px] ring-white shadow-sm flex items-center justify-center"
-                  aria-label={
-                    totalItems > 0 ? `${totalItems} items in cart` : "Cart"
-                  }
-                />
+                <ShoppingBag className="w-5 h-5 stroke-[1.6]" aria-hidden="true" />
+                {totalItems > 0 ? (
+                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-cyan-600 text-white text-[10px] font-bold flex items-center justify-center ring-[1.5px] ring-white">
+                    {totalItems}
+                  </span>
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-cyan-600 rounded-full ring-[1.5px] ring-white shadow-sm"
+                  />
+                )}
               </div>
             </button>
+
+            {/* 3. Account: Logged-In Avatar Dropdown vs Sign In Link */}
+            {hasSession ? (
+              <div ref={accountDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAccountMenuOpen((prev) => !prev)}
+                  aria-expanded={accountMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label={`${displayName} account menu`}
+                  className={`flex items-center gap-2 rounded-full pl-1 pr-2.5 py-1 transition-all cursor-pointer border ${
+                    isTransparent
+                      ? "bg-white/15 hover:bg-white/25 text-white border-white/25 backdrop-blur-sm"
+                      : "bg-neutral-100/90 hover:bg-neutral-200/80 text-neutral-900 border-neutral-200/80"
+                  }`}
+                >
+                  <div className="relative h-7 w-7 shrink-0">
+                    <div className="h-7 w-7 rounded-full overflow-hidden bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center uppercase">
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={avatarUrl}
+                          alt={displayName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        avatarInitial
+                      )}
+                    </div>
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-1.5 ring-white"
+                    />
+                  </div>
+                  <span className="hidden sm:inline text-xs font-semibold max-w-[96px] truncate">
+                    {firstName}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 opacity-75 transition-transform duration-150 ${
+                      accountMenuOpen ? "rotate-180" : ""
+                    }`}
+                    aria-hidden="true"
+                  />
+                </button>
+
+                {/* Desktop & Tablet Account Menu Popover */}
+                {accountMenuOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 mt-2 w-64 rounded-2xl bg-white text-slate-900 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.2)] border border-slate-200/80 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  >
+                    {/* User Identity Header */}
+                    <div className="p-3.5 bg-slate-50/80 border-b border-slate-100 flex items-center gap-3">
+                      <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden bg-slate-900 text-white text-xs font-bold flex items-center justify-center uppercase border border-slate-200">
+                        {avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={avatarUrl}
+                            alt={displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          avatarInitial
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 truncate">
+                          {displayName}
+                        </div>
+                        {displayEmail && (
+                          <div className="text-[11px] text-slate-500 truncate">
+                            {displayEmail}
+                          </div>
+                        )}
+                        <span
+                          className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                            userIsAdmin
+                              ? "bg-cyan-50 text-cyan-700 border border-cyan-200/80"
+                              : "bg-slate-200/70 text-slate-700"
+                          }`}
+                        >
+                          {normalizedRoleStr === "SUPER_ADMIN"
+                            ? "Super Admin"
+                            : userIsAdmin
+                            ? "Administrator"
+                            : "Customer"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Role-Specific Navigation Links */}
+                    <div className="p-1.5 space-y-0.5">
+                      {userIsAdmin ? (
+                        <>
+                          <Link
+                            href="/admin"
+                            role="menuitem"
+                            onClick={() => setAccountMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 no-underline transition-colors"
+                          >
+                            <ShieldCheck className="w-4 h-4 text-cyan-600" aria-hidden="true" />
+                            <span>Admin Portal</span>
+                          </Link>
+                          <Link
+                            href="/admin/orders"
+                            role="menuitem"
+                            onClick={() => setAccountMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 no-underline transition-colors"
+                          >
+                            <Package className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                            <span>Manage Orders</span>
+                          </Link>
+                          <Link
+                            href="/admin/settings"
+                            role="menuitem"
+                            onClick={() => setAccountMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 no-underline transition-colors"
+                          >
+                            <Settings className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                            <span>Store Settings</span>
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            href="/dashboard"
+                            role="menuitem"
+                            onClick={() => setAccountMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 no-underline transition-colors"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-cyan-600" aria-hidden="true" />
+                            <span>My Dashboard</span>
+                          </Link>
+                          <Link
+                            href="/dashboard/orders"
+                            role="menuitem"
+                            onClick={() => setAccountMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 no-underline transition-colors"
+                          >
+                            <Package className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                            <span>My Orders</span>
+                          </Link>
+                          <Link
+                            href="/dashboard/profile"
+                            role="menuitem"
+                            onClick={() => setAccountMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 no-underline transition-colors"
+                          >
+                            <User className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                            <span>Profile &amp; Address</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Sign Out Footer */}
+                    <div className="p-1.5 border-t border-slate-100">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={isLoggingOut}
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 bg-transparent border-0 cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {isLoggingOut ? (
+                          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        ) : (
+                          <LogOut className="w-4 h-4" aria-hidden="true" />
+                        )}
+                        <span>{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className={`inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full transition-colors no-underline hover:no-underline ${
+                  isTransparent
+                    ? "text-white hover:text-white/80 hover:bg-white/10"
+                    : "text-neutral-800 hover:text-black hover:bg-neutral-100"
+                }`}
+                title="Sign In"
+                aria-label="Sign in to your account"
+              >
+                <User className="w-5 h-5 stroke-[1.6]" aria-hidden="true" />
+                <span className="hidden sm:inline text-xs font-semibold">
+                  Sign in
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer Navigation */}
+      {/* Aesop-Inspired Full-Screen Editorial Mobile Navigation Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+        <div
+          id="mobile-editorial-menu"
+          ref={mobileDrawerRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile menu"
+          className="fixed inset-0 z-50 h-[100svh] bg-[#fcfaf5] text-[#222220] flex flex-col lg:hidden outline-none animate-in fade-in duration-200"
+        >
+          {/* Minimalist Editorial Top Header */}
+          <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-stone-200/80">
+            <Link
+              href="/"
+              onClick={closeMobileMenu}
+              className="flex items-center no-underline"
+              aria-label="Unique Engineering & Furniture Home"
+            >
+              <UEFLogo size="sm" variant="dark" showText={true} />
+            </Link>
 
-          {/* Drawer content */}
-          <div className="fixed inset-y-0 left-0 w-full max-w-xs bg-white shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200">
-            {/* Header with UEF Logo & Close */}
-            <div className="flex items-center justify-between p-4 border-b border-neutral-100">
-              <UEFLogo size="sm" variant="dark" />
+            <div className="flex items-center gap-3.5 text-[#222220]">
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-full text-neutral-500 hover:text-black hover:bg-neutral-100 bg-transparent border-0 cursor-pointer"
-                aria-label="Close menu"
+                onClick={() => {
+                  closeMobileMenu();
+                  onOpenSearch();
+                }}
+                aria-label="Search catalog"
+                className="min-h-[36px] min-w-[36px] inline-flex items-center justify-center bg-transparent border-0 cursor-pointer text-current hover:opacity-65 transition-opacity"
               >
-                <X className="w-5 h-5" />
+                <Search className="w-[18px] h-[18px] stroke-[1.6]" aria-hidden="true" />
+              </button>
+
+              {hasSession ? (
+                <Link
+                  href={portalHref}
+                  onClick={closeMobileMenu}
+                  aria-label={portalLabel}
+                  className="h-7 w-7 rounded-full overflow-hidden bg-stone-900 text-white text-[11px] font-bold flex items-center justify-center uppercase no-underline border border-stone-300"
+                >
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarUrl}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    avatarInitial
+                  )}
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={closeMobileMenu}
+                  aria-label="Sign in"
+                  className="min-h-[36px] min-w-[36px] inline-flex items-center justify-center text-current no-underline hover:opacity-65 transition-opacity"
+                >
+                  <User className="w-[18px] h-[18px] stroke-[1.6]" aria-hidden="true" />
+                </Link>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMenu();
+                  setIsCartOpen(true);
+                }}
+                className="min-h-[36px] px-1 inline-flex items-center gap-1 bg-transparent border-0 cursor-pointer text-[13px] font-medium tracking-tight text-current hover:opacity-65 transition-opacity"
+              >
+                <span>Cart</span>
+                {totalItems > 0 && (
+                  <span className="inline-flex items-center justify-center rounded-full bg-stone-900 text-white text-[10px] font-semibold px-1.5 min-w-[18px] h-[18px] leading-none">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={closeMobileMenu}
+                aria-label="Close menu"
+                className="min-h-[36px] min-w-[36px] inline-flex items-center justify-end bg-transparent border-0 cursor-pointer text-current hover:opacity-65 transition-opacity"
+              >
+                <X className="w-5 h-5 stroke-[1.6]" aria-hidden="true" />
               </button>
             </div>
-
-            {/* Phone & WhatsApp Quick Bar */}
-            <div className="bg-slate-900 text-white p-3 flex flex-col gap-1 text-xs">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                Direct Hotline &amp; WhatsApp:
-              </div>
-              <a
-                href="https://wa.me/8801755348053"
-                className="font-bold text-cyan-400 flex items-center gap-1.5 no-underline hover:text-cyan-300"
-              >
-                <MessageCircle className="w-4 h-4 text-emerald-400" />
-                <span>+880 1755-348053</span>
-              </a>
-            </div>
-
-            {/* Nav list */}
-            <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
-              <Link
-                href="/collections"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 text-sm font-semibold text-neutral-800 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg no-underline transition-colors"
-              >
-                All Furniture Collections
-              </Link>
-
-              <Link
-                href="/collections/table"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg no-underline transition-colors"
-              >
-                Gaming &amp; Workstations
-              </Link>
-
-              <Link
-                href="/collections/storage"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg no-underline transition-colors"
-              >
-                Metal Racks &amp; Channels
-              </Link>
-
-              <Link
-                href="/about"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg no-underline transition-colors"
-              >
-                About UEF Factory
-              </Link>
-
-              <Link
-                href="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg no-underline transition-colors"
-              >
-                Custom Size Order
-              </Link>
-            </div>
-
-            {/* Bottom Admin & Contact button */}
-            <div className="p-4 border-t border-neutral-100 bg-neutral-50 flex flex-col gap-2">
-              <a
-                href="https://www.facebook.com/uniqueengineeringfurniture"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-center py-2 px-4 rounded-lg bg-blue-600 text-white font-medium text-xs no-underline hover:bg-blue-700"
-              >
-                Follow on Facebook (8.7K)
-              </a>
-              <Link
-                href={accountHref}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-center py-2 px-4 rounded-lg border border-neutral-300 text-neutral-800 font-medium text-xs no-underline hover:bg-neutral-100"
-              >
-                {accountHref === "/admin"
-                  ? "Admin Portal"
-                  : accountHref === "/dashboard"
-                  ? "My Dashboard"
-                  : "Sign In / Register"}
-              </Link>
-            </div>
           </div>
+
+          {/* Scrollable Editorial Body */}
+          <div className="relative flex-1 overflow-y-auto overscroll-contain">
+            {activeSubmenu ? (
+              /* Submenu Drill-Down View */
+              <div className="animate-in slide-in-from-right-4 fade-in duration-150">
+                <button
+                  type="button"
+                  onClick={() => setActiveSubmenu(null)}
+                  className="w-full px-5 py-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-stone-500 hover:text-stone-900 border-b border-stone-200/80 bg-stone-100/50 border-x-0 border-t-0 cursor-pointer transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+                  <span>Back to Menu</span>
+                </button>
+
+                <div className="px-5 pt-5 pb-2">
+                  <h2 className="font-heading text-lg font-semibold text-stone-900 m-0">
+                    {activeSubmenu.label}
+                  </h2>
+                </div>
+
+                <ul
+                  role="list"
+                  className="m-0 p-0 list-none divide-y divide-stone-200/75 border-b border-stone-200/75"
+                >
+                  {activeSubmenu.subItems?.map((sub) => (
+                    <li key={sub.label}>
+                      <Link
+                        href={sub.href}
+                        onClick={closeMobileMenu}
+                        className="flex items-center justify-between px-5 py-4 text-[15px] text-stone-800 hover:bg-stone-100/70 transition-colors no-underline"
+                      >
+                        <span>{sub.label}</span>
+                        <span className="inline-flex items-center gap-2">
+                          {sub.tag && (
+                            <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-stone-200/70 text-stone-700">
+                              {sub.tag}
+                            </span>
+                          )}
+                          <ChevronRight
+                            className="w-4 h-4 text-stone-400 stroke-[1.5]"
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              /* Primary Editorial Category List */
+              <div className="pb-20">
+                <nav aria-label="Mobile categories">
+                  <ul
+                    role="list"
+                    className="m-0 p-0 list-none divide-y divide-stone-200/80 border-b border-stone-200/80"
+                  >
+                    {MOBILE_CATEGORIES.map((item) => (
+                      <li key={item.label}>
+                        {item.subItems ? (
+                          <button
+                            type="button"
+                            onClick={() => setActiveSubmenu(item)}
+                            className="w-full px-5 py-[15px] flex items-center justify-between text-left text-[16px] font-normal text-[#262624] hover:bg-stone-100/70 bg-transparent border-0 cursor-pointer transition-colors"
+                          >
+                            <span>{item.label}</span>
+                            <ChevronRight
+                              className="w-4 h-4 text-stone-500 stroke-[1.5]"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        ) : (
+                          <Link
+                            href={item.href || "/collections"}
+                            onClick={closeMobileMenu}
+                            className="w-full px-5 py-[15px] flex items-center justify-between text-[16px] font-normal text-[#262624] hover:bg-stone-100/70 no-underline transition-colors"
+                          >
+                            <span>{item.label}</span>
+                            <ChevronRight
+                              className="w-4 h-4 text-stone-500 stroke-[1.5]"
+                              aria-hidden="true"
+                            />
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+
+                {/* Signed-in Account Strip inside Mobile Menu */}
+                {hasSession && (
+                  <div className="mx-5 mt-6 rounded-xl border border-stone-200/90 bg-white/80 p-3.5 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden bg-stone-900 text-white text-xs font-bold flex items-center justify-center uppercase">
+                        {avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={avatarUrl}
+                            alt={displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          avatarInitial
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-stone-900 truncate">
+                          {displayName}
+                        </div>
+                        {displayEmail && (
+                          <div className="text-[11px] text-stone-500 truncate">
+                            {displayEmail}
+                          </div>
+                        )}
+                      </div>
+                      <span className="rounded-full bg-stone-100 border border-stone-200 px-2 py-0.5 text-[10px] font-semibold uppercase text-stone-700 shrink-0">
+                        {userIsAdmin ? "Admin" : "Customer"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={portalHref}
+                        onClick={closeMobileMenu}
+                        className="flex-1 h-9 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center justify-center gap-1.5 no-underline transition-colors"
+                      >
+                        {userIsAdmin ? (
+                          <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                        ) : (
+                          <LayoutDashboard className="w-3.5 h-3.5" aria-hidden="true" />
+                        )}
+                        <span>{portalLabel}</span>
+                      </Link>
+                      <button
+                        type="button"
+                        disabled={isLoggingOut}
+                        onClick={handleLogout}
+                        className="h-9 px-3.5 rounded-lg border border-stone-200 bg-white hover:bg-red-50 hover:text-red-600 text-stone-700 text-xs font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-60"
+                      >
+                        {isLoggingOut ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                        ) : (
+                          <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+                        )}
+                        <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2-Column Minimalist Utility Links */}
+                <div className="px-5 py-6 grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px] text-stone-700">
+                  <Link
+                    href="/blog"
+                    onClick={closeMobileMenu}
+                    className="hover:text-black no-underline transition-colors"
+                  >
+                    Design Journal
+                  </Link>
+                  {hasSession ? (
+                    <Link
+                      href={userIsAdmin ? "/admin/orders" : "/dashboard/orders"}
+                      onClick={closeMobileMenu}
+                      className="hover:text-black no-underline transition-colors"
+                    >
+                      {userIsAdmin ? "Manage Orders" : "My Orders"}
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={closeMobileMenu}
+                      className="hover:text-black no-underline transition-colors font-medium text-stone-900"
+                    >
+                      Log in
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/about"
+                    onClick={closeMobileMenu}
+                    className="hover:text-black no-underline transition-colors"
+                  >
+                    Factory &amp; Showroom
+                  </Link>
+                  {hasSession ? (
+                    <a
+                      href="https://wa.me/8801755348053"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-black no-underline transition-colors"
+                    >
+                      Live assistance
+                    </a>
+                  ) : (
+                    <Link
+                      href="/signup"
+                      onClick={closeMobileMenu}
+                      className="hover:text-black no-underline transition-colors"
+                    >
+                      Create account
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/contact"
+                    onClick={closeMobileMenu}
+                    className="hover:text-black no-underline transition-colors"
+                  >
+                    Custom Consultations
+                  </Link>
+                  <Link
+                    href="/warranty"
+                    onClick={closeMobileMenu}
+                    className="hover:text-black no-underline transition-colors"
+                  >
+                    Warranty Support
+                  </Link>
+                </div>
+
+                {/* Editorial Visual Story Cards Strip (Horizontal Peek) */}
+                <div className="px-5 pt-1">
+                  <div className="flex gap-3.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <Link
+                      href="/collections"
+                      onClick={closeMobileMenu}
+                      className="w-[70%] sm:w-[46%] shrink-0 snap-start group no-underline"
+                    >
+                      <div className="aspect-[16/10] w-full overflow-hidden bg-stone-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={FOOTER_PROMOTIONS[0].image}
+                          alt="Unique Engineering Studio Collections"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                      <p className="mt-2 mb-0 text-xs font-medium text-stone-800 truncate">
+                        Architectural Workstations
+                      </p>
+                    </Link>
+
+                    <Link
+                      href="/contact"
+                      onClick={closeMobileMenu}
+                      className="w-[70%] sm:w-[46%] shrink-0 snap-start group no-underline"
+                    >
+                      <div className="aspect-[16/10] w-full overflow-hidden bg-stone-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={FOOTER_PROMOTIONS[1].image}
+                          alt="Precision CNC Laser Cutting"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                      <p className="mt-2 mb-0 text-xs font-medium text-stone-800 truncate">
+                        Precision CNC Fabrication
+                      </p>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Floating Dark Concierge Chat Trigger (Bottom-right inside overlay) */}
+          <a
+            href="https://wa.me/8801755348053"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Live assistance on WhatsApp"
+            title="Chat with UEF Factory Team"
+            className="fixed bottom-5 right-5 z-10 h-11 w-11 rounded-full bg-[#333230] hover:bg-black text-white shadow-lg flex items-center justify-center no-underline transition-transform active:scale-95"
+          >
+            <MessageCircle className="w-5 h-5" aria-hidden="true" />
+          </a>
         </div>
       )}
     </>
