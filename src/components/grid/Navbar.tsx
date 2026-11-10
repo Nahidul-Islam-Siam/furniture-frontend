@@ -35,7 +35,12 @@ import {
 } from "@/lib/authCookies";
 import { useGetUserQuery } from "@/redux/service/profileData";
 import { useLogoutMutation } from "@/redux/service/auth/authApi";
-import { FOOTER_PROMOTIONS } from "@/data/gridData";
+import {
+  CATEGORIES,
+  CHAIR_PRODUCTS,
+  TABLE_PRODUCTS,
+  FOOTER_PROMOTIONS,
+} from "@/data/gridData";
 
 interface NavbarProps {
   onOpenSearch: () => void;
@@ -816,7 +821,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                           <button
                             type="button"
                             onClick={() => setActiveSubmenu(item)}
-                            className="w-full px-5 py-[15px] flex items-center justify-between text-left text-[16px] font-normal text-[#262624] hover:bg-stone-100/70 bg-transparent border-0 cursor-pointer transition-colors"
+                            className="w-full px-5 py-3.5 flex items-center justify-between text-left text-[15.5px] font-normal text-[#262624] hover:bg-stone-100/70 bg-transparent border-0 cursor-pointer transition-colors"
                           >
                             <span>{item.label}</span>
                             <ChevronRight
@@ -828,7 +833,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                           <Link
                             href={item.href || "/collections"}
                             onClick={closeMobileMenu}
-                            className="w-full px-5 py-[15px] flex items-center justify-between text-[16px] font-normal text-[#262624] hover:bg-stone-100/70 no-underline transition-colors"
+                            className="w-full px-5 py-3.5 flex items-center justify-between text-[15.5px] font-normal text-[#262624] hover:bg-stone-100/70 no-underline transition-colors"
                           >
                             <span>{item.label}</span>
                             <ChevronRight
@@ -842,69 +847,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                   </ul>
                 </nav>
 
-                {/* Signed-in Account Strip inside Mobile Menu */}
-                {hasSession && (
-                  <div className="mx-5 mt-6 rounded-xl border border-stone-200/90 bg-white/80 p-3.5 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden bg-stone-900 text-white text-xs font-bold flex items-center justify-center uppercase">
-                        {avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={avatarUrl}
-                            alt={displayName}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          avatarInitial
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-stone-900 truncate">
-                          {displayName}
-                        </div>
-                        {displayEmail && (
-                          <div className="text-[11px] text-stone-500 truncate">
-                            {displayEmail}
-                          </div>
-                        )}
-                      </div>
-                      <span className="rounded-full bg-stone-100 border border-stone-200 px-2 py-0.5 text-[10px] font-semibold uppercase text-stone-700 shrink-0">
-                        {userIsAdmin ? "Admin" : "Customer"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={portalHref}
-                        onClick={closeMobileMenu}
-                        className="flex-1 h-9 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center justify-center gap-1.5 no-underline transition-colors"
-                      >
-                        {userIsAdmin ? (
-                          <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-                        ) : (
-                          <LayoutDashboard className="w-3.5 h-3.5" aria-hidden="true" />
-                        )}
-                        <span>{portalLabel}</span>
-                      </Link>
-                      <button
-                        type="button"
-                        disabled={isLoggingOut}
-                        onClick={handleLogout}
-                        className="h-9 px-3.5 rounded-lg border border-stone-200 bg-white hover:bg-red-50 hover:text-red-600 text-stone-700 text-xs font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-60"
-                      >
-                        {isLoggingOut ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-                        ) : (
-                          <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
-                        )}
-                        <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 2-Column Minimalist Utility Links */}
-                <div className="px-5 py-6 grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px] text-stone-700">
+                {/* 2-Column Minimalist Utility & Account Links */}
+                <div className="px-5 py-5 grid grid-cols-2 gap-x-6 gap-y-3.5 text-[13.5px] text-stone-700">
                   <Link
                     href="/blog"
                     onClick={closeMobileMenu}
@@ -914,17 +858,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                   </Link>
                   {hasSession ? (
                     <Link
-                      href={userIsAdmin ? "/admin/orders" : "/dashboard/orders"}
+                      href={portalHref}
                       onClick={closeMobileMenu}
-                      className="hover:text-black no-underline transition-colors"
+                      className="font-medium text-stone-900 hover:text-black no-underline transition-colors"
                     >
-                      {userIsAdmin ? "Manage Orders" : "My Orders"}
+                      {portalLabel}
                     </Link>
                   ) : (
                     <Link
                       href="/login"
                       onClick={closeMobileMenu}
-                      className="hover:text-black no-underline transition-colors font-medium text-stone-900"
+                      className="font-medium text-stone-900 hover:text-black no-underline transition-colors"
                     >
                       Log in
                     </Link>
@@ -935,9 +879,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                     onClick={closeMobileMenu}
                     className="hover:text-black no-underline transition-colors"
                   >
-                    Factory &amp; Showroom
+                    Showroom &amp; Factory
                   </Link>
                   {hasSession ? (
+                    <Link
+                      href={userIsAdmin ? "/admin/orders" : "/dashboard/orders"}
+                      onClick={closeMobileMenu}
+                      className="hover:text-black no-underline transition-colors"
+                    >
+                      {userIsAdmin ? "Manage Orders" : "My Orders"}
+                    </Link>
+                  ) : (
                     <a
                       href="https://wa.me/8801755348053"
                       target="_blank"
@@ -946,6 +898,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                     >
                       Live assistance
                     </a>
+                  )}
+
+                  {hasSession ? (
+                    <>
+                      <a
+                        href="https://wa.me/8801755348053"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-black no-underline transition-colors"
+                      >
+                        Live assistance
+                      </a>
+                      <button
+                        type="button"
+                        disabled={isLoggingOut}
+                        onClick={handleLogout}
+                        className="text-left text-stone-500 hover:text-red-600 transition-colors cursor-pointer inline-flex items-center gap-1.5 bg-transparent border-0 p-0 disabled:opacity-60"
+                      >
+                        {isLoggingOut && (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                        )}
+                        <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+                      </button>
+                    </>
                   ) : (
                     <Link
                       href="/signup"
@@ -955,21 +931,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                       Create account
                     </Link>
                   )}
-
-                  <Link
-                    href="/contact"
-                    onClick={closeMobileMenu}
-                    className="hover:text-black no-underline transition-colors"
-                  >
-                    Custom Consultations
-                  </Link>
-                  <Link
-                    href="/warranty"
-                    onClick={closeMobileMenu}
-                    className="hover:text-black no-underline transition-colors"
-                  >
-                    Warranty Support
-                  </Link>
                 </div>
 
                 {/* Editorial Visual Story Cards Strip (Horizontal Peek) */}
