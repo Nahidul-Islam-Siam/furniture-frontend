@@ -25,7 +25,13 @@ const { Title, Text } = Typography;
 
 export default function AdminUsersPage() {
   const [searchText, setSearchText] = useState("");
-  const { data: usersRes, isLoading, isError, refetch } = useGetAllUsersQuery({
+  const {
+    data: usersRes,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useGetAllUsersQuery({
     limit: 100,
   });
 
@@ -142,7 +148,7 @@ export default function AdminUsersPage() {
           showIcon
           message="Unable to load registered accounts right now."
           action={
-            <Button size="small" onClick={() => refetch()}>
+            <Button size="small" loading={isFetching} onClick={() => refetch()}>
               Retry
             </Button>
           }

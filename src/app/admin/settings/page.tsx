@@ -76,6 +76,7 @@ export default function AdminSettingsPage() {
   // Avatar state
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
 
   // Content states for Rich Editors
   const [aboutText, setAboutText] = useState("");
@@ -251,16 +252,21 @@ export default function AdminSettingsPage() {
   };
 
   const handleRemoveAvatar = async () => {
-    setAvatarUrl("");
+    setIsRemovingAvatar(true);
     try {
       await updateUserProfile({
         avatar: { url: "", publicId: "" },
       }).unwrap();
-    } catch {}
-    dispatch(updateUserAvatar(""));
-    const currentProfile = getStoreContent<any>("adminProfile");
-    saveStoreContent("adminProfile", { ...currentProfile, avatar: "" });
-    message.info("Profile photo removed");
+      setAvatarUrl("");
+      dispatch(updateUserAvatar(""));
+      const currentProfile = getStoreContent<any>("adminProfile");
+      saveStoreContent("adminProfile", { ...currentProfile, avatar: "" });
+      message.info("Profile photo removed");
+    } catch {
+      message.error("Failed to remove profile photo");
+    } finally {
+      setIsRemovingAvatar(false);
+    }
   };
 
   const handleProfileSave = async (values: any) => {
@@ -454,9 +460,11 @@ export default function AdminSettingsPage() {
                 danger
                 size="small"
                 icon={<DeleteOutlined />}
+                loading={isRemovingAvatar}
+                disabled={isUploadingAvatar || isRemovingAvatar}
                 onClick={handleRemoveAvatar}
               >
-                Remove
+                {isRemovingAvatar ? "Removing..." : "Remove"}
               </Button>
             )}
           </div>

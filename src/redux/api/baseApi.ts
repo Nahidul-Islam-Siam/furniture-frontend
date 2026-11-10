@@ -7,7 +7,7 @@ import type {
 } from "@reduxjs/toolkit/query";
 import { RootState } from "../store";
 import { logout, setAccessToken } from "../features/auth";
-import { getClientCookie, isJwtTokenValid } from "@/lib/authCookies";
+import { clearAuthCookies, getClientCookie, isJwtTokenValid } from "@/lib/authCookies";
 
 const baseQuery = fetchBaseQuery({
   baseUrl:
@@ -46,12 +46,23 @@ const baseQueryWithReauth: BaseQueryFn<
     );
 
     if (refreshResult.data) {
-      const newAccessToken = (refreshResult.data as any).accessToken;
-      api.dispatch(setAccessToken(newAccessToken));
+      const payload = refreshResult.data as any;
+      const newAccessToken = payload?.data?.accessToken || payload?.accessToken;
+      if (newAccessToken && isJwtTokenValid(newAccessToken)) {
+        if (typeof document !== "undefined") {
+          document.cookie = `accessToken=${newAccessToken}; path=/; max-age=86400; SameSite=Lax`;
+          document.cookie = `token=${newAccessToken}; path=/; max-age=86400; SameSite=Lax`;
+        }
+        api.dispatch(setAccessToken(newAccessToken));
 
-      // Retry the initial query with new token
-      result = await baseQuery(args, api, extraOptions);
+        // Retry the initial query with new token
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        clearAuthCookies();
+        api.dispatch(logout());
+      }
     } else {
+      clearAuthCookies();
       api.dispatch(logout());
     }
   }

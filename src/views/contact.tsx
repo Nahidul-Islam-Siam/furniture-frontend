@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FooterPromotions } from "../components/grid/FooterPromotions";
 import { toast } from "sonner";
-import { CheckCircle2, Phone, MessageCircle } from "lucide-react";
+import { CheckCircle2, Phone, MessageCircle, Loader2 } from "lucide-react";
 import { useAddContactMutation } from "@/redux/service/contactApi/contactApi";
 
 export default function Contact() {
@@ -196,9 +196,16 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-8 py-3.5 bg-black text-white text-xs font-bold tracking-widest uppercase transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-black text-white text-xs font-bold tracking-widest uppercase transition-all active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                 >
-                  {isLoading ? "Sending..." : "Send"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    "Send"
+                  )}
                 </button>
               </div>
             </form>

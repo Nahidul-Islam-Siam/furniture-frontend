@@ -21,7 +21,7 @@ import {
 import toast from "react-hot-toast";
 
 export default function MyOrdersPage() {
-  const { data: ordersData, isLoading, isError, refetch } =
+  const { data: ordersData, isLoading, isFetching, isError, refetch } =
     useGetMyOrdersQuery();
   const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
@@ -202,7 +202,7 @@ export default function MyOrdersPage() {
               <p className="text-sm text-red-600">
                 Could not load your orders right now.
               </p>
-              <Button size="small" onClick={() => refetch()}>
+              <Button size="small" loading={isFetching} onClick={() => refetch()}>
                 Retry
               </Button>
             </div>

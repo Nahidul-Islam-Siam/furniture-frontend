@@ -11,6 +11,7 @@ import {
   CreditCard,
   Settings,
   LogOut,
+  Loader2,
   Menu,
   ExternalLink,
   Bell,
@@ -33,6 +34,7 @@ import {
   parseJwtPayload,
 } from "@/lib/authCookies";
 import { useGetUserQuery } from "@/redux/service/profileData";
+import { useLogoutMutation } from "@/redux/service/auth/authApi";
 
 export default function DashboardLayout({
   children,
@@ -47,6 +49,8 @@ export default function DashboardLayout({
   const { user, accessToken } = useAppSelector((state) => state.auth);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [triggerLogout] = useLogoutMutation();
 
   React.useEffect(() => {
     const token = getClientCookie("accessToken") || getClientCookie("token");
@@ -96,7 +100,12 @@ export default function DashboardLayout({
     }
   }, [profileRes, user, dispatch]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await triggerLogout().unwrap();
+    } catch {}
     clearAuthCookies();
     dispatch(logout());
     router.replace("/login");
@@ -266,14 +275,21 @@ export default function DashboardLayout({
 
           <button
             type="button"
+            disabled={isLoggingOut}
             onClick={handleLogout}
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors bg-transparent border-0 cursor-pointer ${
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors bg-transparent border-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
               !sidebarOpen ? "justify-center" : ""
             }`}
             title="Sign Out"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
-            {sidebarOpen && <span>Sign Out</span>}
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4 shrink-0" />
+            )}
+            {sidebarOpen && (
+              <span>{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
+            )}
           </button>
         </div>
       </aside>

@@ -27,6 +27,7 @@ export const OverviewPage: React.FC = () => {
   const {
     data: ordersData,
     isLoading: isOrdersLoading,
+    isFetching: isOrdersFetching,
     isError: isOrdersError,
     refetch,
   } = useGetMyOrdersQuery();
@@ -229,7 +230,11 @@ export const OverviewPage: React.FC = () => {
               <p className="text-sm text-red-600">
                 Unable to load your recent orders right now.
               </p>
-              <Button size="small" onClick={() => refetch()}>
+              <Button
+                size="small"
+                loading={isOrdersFetching}
+                onClick={() => refetch()}
+              >
                 Retry
               </Button>
             </div>

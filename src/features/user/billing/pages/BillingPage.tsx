@@ -27,7 +27,7 @@ import {
 
 export const BillingPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const { data: ordersData, isLoading, isError, refetch } =
+  const { data: ordersData, isLoading, isFetching, isError, refetch } =
     useGetMyOrdersQuery();
   const [selectedInvoice, setSelectedInvoice] = useState<IOrder | null>(null);
 
@@ -255,7 +255,9 @@ export const BillingPage: React.FC = () => {
           {isError ? (
             <div className="py-10 text-center space-y-2">
               <p className="text-sm text-red-600">Unable to load billing statements right now.</p>
-              <Button size="small" onClick={() => refetch()}>Retry</Button>
+              <Button size="small" loading={isFetching} onClick={() => refetch()}>
+                Retry
+              </Button>
             </div>
           ) : (
             <Table

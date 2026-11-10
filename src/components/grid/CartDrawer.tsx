@@ -14,6 +14,7 @@ import {
   Phone,
   User,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateOrderMutation, useInitiateSSLCommerzMutation } from "@/redux/service/orderApi";
@@ -497,7 +498,10 @@ export const CartDrawer: React.FC = () => {
                   className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-medium text-sm rounded-full flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99] disabled:opacity-75"
                 >
                   {isCreatingOrder || isInitiatingSSL ? (
-                    <span>Processing & Connecting...</span>
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing &amp; Connecting...
+                    </span>
                   ) : (
                     <span>
                       {paymentMethod === "sslcommerz" ? "Pay via SSLCommerz" : "Confirm Order"} • Tk{" "}

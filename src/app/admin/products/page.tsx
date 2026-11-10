@@ -56,6 +56,7 @@ export default function AdminProductsPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
 
   const { accessToken } = useAppSelector((state) => state.auth);
   const [form] = Form.useForm();
@@ -86,7 +87,7 @@ export default function AdminProductsPage() {
   // RTK Mutations
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
-  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+  const [deleteProduct] = useDeleteProductMutation();
   const [uploadFile] = useUploadFileMutation();
 
   const productsList: IProductItem[] = productsData?.data || [];
@@ -213,6 +214,7 @@ export default function AdminProductsPage() {
 
   // Toggle inStock / isAvailable status
   const handleToggleStock = async (id: string, currentStatus: boolean) => {
+    setTogglingProductId(id);
     try {
       await updateProduct({
         id,
@@ -221,6 +223,8 @@ export default function AdminProductsPage() {
       message.info(`Product is now ${!currentStatus ? "In Stock" : "Out of Stock"}`);
     } catch (err: any) {
       message.error(err?.data?.message || "Failed to update stock status");
+    } finally {
+      setTogglingProductId(null);
     }
   };
 
@@ -343,6 +347,7 @@ export default function AdminProductsPage() {
           checkedChildren="In Stock"
           unCheckedChildren="Out"
           checked={isAvailable ?? true}
+          loading={togglingProductId === record._id}
           onChange={() => handleToggleStock(record._id, isAvailable ?? true)}
         />
       ),
@@ -356,6 +361,7 @@ export default function AdminProductsPage() {
           <Button
             type="text"
             icon={<EditOutlined />}
+            disabled={deletingProductId === record._id}
             onClick={() => handleOpenModal(record)}
           />
           <Popconfirm
@@ -364,9 +370,17 @@ export default function AdminProductsPage() {
             onConfirm={() => handleDeleteProduct(record._id)}
             okText="Yes, delete"
             cancelText="Cancel"
-            okButtonProps={{ danger: true }}
+            okButtonProps={{
+              danger: true,
+              loading: deletingProductId === record._id,
+            }}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} loading={isDeleting} />
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              loading={deletingProductId === record._id}
+            />
           </Popconfirm>
         </Space>
       ),

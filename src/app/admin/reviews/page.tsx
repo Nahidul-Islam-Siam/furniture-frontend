@@ -32,26 +32,37 @@ const { Title, Text } = Typography;
 
 export default function AdminReviewsPage() {
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
-  const { data, isLoading, refetch } = useGetAdminReviewsQuery({
+  const [activeAction, setActiveAction] = useState<{
+    id: string;
+    action: "approved" | "rejected" | "feature" | "delete";
+  } | null>(null);
+  const { data, isLoading, isFetching, refetch } = useGetAdminReviewsQuery({
     status: statusFilter,
   });
 
-  const [updateStatus, { isLoading: isUpdating }] = useUpdateReviewStatusMutation();
-  const [deleteReview, { isLoading: isDeleting }] = useDeleteReviewMutation();
+  const [updateStatus] = useUpdateReviewStatusMutation();
+  const [deleteReview] = useDeleteReviewMutation();
 
   const handleStatusChange = async (
     id: string,
     newStatus: "pending" | "approved" | "rejected"
   ) => {
+    setActiveAction({
+      id,
+      action: newStatus === "approved" ? "approved" : "rejected",
+    });
     try {
       await updateStatus({ id, status: newStatus }).unwrap();
       message.success(`Review ${newStatus} successfully!`);
     } catch {
       message.error("Failed to update status");
+    } finally {
+      setActiveAction(null);
     }
   };
 
   const handleToggleFeatured = async (id: string, isFeatured: boolean) => {
+    setActiveAction({ id, action: "feature" });
     try {
       await updateStatus({ id, isFeatured }).unwrap();
       message.success(
@@ -59,15 +70,20 @@ export default function AdminReviewsPage() {
       );
     } catch {
       message.error("Failed to update featured flag");
+    } finally {
+      setActiveAction(null);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setActiveAction({ id, action: "delete" });
     try {
       await deleteReview(id).unwrap();
       message.success("Review deleted successfully");
     } catch {
       message.error("Failed to delete review");
+    } finally {
+      setActiveAction(null);
     }
   };
 
@@ -117,7 +133,10 @@ export default function AdminReviewsPage() {
       render: (_, record) => (
         <Switch
           checked={record.isFeatured}
-          loading={isUpdating}
+          loading={
+            activeAction?.id === record._id && activeAction.action === "feature"
+          }
+          disabled={activeAction?.id === record._id && activeAction.action !== "feature"}
           onChange={(checked) => handleToggleFeatured(record._id, checked)}
         />
       ),
@@ -156,6 +175,11 @@ export default function AdminReviewsPage() {
               size="small"
               type="text"
               icon={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+              loading={
+                activeAction?.id === record._id &&
+                activeAction.action === "approved"
+              }
+              disabled={activeAction?.id === record._id}
               onClick={() => handleStatusChange(record._id, "approved")}
               title="Approve review"
             />
@@ -166,6 +190,11 @@ export default function AdminReviewsPage() {
               size="small"
               type="text"
               icon={<CloseCircleOutlined style={{ color: "#ff4d4f" }} />}
+              loading={
+                activeAction?.id === record._id &&
+                activeAction.action === "rejected"
+              }
+              disabled={activeAction?.id === record._id}
               onClick={() => handleStatusChange(record._id, "rejected")}
               title="Reject review"
             />
@@ -177,13 +206,26 @@ export default function AdminReviewsPage() {
             onConfirm={() => handleDelete(record._id)}
             okText="Yes"
             cancelText="No"
+            okButtonProps={{
+              danger: true,
+              loading:
+                activeAction?.id === record._id &&
+                activeAction.action === "delete",
+            }}
           >
             <Button
               size="small"
               danger
               type="text"
               icon={<DeleteOutlined />}
-              loading={isDeleting}
+              loading={
+                activeAction?.id === record._id &&
+                activeAction.action === "delete"
+              }
+              disabled={
+                activeAction?.id === record._id &&
+                activeAction.action !== "delete"
+              }
             />
           </Popconfirm>
         </Space>
@@ -217,7 +259,11 @@ export default function AdminReviewsPage() {
               { label: "Rejected", value: "rejected" },
             ]}
           />
-          <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading}>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => refetch()}
+            loading={isFetching}
+          >
             Refresh
           </Button>
         </Space>

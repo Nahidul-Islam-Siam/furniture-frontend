@@ -46,6 +46,7 @@ import {
   parseJwtPayload,
 } from "@/lib/authCookies";
 import { useGetUserQuery } from "@/redux/service/profileData";
+import { useLogoutMutation } from "@/redux/service/auth/authApi";
 
 const { Header, Sider, Content } = Layout;
 
@@ -62,6 +63,8 @@ export default function AdminLayout({
   const [adminAvatar, setAdminAvatar] = useState<string>("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [triggerLogout] = useLogoutMutation();
 
   // Guard: Protect Admin routes from unauthorized or stale sessions
   React.useEffect(() => {
@@ -150,7 +153,12 @@ export default function AdminLayout({
     return () => window.removeEventListener("grid_content_updated", handleUpdate);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await triggerLogout().unwrap();
+    } catch {}
     clearAuthCookies();
     dispatch(logout());
     router.replace("/login");
@@ -212,7 +220,8 @@ export default function AdminLayout({
       key: "logout",
       icon: <LogoutOutlined />,
       danger: true,
-      label: "Sign Out",
+      disabled: isLoggingOut,
+      label: isLoggingOut ? "Signing out..." : "Sign Out",
       onClick: handleLogout,
     },
   ];

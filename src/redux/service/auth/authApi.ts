@@ -27,8 +27,13 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  email: string;
+  id?: string;
+  email?: string;
   newPassword: string;
+}
+
+export interface SetPasswordRequest {
+  password: string;
 }
 
 export interface ChangePasswordRequest {
@@ -48,6 +53,7 @@ export interface VerifyOtpRequest {
 export interface OtpResponse {
   success: boolean;
   message: string;
+  data?: Partial<LoginResponseData>;
 }
 
 export interface EmailVerificationRequest {
@@ -158,11 +164,26 @@ export const authApi = baseApi.injectEndpoints({
       { token: string; user: ResetPasswordRequest }
     >({
       query: ({ token, user }) => ({
-        url: `/auth/reset-password/${token}`,
+        url: "/auth/reset-password",
         method: "POST",
-        body: user,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: {
+          ...user,
+          token,
+        },
       }),
       invalidatesTags: ["auth"],
+    }),
+
+    setPassword: builder.mutation<ChangePasswordResponse, SetPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/set-password",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["auth", "profile"],
     }),
 
     changePassword: builder.mutation<ChangePasswordResponse, ChangePasswordRequest>({
@@ -197,6 +218,7 @@ export const {
   useLoginUserMutation,
   useLogoutMutation,
   useChangePasswordMutation,
+  useSetPasswordMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useEmailVerificationMutation,

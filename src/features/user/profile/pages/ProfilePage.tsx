@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/redux";
 import { setUser } from "@/redux/features/auth";
 import {
   useGetUserQuery,
   useUpdateUserProfileMutation,
 } from "@/redux/service/profileData";
+import { useSendOtpMutation } from "@/redux/service/auth/authApi";
 import { uploadImageToCloudinary } from "@/lib/cloudinaryUpload";
 import {
   User,
@@ -23,6 +25,7 @@ import {
 import toast from "react-hot-toast";
 
 export const ProfilePage: React.FC = () => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const authState = useAppSelector((state) => state.auth);
   const { data: profileResponse, isLoading: isProfileLoading, refetch } =
@@ -30,6 +33,7 @@ export const ProfilePage: React.FC = () => {
 
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateUserProfileMutation();
+  const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -250,9 +254,41 @@ export const ProfilePage: React.FC = () => {
                   <CheckCircle2 className="h-3 w-3" /> Verified
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
-                  <AlertCircle className="h-3 w-3" /> Unverified
-                </span>
+                <div className="inline-flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
+                    <AlertCircle className="h-3 w-3" /> Unverified
+                  </span>
+                  {currentUser?.email && (
+                    <button
+                      type="button"
+                      disabled={isSendingOtp}
+                      onClick={async () => {
+                        try {
+                          await sendOtp({ email: currentUser.email }).unwrap();
+                          toast.success("OTP sent to your email!");
+                          router.push(
+                            `/verify-otp?email=${encodeURIComponent(
+                              currentUser.email
+                            )}&redirect=${encodeURIComponent("/dashboard/profile")}`
+                          );
+                        } catch (err: any) {
+                          toast.error(
+                            err?.data?.message || "Could not send verification OTP."
+                          );
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-600 hover:bg-amber-700 px-2.5 py-0.5 text-[11px] font-semibold text-white transition cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isSendingOtp ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" /> Sending...
+                        </>
+                      ) : (
+                        "Verify Email"
+                      )}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 

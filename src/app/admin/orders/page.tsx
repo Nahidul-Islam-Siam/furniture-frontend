@@ -23,6 +23,7 @@ import {
   CarOutlined,
   CloseCircleOutlined,
   SyncOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import {
   useGetAllOrdersQuery,
@@ -49,7 +50,7 @@ export default function AdminOrdersPage() {
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   // RTK Query & Mutation
-  const { data: ordersData, isLoading, refetch } = useGetAllOrdersQuery();
+  const { data: ordersData, isLoading, isFetching, refetch } = useGetAllOrdersQuery();
   const [updateOrderStatus] = useUpdateOrderStatusMutation();
 
   const ordersList: IOrder[] = ordersData?.data || [];
@@ -255,9 +256,19 @@ export default function AdminOrdersPage() {
             </Select>
           </Space>
 
-          <Text type="secondary">
-            Total Orders: <strong>{filteredOrders.length}</strong>
-          </Text>
+          <Space>
+            <Text type="secondary">
+              Total Orders: <strong>{filteredOrders.length}</strong>
+            </Text>
+            <Button
+              size="small"
+              icon={<ReloadOutlined />}
+              loading={isFetching}
+              onClick={() => refetch()}
+            >
+              Refresh
+            </Button>
+          </Space>
         </Space>
       </Card>
 

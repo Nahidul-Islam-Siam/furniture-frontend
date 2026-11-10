@@ -49,6 +49,7 @@ export default function AdminDashboardPage() {
   const {
     data: overviewData,
     isLoading: isOverviewLoading,
+    isFetching: isOverviewFetching,
     isError: isOverviewError,
     refetch: refetchOverview,
   } = useGetAdminOverviewQuery();
@@ -283,7 +284,11 @@ export default function AdminDashboardPage() {
           showIcon
           message="Could not fetch latest analytics overview."
           action={
-            <Button size="small" onClick={() => refetchOverview()}>
+            <Button
+              size="small"
+              loading={isOverviewFetching}
+              onClick={() => refetchOverview()}
+            >
               Retry
             </Button>
           }

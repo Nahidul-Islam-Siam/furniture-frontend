@@ -43,6 +43,8 @@ export default function AdminCategoriesPage() {
   const [searchText, setSearchText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [togglingCategoryId, setTogglingCategoryId] = useState<string | null>(null);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
 
   const [form] = Form.useForm();
 
@@ -50,7 +52,7 @@ export default function AdminCategoriesPage() {
   const { data: categoriesData, isLoading, refetch } = useGetCategoriesQuery();
   const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
   const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
-  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
+  const [deleteCategory] = useDeleteCategoryMutation();
   const [uploadFile] = useUploadFileMutation();
 
   const categoriesList: ICategoryItem[] = categoriesData?.data || [];
@@ -130,6 +132,7 @@ export default function AdminCategoriesPage() {
 
   // Toggle Category Active Status
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+    setTogglingCategoryId(id);
     try {
       await updateCategory({
         id,
@@ -139,17 +142,22 @@ export default function AdminCategoriesPage() {
       refetch();
     } catch (err: any) {
       message.error(err?.data?.message || "Failed to update status");
+    } finally {
+      setTogglingCategoryId(null);
     }
   };
 
   // Delete Category
   const handleDeleteCategory = async (id: string) => {
+    setDeletingCategoryId(id);
     try {
       await deleteCategory(id).unwrap();
       message.success("Category deleted successfully");
       refetch();
     } catch (err: any) {
       message.error(err?.data?.message || "Failed to delete category");
+    } finally {
+      setDeletingCategoryId(null);
     }
   };
 
@@ -207,6 +215,7 @@ export default function AdminCategoriesPage() {
           checkedChildren="Active"
           unCheckedChildren="Hidden"
           checked={active ?? true}
+          loading={togglingCategoryId === record._id}
           onChange={() => handleToggleStatus(record._id, active ?? true)}
         />
       ),
@@ -220,6 +229,7 @@ export default function AdminCategoriesPage() {
           <Button
             type="text"
             icon={<EditOutlined />}
+            disabled={deletingCategoryId === record._id}
             onClick={() => handleOpenModal(record)}
           />
           <Popconfirm
@@ -228,9 +238,17 @@ export default function AdminCategoriesPage() {
             onConfirm={() => handleDeleteCategory(record._id)}
             okText="Yes, delete"
             cancelText="Cancel"
-            okButtonProps={{ danger: true }}
+            okButtonProps={{
+              danger: true,
+              loading: deletingCategoryId === record._id,
+            }}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} loading={isDeleting} />
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              loading={deletingCategoryId === record._id}
+            />
           </Popconfirm>
         </Space>
       ),
