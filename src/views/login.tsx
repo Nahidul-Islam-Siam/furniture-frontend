@@ -15,6 +15,7 @@ import {
   useLoginUserMutation,
   useSendOtpMutation,
 } from "@/redux/service/auth/authApi";
+import { isAdminRole, normalizeRoleString } from "@/lib/authCookies";
 import { Eye, EyeOff, Loader2, ShieldAlert } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -76,11 +77,8 @@ export default function Login() {
       const accessToken = res.data.accessToken;
       const refreshToken = res.data.refreshToken || "";
 
-      const normalizedRole =
-        user.role?.toLowerCase() === "admin" ||
-        user.role?.toLowerCase() === "super_admin"
-          ? UserRole.ADMIN
-          : UserRole.USER;
+      const normalizedRoleStr = normalizeRoleString(user.role);
+      const normalizedRole = UserRole[normalizedRoleStr];
 
       if (typeof document !== "undefined") {
         document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
@@ -108,7 +106,7 @@ export default function Login() {
           : null;
       const redirect = params?.get("redirect");
 
-      if (normalizedRole === UserRole.ADMIN) {
+      if (isAdminRole(normalizedRole)) {
         router.push(
           redirect && redirect.startsWith("/admin") ? redirect : "/admin"
         );

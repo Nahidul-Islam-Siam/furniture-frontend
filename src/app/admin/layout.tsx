@@ -1,36 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import AntdProvider from "@/lib/antd/AntdProvider";
+import { Spin } from "antd";
 import {
-  Layout,
-  Menu,
-  Button,
-  Avatar,
-  Dropdown,
-  Badge,
-  Space,
-  Tag,
-  Spin,
-} from "antd";
-import type { MenuProps } from "antd";
-import {
-  DashboardOutlined,
-  ShoppingOutlined,
-  AppstoreOutlined,
-  OrderedListOutlined,
-  CreditCardOutlined,
-  SettingOutlined,
-  StarOutlined,
-  LogoutOutlined,
-  HomeOutlined,
-  BellOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+  LayoutDashboard,
+  ShoppingBag,
+  FolderTree,
+  ClipboardList,
+  CreditCard,
+  Star,
+  Users,
+  Settings,
+  Home,
+  Plus,
+} from "lucide-react";
 import {
   useAppDispatch,
   useAppSelector,
@@ -42,20 +27,27 @@ import {
 import {
   clearAuthCookies,
   getClientCookie,
+  isAdminRole,
   isJwtTokenValid,
+  normalizeRoleString,
   parseJwtPayload,
 } from "@/lib/authCookies";
 import { useGetUserQuery } from "@/redux/service/profileData";
+import { useGetAllOrdersQuery } from "@/redux/service/orderApi";
+import { useGetAdminReviewsQuery } from "@/redux/service/reviewApi";
 import { useLogoutMutation } from "@/redux/service/auth/authApi";
-
-const { Header, Sider, Content } = Layout;
+import { getOrderStatus } from "@/lib/orderUtils";
+import {
+  PortalSidebarShell,
+  SidebarNavGroup,
+  SidebarFooterLink,
+} from "@/components/dashboard/PortalSidebarShell";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -78,14 +70,10 @@ export default function AdminLayout({
     }
 
     const payload = parseJwtPayload(token);
-    const cookieRole = (getClientCookie("role") || "").toUpperCase();
-    const tokenRole = (payload?.role || "").toUpperCase();
-    const userRole = (user?.role as string)?.toUpperCase() || "";
-    const effectiveRole = tokenRole || cookieRole || userRole;
-    const isAdmin =
-      effectiveRole === "ADMIN" || effectiveRole === "SUPER_ADMIN";
+    const cookieRole = getClientCookie("role");
+    const effectiveRole = payload?.role || cookieRole || user?.role;
 
-    if (!isAdmin) {
+    if (!isAdminRole(effectiveRole)) {
       router.replace("/dashboard");
       return;
     }
@@ -99,13 +87,30 @@ export default function AdminLayout({
   }, [user, accessToken, pathname, router, dispatch]);
 
   const { data: profileRes } = useGetUserQuery(undefined, {
-    skip: !isAuthorized || !!user,
+    skip: !isAuthorized,
   });
 
+  // Reuse shared RTK Query caches for live pending badge counters
+  const { data: ordersRes } = useGetAllOrdersQuery(undefined, {
+    skip: !isAuthorized,
+  });
+  const { data: pendingReviewsRes } = useGetAdminReviewsQuery(
+    { status: "pending", limit: 5 },
+    { skip: !isAuthorized }
+  );
+
   React.useEffect(() => {
+    if (profileRes?.data && !isAdminRole(profileRes.data.role)) {
+      router.replace("/dashboard");
+      return;
+    }
+
     if (profileRes?.data && !user) {
       const token = getClientCookie("accessToken") || getClientCookie("token");
-      const rawRole = (profileRes.data.role || "ADMIN").toUpperCase();
+      const normalizedRoleStr = normalizeRoleString(profileRes.data.role);
+      if (typeof document !== "undefined") {
+        document.cookie = `role=${normalizedRoleStr}; path=/; max-age=86400; SameSite=Lax`;
+      }
       dispatch(
         setUser({
           user: {
@@ -113,10 +118,7 @@ export default function AdminLayout({
             name: profileRes.data.name,
             email: profileRes.data.email,
             phone: profileRes.data.phone,
-            role:
-              rawRole === "ADMIN" || rawRole === "SUPER_ADMIN"
-                ? UserRole.ADMIN
-                : UserRole.USER,
+            role: UserRole[normalizedRoleStr],
             avatar: profileRes.data.avatar,
           },
           accessToken: token,
@@ -124,11 +126,13 @@ export default function AdminLayout({
         })
       );
     }
-  }, [profileRes, user, dispatch]);
+  }, [profileRes, user, dispatch, router]);
 
   const effectiveAvatar =
     adminAvatar ||
-    (typeof user?.avatar === "string" ? user.avatar : user?.avatar?.url) ||
+    (typeof user?.avatar === "string"
+      ? user.avatar
+      : user?.avatar?.url || profileRes?.data?.avatar?.url) ||
     "";
 
   React.useEffect(() => {
@@ -150,7 +154,8 @@ export default function AdminLayout({
       } catch {}
     };
     window.addEventListener("grid_content_updated", handleUpdate);
-    return () => window.removeEventListener("grid_content_updated", handleUpdate);
+    return () =>
+      window.removeEventListener("grid_content_updated", handleUpdate);
   }, []);
 
   const handleLogout = async () => {
@@ -164,250 +169,132 @@ export default function AdminLayout({
     router.replace("/login");
   };
 
-  const menuItems: MenuProps["items"] = [
-    {
-      key: "/admin",
-      icon: <DashboardOutlined />,
-      label: <Link href="/admin">Dashboard Overview</Link>,
-    },
-    {
-      key: "/admin/products",
-      icon: <ShoppingOutlined />,
-      label: <Link href="/admin/products">Products & Upload</Link>,
-    },
-    {
-      key: "/admin/categories",
-      icon: <AppstoreOutlined />,
-      label: <Link href="/admin/categories">Categories</Link>,
-    },
-    {
-      key: "/admin/orders",
-      icon: <OrderedListOutlined />,
-      label: <Link href="/admin/orders">Orders</Link>,
-    },
-    {
-      key: "/admin/payments",
-      icon: <CreditCardOutlined />,
-      label: <Link href="/admin/payments">Payments</Link>,
-    },
-    {
-      key: "/admin/reviews",
-      icon: <StarOutlined />,
-      label: <Link href="/admin/reviews">Reviews</Link>,
-    },
-    {
-      key: "/admin/users",
-      icon: <UserOutlined />,
-      label: <Link href="/admin/users">Customers</Link>,
-    },
-    {
-      key: "/admin/settings",
-      icon: <SettingOutlined />,
-      label: <Link href="/admin/settings">Settings</Link>,
-    },
-  ];
-
-  const userDropdownItems: MenuProps["items"] = [
-    {
-      key: "website",
-      icon: <HomeOutlined />,
-      label: <Link href="/">View Website</Link>,
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "logout",
-      icon: <LogoutOutlined />,
-      danger: true,
-      disabled: isLoggingOut,
-      label: isLoggingOut ? "Signing out..." : "Sign Out",
-      onClick: handleLogout,
-    },
-  ];
-
   if (checkingAuth || !isAuthorized) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#f8f9fa",
-          gap: 16,
-        }}
-      >
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
         <Spin size="large" />
-        <span style={{ fontSize: 14, color: "#666", fontWeight: 500 }}>
+        <span className="text-sm text-slate-500 font-medium">
           Verifying administrator credentials...
         </span>
       </div>
     );
   }
 
+  const allOrders = ordersRes?.data || [];
+  const pendingOrdersCount = allOrders.filter(
+    (o) => getOrderStatus(o) === "pending"
+  ).length;
+  const pendingReviewsCount =
+    pendingReviewsRes?.meta?.total ?? pendingReviewsRes?.data?.length ?? 0;
+
+  const displayName = user?.name || profileRes?.data?.name || "Store Admin";
+  const displayEmail = user?.email || profileRes?.data?.email || "";
+  const isSuperAdmin =
+    normalizeRoleString(user?.role || profileRes?.data?.role) === "SUPER_ADMIN";
+
+  const groups: SidebarNavGroup[] = [
+    {
+      label: "Core Operations",
+      items: [
+        {
+          name: "Dashboard Overview",
+          path: "/admin",
+          icon: LayoutDashboard,
+          exact: true,
+        },
+        {
+          name: "Orders",
+          path: "/admin/orders",
+          icon: ClipboardList,
+          badge: pendingOrdersCount,
+          badgeTone: "amber",
+        },
+        {
+          name: "Payments",
+          path: "/admin/payments",
+          icon: CreditCard,
+        },
+      ],
+    },
+    {
+      label: "Catalog & Moderation",
+      items: [
+        {
+          name: "Products & Upload",
+          path: "/admin/products",
+          icon: ShoppingBag,
+        },
+        {
+          name: "Categories",
+          path: "/admin/categories",
+          icon: FolderTree,
+        },
+        {
+          name: "Reviews",
+          path: "/admin/reviews",
+          icon: Star,
+          badge: pendingReviewsCount,
+          badgeTone: "cyan",
+        },
+      ],
+    },
+    {
+      label: "Directory & System",
+      items: [
+        {
+          name: "Customers",
+          path: "/admin/users",
+          icon: Users,
+        },
+        {
+          name: "Store Settings",
+          path: "/admin/settings",
+          icon: Settings,
+        },
+      ],
+    },
+  ];
+
+  const footerLinks: SidebarFooterLink[] = [
+    {
+      name: "View Website",
+      href: "/",
+      icon: Home,
+      external: true,
+    },
+  ];
+
   return (
     <AntdProvider>
-      <Layout style={{ minHeight: "100vh" }}>
-        {/* Ant Design Sider with Responsive Mobile Breakpoint */}
-        <Sider
-          trigger={null}
-          collapsible
-          collapsed={collapsed}
-          breakpoint="lg"
-          collapsedWidth={0}
-          onBreakpoint={(broken) => {
-            if (broken) {
-              setCollapsed(true);
-            }
-          }}
-          width={240}
-          style={{
-            background: "#ffffff",
-            borderRight: "1px solid #f0f0f0",
-            position: "sticky",
-            top: 0,
-            height: "100vh",
-            overflow: "auto",
-            zIndex: 100,
-          }}
-        >
-          {/* Admin Brand Logo Header */}
-          <Link
-            href="/"
-            style={{
-              height: 64,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "flex-start",
-              padding: collapsed ? "0" : "0 20px",
-              borderBottom: "1px solid #f0f0f0",
-              gap: 10,
-              textDecoration: "none",
-            }}
-          >
-            <img
-              src="/images/uef-emblem.png"
-              alt="UEF Logo"
-              style={{
-                width: 34,
-                height: 34,
-                objectFit: "contain",
-                flexShrink: 0,
-              }}
-            />
-            {!collapsed && (
-              <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontWeight: 800, fontSize: 13, color: "#09090b", textTransform: "uppercase" }}>
-                  Unique Engineering
-                </div>
-                <div style={{ fontSize: 11, color: "#0284c7", fontWeight: 700 }}>
-                  Admin Portal
-                </div>
-              </div>
-            )}
-          </Link>
-
-          {/* Sider Menu */}
-          <Menu
-            mode="inline"
-            selectedKeys={[pathname]}
-            items={menuItems}
-            style={{
-              borderRight: 0,
-              padding: "12px 8px",
-            }}
-          />
-        </Sider>
-
-        {/* Main Content Area */}
-        <Layout style={{ minWidth: 0, background: "#f8f9fa" }}>
-          {/* Header */}
-          <Header
-            style={{
-              padding: "0 clamp(12px, 2vw, 24px)",
-              background: "#ffffff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              borderBottom: "1px solid #f0f0f0",
-              height: 64,
-            }}
-          >
-            {/* Collapse toggle button */}
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: 18,
-                width: 44,
-                height: 44,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            />
-
-            {/* Header Right Actions */}
-            <Space size="middle">
-              <Tag color="black" style={{ borderRadius: 12, padding: "2px 10px", margin: 0 }}>
-                Store Admin
-              </Tag>
-
-              <Link href="/admin/orders" title="View Customer Orders">
-                <Button
-                  type="text"
-                  shape="circle"
-                  icon={<BellOutlined />}
-                  style={{ fontSize: 16 }}
-                />
-              </Link>
-
-              <Dropdown
-                menu={{ items: userDropdownItems }}
-                trigger={["click"]}
-                placement="bottomRight"
-              >
-                <Space style={{ cursor: "pointer", padding: "4px 8px", borderRadius: 6 }}>
-                  <Avatar
-                    src={effectiveAvatar || undefined}
-                    style={{ backgroundColor: "#09090b", verticalAlign: "middle" }}
-                    size="small"
-                  >
-                    {!effectiveAvatar && (user?.name ? user.name[0].toUpperCase() : "A")}
-                  </Avatar>
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "#262626",
-                    }}
-                    className="hidden sm:inline"
-                  >
-                    {user?.name || "Store Admin"}
-                  </span>
-                </Space>
-              </Dropdown>
-            </Space>
-          </Header>
-
-          {/* Page Body - Responsive Padding & Margin */}
-          <Content
-            style={{
-              margin: "clamp(12px, 2vw, 24px)",
-              padding: "clamp(14px, 2.5vw, 24px)",
-              background: "#ffffff",
-              borderRadius: 8,
-              minHeight: 280,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-            }}
-          >
-            {children}
-          </Content>
-        </Layout>
-      </Layout>
+      <PortalSidebarShell
+        brandTitle="Unique Engineering"
+        portalSubtitle="Admin Portal"
+        navAriaLabel="Admin"
+        groups={groups}
+        footerLinks={footerLinks}
+        user={{
+          name: displayName,
+          email: displayEmail,
+          roleLabel: isSuperAdmin ? "Super Administrator" : "Store Administrator",
+          avatarUrl: effectiveAvatar,
+          verified: true,
+        }}
+        profileHref="/admin/settings"
+        notificationHref="/admin/orders"
+        notificationCount={pendingOrdersCount}
+        headerAction={{
+          label: "Add Product",
+          href: "/admin/products",
+          icon: <Plus className="h-3.5 w-3.5" aria-hidden="true" />,
+        }}
+        storageKey="uef_admin_sidebar_collapsed"
+        onLogout={handleLogout}
+        isLoggingOut={isLoggingOut}
+      >
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)] min-h-[calc(100svh-8.5rem)]">
+          {children}
+        </div>
+      </PortalSidebarShell>
     </AntdProvider>
   );
 }

@@ -12,6 +12,7 @@ import {
   useSendOtpMutation,
   useVerifyOtpMutation,
 } from "@/redux/service/auth/authApi";
+import { isAdminRole, normalizeRoleString } from "@/lib/authCookies";
 import toast from "react-hot-toast";
 
 const OTP_LENGTH = 6;
@@ -99,11 +100,8 @@ export default function VerifyOtp() {
       const user = res?.data?.user;
 
       if (accessToken && user) {
-        const rawRole = (user.role || "USER").toString().toUpperCase();
-        const normalizedRole =
-          rawRole === "ADMIN" || rawRole === "SUPER_ADMIN"
-            ? UserRole.ADMIN
-            : UserRole.USER;
+        const normalizedRoleStr = normalizeRoleString(user.role?.toString());
+        const normalizedRole = UserRole[normalizedRoleStr];
 
         if (typeof document !== "undefined") {
           document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
@@ -123,7 +121,19 @@ export default function VerifyOtp() {
         );
 
         setIsRedirecting(true);
-        router.push(normalizedRole === UserRole.ADMIN ? "/admin" : redirectTo);
+        if (isAdminRole(normalizedRole)) {
+          router.push(
+            redirectTo.startsWith("/admin") ? redirectTo : "/admin"
+          );
+        } else {
+          router.push(
+            redirectTo.startsWith("/") &&
+              !redirectTo.startsWith("//") &&
+              !redirectTo.startsWith("/admin")
+              ? redirectTo
+              : "/dashboard"
+          );
+        }
       } else {
         setIsRedirecting(true);
         router.push("/login");

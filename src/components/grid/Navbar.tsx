@@ -15,6 +15,8 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { UEFLogo } from "../ui/UEFLogo";
+import { useAppSelector } from "@/redux";
+import { getClientCookie, getHomeRouteForRole, isJwtTokenValid, parseJwtPayload } from "@/lib/authCookies";
 
 interface NavbarProps {
   onOpenSearch: () => void;
@@ -22,11 +24,25 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
   const { totalItems, setIsCartOpen } = useCart();
+  const { user, accessToken } = useAppSelector((state) => state.auth);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collectionDropdownOpen, setCollectionDropdownOpen] = useState(false);
+  const [accountHref, setAccountHref] = useState("/login");
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const token = accessToken || getClientCookie("accessToken") || getClientCookie("token");
+    if (token && isJwtTokenValid(token)) {
+      const payload = parseJwtPayload(token);
+      setAccountHref(
+        getHomeRouteForRole(user?.role || payload?.role || getClientCookie("role"))
+      );
+    } else {
+      setAccountHref("/login");
+    }
+  }, [user?.role, accessToken, pathname]);
 
   const isHome = pathname === "/";
   const isTransparent = isHome && !isScrolled;
@@ -178,13 +194,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
           <div className="flex items-center gap-3 sm:gap-4">
             {/* 1. Account / User Profile */}
             <Link
-              href="/login"
+              href={accountHref}
               className={`p-1.5 rounded-full transition-colors no-underline hover:no-underline ${
                 isTransparent
                   ? "text-white hover:text-white/80 hover:bg-white/10"
                   : "text-neutral-800 hover:text-black hover:bg-neutral-100"
               }`}
-              title="Customer Login / Admin"
+              title={
+                accountHref === "/admin"
+                  ? "Admin Portal"
+                  : accountHref === "/dashboard"
+                  ? "Customer Dashboard"
+                  : "Sign In"
+              }
               aria-label="User Account"
             >
               <User className="w-5 h-5 stroke-[1.6]" />
@@ -323,11 +345,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
                 Follow on Facebook (8.7K)
               </a>
               <Link
-                href="/login"
+                href={accountHref}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-center py-2 px-4 rounded-lg border border-neutral-300 text-neutral-800 font-medium text-xs no-underline hover:bg-neutral-100"
               >
-                Account / Admin Portal
+                {accountHref === "/admin"
+                  ? "Admin Portal"
+                  : accountHref === "/dashboard"
+                  ? "My Dashboard"
+                  : "Sign In / Register"}
               </Link>
             </div>
           </div>

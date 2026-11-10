@@ -202,6 +202,7 @@ export const ProfilePage: React.FC = () => {
           Manage your personal details, profile picture, and contact information.
         </p>
       </div>
+      
 
       <div className="rounded-xl border bg-card p-6 shadow-sm space-y-6">
         {/* Avatar and Identity Header */}

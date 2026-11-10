@@ -76,3 +76,21 @@ export function clearAuthCookies(): void {
   document.cookie = `token=; ${expired}`;
   document.cookie = `role=; ${expired}`;
 }
+
+export function isAdminRole(role?: string | null): boolean {
+  const normalized = (role || "").trim().toUpperCase();
+  return normalized === "ADMIN" || normalized === "SUPER_ADMIN";
+}
+
+export function normalizeRoleString(
+  role?: string | null
+): "SUPER_ADMIN" | "ADMIN" | "USER" {
+  const normalized = (role || "").trim().toUpperCase();
+  if (normalized === "SUPER_ADMIN") return "SUPER_ADMIN";
+  if (normalized === "ADMIN") return "ADMIN";
+  return "USER";
+}
+
+export function getHomeRouteForRole(role?: string | null): "/admin" | "/dashboard" {
+  return isAdminRole(role) ? "/admin" : "/dashboard";
+}

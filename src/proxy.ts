@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isJwtTokenValid, parseJwtPayload } from "./lib/authCookies";
+import {
+  getHomeRouteForRole,
+  isAdminRole,
+  isJwtTokenValid,
+  parseJwtPayload,
+} from "./lib/authCookies";
 
 function clearCookiesOnResponse(response: NextResponse) {
   response.cookies.delete("accessToken");
@@ -32,18 +37,21 @@ export function proxy(request: NextRequest) {
       return clearCookiesOnResponse(NextResponse.redirect(loginUrl));
     }
 
-    const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
-    if (!isAdmin) {
+    if (!isAdminRole(role)) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
-  // 2. Protect /dashboard routes (Authenticated users only)
+  // 2. Protect /dashboard routes (Customer / standard users only — admins go to /admin)
   if (pathname.startsWith("/dashboard")) {
     if (!isTokenValid) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return clearCookiesOnResponse(NextResponse.redirect(loginUrl));
+    }
+
+    if (isAdminRole(role)) {
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
 
@@ -54,10 +62,9 @@ export function proxy(request: NextRequest) {
     pathname === "/signup"
   ) {
     if (isTokenValid) {
-      if (role === "ADMIN" || role === "SUPER_ADMIN") {
-        return NextResponse.redirect(new URL("/admin", request.url));
-      }
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(
+        new URL(getHomeRouteForRole(role), request.url)
+      );
     }
 
     // If stale/invalid token exists while hitting /login, clear it cleanly

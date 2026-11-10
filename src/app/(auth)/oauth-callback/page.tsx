@@ -6,7 +6,12 @@ import Link from "next/link";
 import { Loader2, AlertCircle } from "lucide-react";
 import { AuthCardShell } from "@/components/auth/AuthCardShell";
 import { useAppDispatch, setUser, UserRole } from "@/redux";
-import { clearAuthCookies, isJwtTokenValid } from "@/lib/authCookies";
+import {
+  clearAuthCookies,
+  isAdminRole,
+  isJwtTokenValid,
+  normalizeRoleString,
+} from "@/lib/authCookies";
 import toast from "react-hot-toast";
 
 const API_URL =
@@ -63,11 +68,8 @@ function OAuthCallbackInner() {
           throw new Error("Could not load your account profile.");
         }
 
-        const rawRole = (profile.role || "USER").toString().toUpperCase();
-        const normalizedRole =
-          rawRole === "ADMIN" || rawRole === "SUPER_ADMIN"
-            ? UserRole.ADMIN
-            : UserRole.USER;
+        const normalizedRoleStr = normalizeRoleString(profile.role);
+        const normalizedRole = UserRole[normalizedRoleStr];
 
         if (typeof document !== "undefined") {
           document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
@@ -99,12 +101,12 @@ function OAuthCallbackInner() {
             ? nextPath
             : "/dashboard";
 
-        if (normalizedRole === UserRole.ADMIN && safeNext.startsWith("/admin")) {
-          router.replace(safeNext);
-        } else if (normalizedRole === UserRole.ADMIN && safeNext === "/dashboard") {
-          router.replace("/admin");
+        if (isAdminRole(normalizedRole)) {
+          router.replace(safeNext.startsWith("/admin") ? safeNext : "/admin");
         } else {
-          router.replace(safeNext.startsWith("/admin") ? "/dashboard" : safeNext);
+          router.replace(
+            safeNext.startsWith("/admin") ? "/dashboard" : safeNext
+          );
         }
       } catch (err: any) {
         if (cancelled) return;
