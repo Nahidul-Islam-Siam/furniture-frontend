@@ -185,9 +185,13 @@ export default function Signup() {
                 )}
               </button>
             </div>
-            {errors.password && (
+            {errors.password ? (
               <p className="text-red-500 text-[11px] mt-1 pl-2">
                 {errors.password.message}
+              </p>
+            ) : (
+              <p className="text-slate-400 text-[11px] mt-1 pl-2">
+                8+ chars, 1 uppercase, 1 number &amp; 1 special character (!@#$%^&amp;*)
               </p>
             )}
           </div>
