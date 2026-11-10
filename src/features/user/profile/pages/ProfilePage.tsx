@@ -7,7 +7,7 @@ import {
   useGetUserQuery,
   useUpdateUserProfileMutation,
 } from "@/redux/service/profileData";
-import { useUploadFileMutation } from "@/redux/service/uploadApi";
+import { uploadImageToCloudinary } from "@/lib/cloudinaryUpload";
 import {
   User,
   Mail,
@@ -29,8 +29,7 @@ export const ProfilePage: React.FC = () => {
 
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateUserProfileMutation();
-  const [uploadFile, { isLoading: isUploadingAvatar }] =
-    useUploadFileMutation();
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,27 +70,29 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const uploadToast = toast.loading("Uploading avatar...");
+    setIsUploadingAvatar(true);
+    const uploadToast = toast.loading("Uploading photo...");
     try {
-      const res = await uploadFile(formData).unwrap();
-      const uploadedData = Array.isArray(res.data) ? res.data[0] : res.data;
+      const uploadedData = await uploadImageToCloudinary(
+        file,
+        authState.accessToken || undefined
+      );
       if (uploadedData?.url) {
         setAvatarUrl(uploadedData.url);
         setAvatarPublicId(uploadedData.publicId || "");
-        toast.success("Avatar uploaded! Remember to save changes.", {
+        toast.success("Photo uploaded! Remember to save changes.", {
           id: uploadToast,
         });
       } else {
-        toast.error("Failed to parse uploaded image", { id: uploadToast });
+        toast.error("Failed to upload photo", { id: uploadToast });
       }
     } catch (err: any) {
       toast.error(
-        err?.data?.message || err?.message || "Failed to upload avatar",
+        err?.data?.message || err?.message || "Failed to upload photo",
         { id: uploadToast }
       );
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -230,7 +231,7 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <p className="text-sm text-muted-foreground">
-              {currentUser?.email || "email@domain.com"}
+              {currentUser?.email || ""}
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-muted-foreground">

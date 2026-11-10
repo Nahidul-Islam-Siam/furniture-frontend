@@ -2,27 +2,41 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Table, Tag, Button, Modal, Space } from "antd";
+import { Table, Tag, Button, Modal, Popconfirm } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import AntdProvider from "@/lib/antd/AntdProvider";
+import { ShoppingBag, Eye, XCircle } from "lucide-react";
 import {
-  ShoppingBag,
-  Clock,
-  CheckCircle2,
-  Package,
-  Truck,
-  Eye,
-  ArrowLeft,
-  Calendar,
-  CreditCard,
-} from "lucide-react";
-import { useGetMyOrdersQuery, IOrder } from "@/redux/service/orderApi";
+  useGetMyOrdersQuery,
+  useCancelOrderMutation,
+  IOrder,
+} from "@/redux/service/orderApi";
+import {
+  getOrderAmount,
+  getOrderStatus,
+  getPaymentMethod,
+  getPaymentStatus,
+} from "@/lib/orderUtils";
+import toast from "react-hot-toast";
 
 export default function MyOrdersPage() {
-  const { data: ordersData, isLoading, refetch } = useGetMyOrdersQuery();
+  const { data: ordersData, isLoading, isError, refetch } =
+    useGetMyOrdersQuery();
+  const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
 
   const orders: IOrder[] = ordersData?.data || [];
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      await cancelOrder(orderId).unwrap();
+      toast.success("Order cancelled successfully.");
+      setSelectedOrder(null);
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Unable to cancel order.");
+    }
+  };
 
   const getStatusTag = (status: string) => {
     const s = (status || "").toLowerCase();
@@ -52,7 +66,7 @@ export default function MyOrdersPage() {
           </span>
           <div className="text-[11px] text-neutral-400">
             {record.createdAt
-              ? new Date(record.createdAt).toLocaleDateString()
+              ? new Date(record.createdAt).toLocaleDateString("en-BD")
               : "-"}
           </div>
         </div>
@@ -79,7 +93,7 @@ export default function MyOrdersPage() {
       key: "amount",
       render: (_, record) => (
         <span className="font-bold text-neutral-900 text-sm">
-          Tk {(record.finalAmount || record.totalAmount || 0).toLocaleString("en-BD")}.00
+          Tk {getOrderAmount(record).toLocaleString("en-BD")}.00
         </span>
       ),
     },
@@ -88,14 +102,14 @@ export default function MyOrdersPage() {
       key: "payment",
       render: (_, record) => (
         <Tag color="blue" style={{ textTransform: "uppercase" }}>
-          {record.paymentMethod} • {record.paymentStatus || "pending"}
+          {getPaymentMethod(record)} • {getPaymentStatus(record)}
         </Tag>
       ),
     },
     {
       title: "Fulfillment Status",
       key: "status",
-      render: (_, record) => getStatusTag(record.orderStatus),
+      render: (_, record) => getStatusTag(getOrderStatus(record)),
     },
     {
       title: "Action",
@@ -121,26 +135,51 @@ export default function MyOrdersPage() {
               My Furniture Orders
             </h1>
             <p className="text-sm text-neutral-500">
-              Track delivery progress, assembly status, and view past invoices.
+              Track delivery progress, fulfillment status, and view order details.
             </p>
           </div>
 
           <Link
             href="/collections"
-            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white shadow hover:bg-neutral-800 transition"
+            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white shadow hover:bg-neutral-800 transition no-underline"
           >
             <ShoppingBag className="w-3.5 h-3.5" /> Continue Shopping
           </Link>
         </div>
 
         <div className="rounded-xl border bg-white shadow-sm overflow-hidden p-4">
-          <Table
-            rowKey="_id"
-            columns={columns}
-            dataSource={orders}
-            loading={isLoading}
-            pagination={{ pageSize: 10 }}
-          />
+          {isError ? (
+            <div className="py-10 text-center space-y-2">
+              <p className="text-sm text-red-600">
+                Could not load your orders right now.
+              </p>
+              <Button size="small" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <Table
+              rowKey="_id"
+              columns={columns}
+              dataSource={orders}
+              loading={isLoading}
+              scroll={{ x: 650 }}
+              pagination={{ pageSize: 10 }}
+              locale={{
+                emptyText: (
+                  <div className="py-10 text-center text-neutral-500 space-y-2">
+                    <p>You haven&apos;t placed any orders yet.</p>
+                    <Link
+                      href="/collections"
+                      className="text-primary hover:underline text-xs font-semibold"
+                    >
+                      Explore our furniture collections
+                    </Link>
+                  </div>
+                ),
+              }}
+            />
+          )}
         </div>
 
         {/* Order Details Modal */}
@@ -156,7 +195,30 @@ export default function MyOrdersPage() {
           }
           open={Boolean(selectedOrder)}
           onCancel={() => setSelectedOrder(null)}
-          footer={null}
+          footer={
+            selectedOrder && getOrderStatus(selectedOrder) === "pending" ? (
+              <div className="flex justify-between items-center pt-2">
+                <Popconfirm
+                  title="Cancel this order?"
+                  description="Are you sure you want to cancel this pending order?"
+                  onConfirm={() => handleCancelOrder(selectedOrder._id)}
+                  okText="Yes, Cancel Order"
+                  cancelText="Keep Order"
+                  okButtonProps={{ danger: true, loading: isCancelling }}
+                >
+                  <Button
+                    danger
+                    size="small"
+                    icon={<XCircle className="w-3.5 h-3.5 inline mr-1" />}
+                    loading={isCancelling}
+                  >
+                    Cancel Order
+                  </Button>
+                </Popconfirm>
+                <Button onClick={() => setSelectedOrder(null)}>Close</Button>
+              </div>
+            ) : null
+          }
           width={650}
         >
           {selectedOrder && (
@@ -164,19 +226,24 @@ export default function MyOrdersPage() {
               <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 border border-neutral-100 text-xs">
                 <div>
                   <span className="text-neutral-400 block">Status</span>
-                  <div className="mt-1">{getStatusTag(selectedOrder.orderStatus)}</div>
+                  <div className="mt-1">
+                    {getStatusTag(getOrderStatus(selectedOrder))}
+                  </div>
                 </div>
                 <div>
                   <span className="text-neutral-400 block">Payment Method</span>
                   <span className="font-semibold uppercase text-neutral-800 mt-1 block">
-                    {selectedOrder.paymentMethod} ({selectedOrder.paymentStatus || "pending"})
+                    {getPaymentMethod(selectedOrder)} (
+                    {getPaymentStatus(selectedOrder)})
                   </span>
                 </div>
                 <div>
                   <span className="text-neutral-400 block">Date</span>
                   <span className="font-semibold text-neutral-800 mt-1 block">
                     {selectedOrder.createdAt
-                      ? new Date(selectedOrder.createdAt).toLocaleDateString()
+                      ? new Date(selectedOrder.createdAt).toLocaleDateString(
+                          "en-BD"
+                        )
                       : "-"}
                   </span>
                 </div>
@@ -189,20 +256,29 @@ export default function MyOrdersPage() {
                 </h4>
                 <div className="divide-y border rounded-xl overflow-hidden">
                   {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 text-sm">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 text-sm"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center font-bold text-neutral-400 text-xs shrink-0">
                           {idx + 1}
                         </div>
                         <div>
-                          <div className="font-semibold text-neutral-900">{item.name}</div>
+                          <div className="font-semibold text-neutral-900">
+                            {item.name}
+                          </div>
                           <div className="text-xs text-neutral-500">
-                            Quantity: {item.quantity} × Tk {(item.price || 0).toLocaleString()}
+                            Quantity: {item.quantity} × Tk{" "}
+                            {(item.price || 0).toLocaleString("en-BD")}
                           </div>
                         </div>
                       </div>
                       <div className="font-bold text-neutral-900">
-                        Tk {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                        Tk{" "}
+                        {(
+                          (item.price || 0) * (item.quantity || 1)
+                        ).toLocaleString("en-BD")}
                       </div>
                     </div>
                   ))}
@@ -224,13 +300,9 @@ export default function MyOrdersPage() {
 
               {/* Total Summary */}
               <div className="pt-2 flex justify-between items-center text-base font-bold border-t">
-                <span>Total Amount Paid</span>
+                <span>Total Order Amount</span>
                 <span>
-                  Tk{" "}
-                  {(
-                    selectedOrder.finalAmount || selectedOrder.totalAmount || 0
-                  ).toLocaleString("en-BD")}
-                  .00
+                  Tk {getOrderAmount(selectedOrder).toLocaleString("en-BD")}.00
                 </span>
               </div>
             </div>
@@ -240,4 +312,3 @@ export default function MyOrdersPage() {
     </AntdProvider>
   );
 }
-

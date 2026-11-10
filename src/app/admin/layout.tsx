@@ -30,7 +30,21 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
-import { useAppDispatch, useAppSelector, logout } from "@/redux";
+import {
+  useAppDispatch,
+  useAppSelector,
+  logout,
+  setAccessToken,
+  setUser,
+  UserRole,
+} from "@/redux";
+import {
+  clearAuthCookies,
+  getClientCookie,
+  isJwtTokenValid,
+  parseJwtPayload,
+} from "@/lib/authCookies";
+import { useGetUserQuery } from "@/redux/service/profileData";
 
 const { Header, Sider, Content } = Layout;
 
@@ -43,44 +57,70 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, accessToken } = useAppSelector((state) => state.auth);
   const [adminAvatar, setAdminAvatar] = useState<string>("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // Guard: Protect Admin routes from unauthorized visitors
+  // Guard: Protect Admin routes from unauthorized or stale sessions
   React.useEffect(() => {
-    const getCookie = (name: string) => {
-      if (typeof document === "undefined") return null;
-      const match = document.cookie.match(
-        new RegExp("(^| )" + name + "=([^;]+)")
-      );
-      return match ? match[2] : null;
-    };
+    const token = getClientCookie("accessToken") || getClientCookie("token");
 
-    const token = getCookie("accessToken") || getCookie("token");
-    const cookieRole = (getCookie("role") || "").toUpperCase();
-
-    const userRole = (user?.role as string)?.toUpperCase() || "";
-    const isAdmin =
-      cookieRole === "ADMIN" ||
-      cookieRole === "SUPER_ADMIN" ||
-      userRole === "ADMIN" ||
-      userRole === "SUPER_ADMIN";
-
-    if (!token && !user) {
+    if (!token || !isJwtTokenValid(token)) {
+      clearAuthCookies();
+      dispatch(logout());
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
+
+    const payload = parseJwtPayload(token);
+    const cookieRole = (getClientCookie("role") || "").toUpperCase();
+    const tokenRole = (payload?.role || "").toUpperCase();
+    const userRole = (user?.role as string)?.toUpperCase() || "";
+    const effectiveRole = tokenRole || cookieRole || userRole;
+    const isAdmin =
+      effectiveRole === "ADMIN" || effectiveRole === "SUPER_ADMIN";
 
     if (!isAdmin) {
       router.replace("/dashboard");
       return;
     }
 
+    if (!accessToken) {
+      dispatch(setAccessToken(token));
+    }
+
     setIsAuthorized(true);
     setCheckingAuth(false);
-  }, [user, pathname, router]);
+  }, [user, accessToken, pathname, router, dispatch]);
+
+  const { data: profileRes } = useGetUserQuery(undefined, {
+    skip: !isAuthorized || !!user,
+  });
+
+  React.useEffect(() => {
+    if (profileRes?.data && !user) {
+      const token = getClientCookie("accessToken") || getClientCookie("token");
+      const rawRole = (profileRes.data.role || "ADMIN").toUpperCase();
+      dispatch(
+        setUser({
+          user: {
+            id: profileRes.data._id || profileRes.data.id || "",
+            name: profileRes.data.name,
+            email: profileRes.data.email,
+            phone: profileRes.data.phone,
+            role:
+              rawRole === "ADMIN" || rawRole === "SUPER_ADMIN"
+                ? UserRole.ADMIN
+                : UserRole.USER,
+            avatar: profileRes.data.avatar,
+          },
+          accessToken: token,
+          refreshToken: null,
+        })
+      );
+    }
+  }, [profileRes, user, dispatch]);
 
   const effectiveAvatar =
     adminAvatar ||
@@ -110,13 +150,9 @@ export default function AdminLayout({
   }, []);
 
   const handleLogout = () => {
-    if (typeof document !== "undefined") {
-      document.cookie = "accessToken=; path=/; max-age=0";
-      document.cookie = "token=; path=/; max-age=0";
-      document.cookie = "role=; path=/; max-age=0";
-    }
+    clearAuthCookies();
     dispatch(logout());
-    router.push("/login");
+    router.replace("/login");
   };
 
   const menuItems: MenuProps["items"] = [
@@ -223,7 +259,8 @@ export default function AdminLayout({
           }}
         >
           {/* Admin Brand Logo Header */}
-          <div
+          <Link
+            href="/"
             style={{
               height: 64,
               display: "flex",
@@ -232,37 +269,30 @@ export default function AdminLayout({
               padding: collapsed ? "0" : "0 20px",
               borderBottom: "1px solid #f0f0f0",
               gap: 10,
+              textDecoration: "none",
             }}
           >
-            <div
+            <img
+              src="/images/uef-emblem.png"
+              alt="UEF Logo"
               style={{
-                width: 32,
-                height: 32,
-                background: "#09090b",
-                borderRadius: 6,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#ffffff",
-                fontWeight: 900,
-                fontSize: 14,
-                letterSpacing: "0.05em",
+                width: 34,
+                height: 34,
+                objectFit: "contain",
                 flexShrink: 0,
               }}
-            >
-              G
-            </div>
+            />
             {!collapsed && (
               <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: "#09090b" }}>
-                  GRID Furniture
+                <div style={{ fontWeight: 800, fontSize: 13, color: "#09090b", textTransform: "uppercase" }}>
+                  Unique Engineering
                 </div>
-                <div style={{ fontSize: 11, color: "#8c8c8c" }}>
+                <div style={{ fontSize: 11, color: "#0284c7", fontWeight: 700 }}>
                   Admin Portal
                 </div>
               </div>
             )}
-          </div>
+          </Link>
 
           {/* Sider Menu */}
           <Menu
@@ -311,14 +341,14 @@ export default function AdminLayout({
                 Store Admin
               </Tag>
 
-              <Badge count={3} size="small">
+              <Link href="/admin/orders" title="View Customer Orders">
                 <Button
                   type="text"
                   shape="circle"
                   icon={<BellOutlined />}
                   style={{ fontSize: 16 }}
                 />
-              </Badge>
+              </Link>
 
               <Dropdown
                 menu={{ items: userDropdownItems }}

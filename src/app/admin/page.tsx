@@ -24,6 +24,11 @@ import {
 import { useGetAdminOverviewQuery } from "@/redux/service/adminApi";
 import { useGetProductsQuery } from "@/redux/service/productApi";
 import { useGetAllOrdersQuery } from "@/redux/service/orderApi";
+import {
+  getOrderAmount,
+  getOrderStatus,
+  getPaymentMethod,
+} from "@/lib/orderUtils";
 
 const { Title, Text } = Typography;
 
@@ -60,7 +65,7 @@ export default function AdminDashboardPage() {
       key: "amount",
       render: (_: any, record: any) => (
         <span style={{ fontWeight: 600 }}>
-          Tk {(record.finalAmount || record.totalAmount || record.amount || 0).toLocaleString("en-BD")}
+          Tk {getOrderAmount(record).toLocaleString("en-BD")}
         </span>
       ),
     },
@@ -69,7 +74,7 @@ export default function AdminDashboardPage() {
       key: "method",
       render: (_: any, record: any) => (
         <Tag color="blue" style={{ textTransform: "uppercase" }}>
-          {record.paymentMethod || "SSLCOMMERZ"}
+          {getPaymentMethod(record)}
         </Tag>
       ),
     },
@@ -77,8 +82,7 @@ export default function AdminDashboardPage() {
       title: "Fulfillment",
       key: "status",
       render: (_: any, record: any) => {
-        const status = record.orderStatus || record.status || "Pending";
-        const s = status.toLowerCase();
+        const s = getOrderStatus(record);
         const color =
           s === "delivered"
             ? "green"
@@ -86,8 +90,10 @@ export default function AdminDashboardPage() {
             ? "purple"
             : s === "processing"
             ? "cyan"
+            : s === "cancelled"
+            ? "red"
             : "gold";
-        return <Tag color={color}>{status}</Tag>;
+        return <Tag color={color} style={{ textTransform: "capitalize" }}>{s}</Tag>;
       },
     },
     {

@@ -29,6 +29,14 @@ import {
   useUpdateOrderStatusMutation,
   IOrder,
 } from "@/redux/service/orderApi";
+import {
+  getOrderAmount,
+  getOrderDiscount,
+  getOrderStatus,
+  getOrderSubtotal,
+  getPaymentMethod,
+  getPaymentStatus,
+} from "@/lib/orderUtils";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -53,7 +61,15 @@ export default function AdminOrdersPage() {
       }).unwrap();
       message.success(`Order status updated to ${newStatus}`);
       if (selectedOrder && selectedOrder._id === orderId) {
-        setSelectedOrder((prev) => (prev ? { ...prev, orderStatus: newStatus.toLowerCase() as any } : null));
+        setSelectedOrder((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: newStatus.toLowerCase(),
+                orderStatus: newStatus.toLowerCase() as any,
+              }
+            : null
+        );
       }
       refetch();
     } catch (err: any) {
@@ -104,7 +120,7 @@ export default function AdminOrdersPage() {
       phone.includes(searchText);
     const matchesStatus =
       statusFilter === "ALL" ||
-      (o.orderStatus || "").toLowerCase() === statusFilter.toLowerCase();
+      getOrderStatus(o) === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -144,11 +160,10 @@ export default function AdminOrdersPage() {
     },
     {
       title: "Total Amount",
-      dataIndex: "finalAmount",
       key: "finalAmount",
-      render: (amount: number, record: IOrder) => (
+      render: (_: any, record: IOrder) => (
         <span style={{ fontWeight: 700 }}>
-          Tk {(amount || record.totalAmount || 0).toLocaleString("en-BD")}
+          Tk {getOrderAmount(record).toLocaleString("en-BD")}
         </span>
       ),
     },
@@ -157,18 +172,17 @@ export default function AdminOrdersPage() {
       key: "payment",
       render: (_: any, record: IOrder) => (
         <div>
-          {getPaymentTag(record.paymentStatus)}
+          {getPaymentTag(getPaymentStatus(record))}
           <span style={{ fontSize: 11, color: "#8c8c8c", marginLeft: 4, textTransform: "uppercase" }}>
-            ({record.paymentMethod})
+            ({getPaymentMethod(record)})
           </span>
         </div>
       ),
     },
     {
       title: "Order Status",
-      dataIndex: "orderStatus",
       key: "orderStatus",
-      render: (status: string) => getStatusTag(status),
+      render: (_: any, record: IOrder) => getStatusTag(getOrderStatus(record)),
     },
     {
       title: "Date",
@@ -291,7 +305,7 @@ export default function AdminOrdersPage() {
                 </Text>
               </div>
               <Select
-                value={selectedOrder.orderStatus}
+                value={getOrderStatus(selectedOrder)}
                 onChange={(val) => handleStatusChange(selectedOrder._id, val)}
                 loading={isUpdatingStatus}
                 style={{ width: 140 }}
@@ -313,7 +327,7 @@ export default function AdminOrdersPage() {
                 {selectedOrder.shippingAddress?.postalCode ? ` - ${selectedOrder.shippingAddress?.postalCode}` : ""}
               </Descriptions.Item>
               <Descriptions.Item label="Payment Details">
-                {getPaymentTag(selectedOrder.paymentStatus)} via {selectedOrder.paymentMethod?.toUpperCase()}
+                {getPaymentTag(getPaymentStatus(selectedOrder))} via {getPaymentMethod(selectedOrder).toUpperCase()}
               </Descriptions.Item>
             </Descriptions>
 
@@ -350,19 +364,19 @@ export default function AdminOrdersPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <Text type="secondary">Subtotal:</Text>
-                <Text strong>Tk {(selectedOrder.totalAmount || 0).toLocaleString("en-BD")}</Text>
+                <Text strong>Tk {getOrderSubtotal(selectedOrder).toLocaleString("en-BD")}</Text>
               </div>
-              {selectedOrder.discountAmount ? (
+              {getOrderDiscount(selectedOrder) ? (
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <Text type="secondary">Discount:</Text>
-                  <Text type="danger">-Tk {selectedOrder.discountAmount.toLocaleString("en-BD")}</Text>
+                  <Text type="danger">-Tk {getOrderDiscount(selectedOrder).toLocaleString("en-BD")}</Text>
                 </div>
               ) : null}
               <Divider style={{ margin: "8px 0" }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16 }}>
                 <Text strong>Grand Total:</Text>
                 <Text strong style={{ color: "#09090b", fontSize: 18 }}>
-                  Tk {(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString("en-BD")}
+                  Tk {getOrderAmount(selectedOrder).toLocaleString("en-BD")}
                 </Text>
               </div>
             </div>

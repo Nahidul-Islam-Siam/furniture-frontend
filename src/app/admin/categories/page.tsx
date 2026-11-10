@@ -91,7 +91,7 @@ export default function AdminCategoriesPage() {
         if (uploadedUrl) {
           setImageUrl(uploadedUrl);
           form.setFieldsValue({ image: uploadedUrl });
-          message.success("Category image uploaded to Cloudinary!");
+          message.success("Category image uploaded successfully!");
         }
       }
     } catch (err: any) {

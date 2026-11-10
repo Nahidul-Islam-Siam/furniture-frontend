@@ -28,6 +28,12 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import { useGetAllOrdersQuery, IOrder } from "@/redux/service/orderApi";
+import {
+  getOrderAmount,
+  getPaymentMethod,
+  getPaymentStatus,
+  getPaymentTransactionId,
+} from "@/lib/orderUtils";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -76,8 +82,8 @@ export default function AdminPaymentsPage() {
     const orderNo = o.orderNumber || o._id || "";
     const custName = o.customer?.name || "";
     const phone = o.customer?.phone || "";
-    const method = (o.paymentMethod || "cod").toLowerCase();
-    const status = (o.paymentStatus || "pending").toLowerCase();
+    const method = getPaymentMethod(o);
+    const status = getPaymentStatus(o);
 
     const matchesSearch =
       orderNo.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -90,15 +96,14 @@ export default function AdminPaymentsPage() {
     return matchesSearch && matchesMethod && matchesStatus;
   });
 
-  const getOrderTotal = (o: IOrder) =>
-    (o as any).pricing?.total || o.finalAmount || o.totalAmount || 0;
+  const getOrderTotal = (o: IOrder) => getOrderAmount(o);
 
   const totalSettled = orders
-    .filter((o) => (o.paymentStatus || "").toLowerCase() === "paid")
+    .filter((o) => getPaymentStatus(o) === "paid")
     .reduce((acc, curr) => acc + getOrderTotal(curr), 0);
 
   const pendingAmount = orders
-    .filter((o) => (o.paymentStatus || "").toLowerCase() === "pending")
+    .filter((o) => getPaymentStatus(o) === "pending")
     .reduce((acc, curr) => acc + getOrderTotal(curr), 0);
 
   const totalRevenueAll = orders.reduce((acc, curr) => acc + getOrderTotal(curr), 0);
@@ -108,9 +113,7 @@ export default function AdminPaymentsPage() {
       title: "Transaction / Order Ref",
       key: "ref",
       render: (_: any, record: IOrder) => {
-        const tranId =
-          (record as any).payment?.transactionId ||
-          `TXN-${record.orderNumber || record._id.slice(-6).toUpperCase()}`;
+        const tranId = getPaymentTransactionId(record);
         return (
           <div>
             <div style={{ fontWeight: 700, color: "#09090b" }}>{tranId}</div>
@@ -135,9 +138,8 @@ export default function AdminPaymentsPage() {
     },
     {
       title: "Channel / Gateway",
-      dataIndex: "paymentMethod",
       key: "paymentMethod",
-      render: (method: string) => getMethodTag(method),
+      render: (_: any, record: IOrder) => getMethodTag(getPaymentMethod(record)),
     },
     {
       title: "Amount (BDT)",
@@ -150,9 +152,8 @@ export default function AdminPaymentsPage() {
     },
     {
       title: "Payment Status",
-      dataIndex: "paymentStatus",
       key: "paymentStatus",
-      render: (status: string) => getStatusTag(status),
+      render: (_: any, record: IOrder) => getStatusTag(getPaymentStatus(record)),
     },
     {
       title: "Date",
@@ -342,10 +343,10 @@ export default function AdminPaymentsPage() {
                 {selectedPayment.customer?.email}
               </Descriptions.Item>
               <Descriptions.Item label="Payment Gateway">
-                {getMethodTag(selectedPayment.paymentMethod)}
+                {getMethodTag(getPaymentMethod(selectedPayment))}
               </Descriptions.Item>
               <Descriptions.Item label="Payment Status">
-                {getStatusTag(selectedPayment.paymentStatus)}
+                {getStatusTag(getPaymentStatus(selectedPayment))}
               </Descriptions.Item>
               <Descriptions.Item label="Total Amount">
                 Tk {getOrderTotal(selectedPayment).toLocaleString("en-BD")}

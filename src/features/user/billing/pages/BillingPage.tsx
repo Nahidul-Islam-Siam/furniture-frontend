@@ -19,15 +19,24 @@ import {
 } from "lucide-react";
 import { useGetMyOrdersQuery, IOrder } from "@/redux/service/orderApi";
 import { useAppSelector } from "@/redux";
+import {
+  getOrderAmount,
+  getPaymentMethod,
+  getPaymentStatus,
+} from "@/lib/orderUtils";
 
 export const BillingPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const { data: ordersData, isLoading } = useGetMyOrdersQuery();
+  const { data: ordersData, isLoading, isError, refetch } =
+    useGetMyOrdersQuery();
   const [selectedInvoice, setSelectedInvoice] = useState<IOrder | null>(null);
 
   const orders: IOrder[] = ordersData?.data || [];
-  const paidOrders = orders.filter((o) => (o.paymentStatus as any) === "paid");
-  const totalSettled = paidOrders.reduce((sum, o) => sum + (o.finalAmount || o.totalAmount || 0), 0);
+  const paidOrders = orders.filter((o) => getPaymentStatus(o) === "paid");
+  const totalSettled = paidOrders.reduce(
+    (sum, o) => sum + getOrderAmount(o),
+    0
+  );
 
   const getPaymentStatusTag = (status: string) => {
     switch ((status || "").toLowerCase()) {
@@ -79,29 +88,32 @@ export const BillingPage: React.FC = () => {
     {
       title: "Payment Channel",
       key: "paymentMethod",
-      render: (_, record) => (
-        <span className="text-xs font-medium uppercase tracking-wider text-neutral-700">
-          {record.paymentMethod === "sslcommerz"
-            ? "SSLCommerz Online"
-            : record.paymentMethod === "stripe"
-            ? "Stripe Card"
-            : "Cash on Delivery (COD)"}
-        </span>
-      ),
+      render: (_, record) => {
+        const method = getPaymentMethod(record);
+        return (
+          <span className="text-xs font-medium uppercase tracking-wider text-neutral-700">
+            {method === "sslcommerz"
+              ? "SSLCommerz Online"
+              : method === "stripe"
+              ? "Stripe Card"
+              : "Cash on Delivery (COD)"}
+          </span>
+        );
+      },
     },
     {
       title: "Total Amount",
       key: "total",
       render: (_, record) => (
         <span className="font-heading font-bold text-neutral-900">
-          Tk {(record.finalAmount || record.totalAmount || 0).toLocaleString()}
+          Tk {getOrderAmount(record).toLocaleString("en-BD")}
         </span>
       ),
     },
     {
       title: "Payment Status",
       key: "status",
-      render: (_, record) => getPaymentStatusTag(record.paymentStatus || (record as any).status),
+      render: (_, record) => getPaymentStatusTag(getPaymentStatus(record)),
     },
     {
       title: "Action",
@@ -202,30 +214,37 @@ export const BillingPage: React.FC = () => {
             <h3 className="font-heading font-semibold text-base text-neutral-900 flex items-center gap-2">
               <FileText className="w-4 h-4 text-neutral-500" /> Order Invoice History
             </h3>
-            <span className="text-xs text-neutral-400">Live statements from database</span>
+            <span className="text-xs text-neutral-400">Your transaction statements</span>
           </div>
 
-          <Table
-            dataSource={orders}
-            columns={columns}
-            rowKey="_id"
-            loading={isLoading}
-            pagination={{ defaultPageSize: 8, showSizeChanger: true }}
-            scroll={{ x: 750 }}
-            locale={{
-              emptyText: (
-                <div className="py-12 text-center text-neutral-500 space-y-2">
-                  <p className="text-sm font-medium">No billing statements available yet.</p>
-                  <Link
-                    href="/collections"
-                    className="text-primary hover:underline text-xs font-semibold inline-block"
-                  >
-                    Browse GRID Furniture catalog & place an order
-                  </Link>
-                </div>
-              ),
-            }}
-          />
+          {isError ? (
+            <div className="py-10 text-center space-y-2">
+              <p className="text-sm text-red-600">Unable to load billing statements right now.</p>
+              <Button size="small" onClick={() => refetch()}>Retry</Button>
+            </div>
+          ) : (
+            <Table
+              dataSource={orders}
+              columns={columns}
+              rowKey="_id"
+              loading={isLoading}
+              pagination={{ defaultPageSize: 8, showSizeChanger: true }}
+              scroll={{ x: 750 }}
+              locale={{
+                emptyText: (
+                  <div className="py-12 text-center text-neutral-500 space-y-2">
+                    <p className="text-sm font-medium">No billing statements available yet.</p>
+                    <Link
+                      href="/collections"
+                      className="text-primary hover:underline text-xs font-semibold inline-block"
+                    >
+                      Browse Unique Engineering &amp; Furniture catalog &amp; place an order
+                    </Link>
+                  </div>
+                ),
+              }}
+            />
+          )}
         </div>
 
         {/* Invoice Detail Modal */}
@@ -235,7 +254,7 @@ export const BillingPage: React.FC = () => {
               <span className="font-heading font-bold text-base">
                 Invoice #{selectedInvoice?.orderNumber || selectedInvoice?._id}
               </span>
-              {selectedInvoice && getPaymentStatusTag(selectedInvoice.paymentStatus || (selectedInvoice as any).status)}
+              {selectedInvoice && getPaymentStatusTag(getPaymentStatus(selectedInvoice))}
             </div>
           }
           open={!!selectedInvoice}
@@ -259,8 +278,8 @@ export const BillingPage: React.FC = () => {
             <div className="space-y-4 py-2 text-xs">
               <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-100 flex justify-between items-center">
                 <div>
-                  <div className="font-semibold text-neutral-900">GRID Furniture Bangladesh</div>
-                  <div className="text-neutral-500 text-[11px]">House 111, Road 8, Block C, Banani, Dhaka</div>
+                  <div className="font-semibold text-neutral-900">Unique Engineering &amp; Furniture</div>
+                  <div className="text-neutral-500 text-[11px]">Dhaka, Bangladesh • Hotline: +880 1755-348053</div>
                 </div>
                 <div className="text-right">
                   <div className="text-neutral-400 text-[11px]">Date Issued</div>
@@ -284,10 +303,10 @@ export const BillingPage: React.FC = () => {
                   {selectedInvoice.shippingAddress?.postalCode}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Channel">
-                  {selectedInvoice.paymentMethod?.toUpperCase() || "COD"}
+                  {getPaymentMethod(selectedInvoice).toUpperCase()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
-                  {selectedInvoice.paymentStatus?.toUpperCase() || "PENDING"}
+                  {getPaymentStatus(selectedInvoice).toUpperCase()}
                 </Descriptions.Item>
               </Descriptions>
 
@@ -320,7 +339,7 @@ export const BillingPage: React.FC = () => {
                         Grand Total:
                       </td>
                       <td className="p-2.5 text-right text-base font-bold text-neutral-900">
-                        Tk {(selectedInvoice.finalAmount || selectedInvoice.totalAmount || 0).toLocaleString()}
+                        Tk {getOrderAmount(selectedInvoice).toLocaleString("en-BD")}
                       </td>
                     </tr>
                   </tfoot>

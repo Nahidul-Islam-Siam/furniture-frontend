@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { clearAuthCookies } from "@/lib/authCookies";
 import type { UserType } from "../service/auth/authApi";
 export type { UserType };
 
@@ -94,9 +95,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.loading = false;
       state.error = null;
-      if (typeof document !== "undefined") {
-        document.cookie = "role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      }
+      clearAuthCookies();
     },
   },
 });

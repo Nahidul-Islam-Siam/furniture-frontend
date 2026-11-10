@@ -7,14 +7,18 @@ import type {
 } from "@reduxjs/toolkit/query";
 import { RootState } from "../store";
 import { logout, setAccessToken } from "../features/auth";
+import { getClientCookie, isJwtTokenValid } from "@/lib/authCookies";
 
 const baseQuery = fetchBaseQuery({
   baseUrl:
     process.env.NEXT_PUBLIC_API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:5000/api/v1",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth?.accessToken;
+    const stateToken = (getState() as RootState).auth?.accessToken;
+    const cookieToken =
+      getClientCookie("accessToken") || getClientCookie("token");
+    const token =
+      stateToken || (isJwtTokenValid(cookieToken) ? cookieToken : null);
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
