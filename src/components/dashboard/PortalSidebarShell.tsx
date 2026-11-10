@@ -233,11 +233,11 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
                     BADGE_CLASSES[item.badgeTone || "default"];
 
                   return (
-                    <li key={item.path}>
+                    <li key={item.path} className="relative group/item">
                       <Link
                         href={item.path}
                         aria-current={isActive ? "page" : undefined}
-                        title={!showLabels ? item.name : undefined}
+                        aria-label={!showLabels ? item.name : undefined}
                         onClick={() => {
                           if (isMobileDrawer) setMobileOpen(false);
                         }}
@@ -291,6 +291,21 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
                           </>
                         )}
                       </Link>
+
+                      {/* Instant hover tooltip when sidebar rail is collapsed */}
+                      {!showLabels && (
+                        <span
+                          role="tooltip"
+                          className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden md:inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 translate-x-1 transition-all duration-150 group-hover/item:opacity-100 group-hover/item:translate-x-0"
+                        >
+                          <span>{item.name}</span>
+                          {hasBadge && (
+                            <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-bold">
+                              {item.badge}
+                            </span>
+                          )}
+                        </span>
+                      )}
                     </li>
                   );
                 })}
@@ -344,13 +359,7 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
           )}
 
           {/* Grounded User Profile & Sign Out Card */}
-          <div
-            className={`rounded-xl border border-slate-200/80 bg-slate-50/75 ${
-              showLabels
-                ? "p-2.5 flex items-center gap-2.5 justify-between"
-                : "p-1.5 flex flex-col items-center gap-1.5"
-            }`}
-          >
+          <div className="rounded-xl border border-slate-200/80 bg-slate-50/75 p-2 space-y-1.5">
             <Link
               href={profileHref}
               onClick={() => {
@@ -361,10 +370,12 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
                   ? `${user.name}${user.email ? ` (${user.email})` : ""}`
                   : undefined
               }
-              className="flex items-center gap-2.5 min-w-0 flex-1 no-underline hover:opacity-85 transition-opacity rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              className={`flex items-center gap-2.5 min-w-0 no-underline hover:opacity-85 transition-opacity rounded-lg p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${
+                !showLabels ? "justify-center" : ""
+              }`}
             >
-              <div className="relative h-9 w-9 shrink-0">
-                <div className="flex h-9 w-9 overflow-hidden items-center justify-center rounded-full bg-slate-900 text-white font-bold text-xs uppercase border border-slate-200">
+              <div className="relative h-8 w-8 shrink-0">
+                <div className="flex h-8 w-8 overflow-hidden items-center justify-center rounded-full bg-slate-900 text-white font-bold text-xs uppercase border border-slate-200">
                   {user.avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -406,14 +417,19 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
               type="button"
               disabled={isLoggingOut}
               onClick={onLogout}
-              title="Sign Out"
+              title={!showLabels ? "Sign Out" : undefined}
               aria-label={isLoggingOut ? "Signing out" : "Sign out"}
-              className="min-h-[34px] min-w-[34px] shrink-0 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 bg-transparent border-0 cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              className={`flex w-full min-h-[34px] items-center gap-2 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 bg-white/80 border border-slate-200/70 cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 ${
+                showLabels ? "justify-center px-2.5 py-1.5" : "justify-center px-0"
+              }`}
             >
               {isLoggingOut ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />
               ) : (
-                <LogOut className="h-4 w-4" aria-hidden="true" />
+                <LogOut className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              )}
+              {showLabels && (
+                <span>{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
               )}
             </button>
           </div>
@@ -447,7 +463,7 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="hidden md:inline-flex items-center justify-center absolute -right-3 top-[22px] z-40 h-6 w-6 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          className="hidden md:inline-flex items-center justify-center absolute -right-3 top-[20px] z-40 h-6 w-6 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
         >
           {collapsed ? (
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -589,9 +605,9 @@ export const PortalSidebarShell: React.FC<PortalSidebarShellProps> = ({
         <main
           id="portal-main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 outline-none"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7 outline-none"
         >
-          {children}
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
       </div>
     </div>

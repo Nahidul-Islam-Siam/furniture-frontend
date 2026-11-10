@@ -8,7 +8,6 @@ import {
   Tag,
   Space,
   Typography,
-  Card,
   Select,
   Descriptions,
   Divider,
@@ -219,10 +218,10 @@ export default function AdminOrdersPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-5">
       {/* Title */}
-      <div style={{ marginBottom: 20 }}>
-        <Title level={3} style={{ margin: 0 }}>
+      <div>
+        <Title level={3} style={{ margin: 0, color: "#0f172a" }}>
           Order Management
         </Title>
         <Text type="secondary">
@@ -231,69 +230,70 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Filter Card */}
-      <Card bodyStyle={{ padding: "16px 20px" }} style={{ marginBottom: 16 }}>
-        <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
-          <Space wrap>
-            <Input
-              placeholder="Search by Order ID, Name, Phone..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 280 }}
-              allowClear
-            />
-            <Select
-              value={statusFilter}
-              onChange={setStatusFilter}
-              style={{ width: 160 }}
-            >
-              <Option value="ALL">All Statuses</Option>
-              <Option value="pending">Pending</Option>
-              <Option value="processing">Processing</Option>
-              <Option value="shipped">Shipped</Option>
-              <Option value="delivered">Delivered</Option>
-              <Option value="cancelled">Cancelled</Option>
-            </Select>
-          </Space>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+          <Input
+            placeholder="Search by Order ID, Name, Phone..."
+            prefix={<SearchOutlined className="text-slate-400" />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="w-full sm:w-64"
+            allowClear
+          />
+          <Select
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className="w-full sm:w-44"
+          >
+            <Option value="ALL">All Statuses</Option>
+            <Option value="pending">Pending</Option>
+            <Option value="processing">Processing</Option>
+            <Option value="shipped">Shipped</Option>
+            <Option value="delivered">Delivered</Option>
+            <Option value="cancelled">Cancelled</Option>
+          </Select>
+        </div>
 
-          <Space>
-            <Text type="secondary">
-              Total Orders: <strong>{filteredOrders.length}</strong>
-            </Text>
-            <Button
-              size="small"
-              icon={<ReloadOutlined />}
-              loading={isFetching}
-              onClick={() => refetch()}
-            >
-              Refresh
-            </Button>
-          </Space>
+        <Space>
+          <Text type="secondary" className="text-xs whitespace-nowrap">
+            Total Orders: <strong>{filteredOrders.length}</strong>
+          </Text>
+          <Button
+            size="small"
+            icon={<ReloadOutlined />}
+            loading={isFetching}
+            onClick={() => refetch()}
+          >
+            Refresh
+          </Button>
         </Space>
-      </Card>
+      </div>
 
       {/* Order Table */}
-      <Table
-        dataSource={filteredOrders}
-        columns={columns}
-        rowKey="_id"
-        loading={isLoading}
-        scroll={{ x: 880 }}
-        pagination={{
-          defaultPageSize: 8,
-          pageSizeOptions: ["8", "16", "24", "50"],
-          showSizeChanger: true,
-          showQuickJumper: true,
-          responsive: true,
-          showTotal: (total, range) => (
-            <span style={{ fontSize: 13, color: "#595959" }}>
-              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> orders
-            </span>
-          ),
-          position: ["bottomRight"],
-          style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
-        }}
-      />
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden">
+        <Table
+          dataSource={filteredOrders}
+          columns={columns}
+          rowKey="_id"
+          loading={isLoading}
+          scroll={{ x: 820 }}
+          pagination={{
+            defaultPageSize: 8,
+            pageSizeOptions: ["8", "16", "24", "50"],
+            showSizeChanger: true,
+            showQuickJumper: true,
+            responsive: true,
+            showTotal: (total, range) => (
+              <span className="text-xs text-slate-500">
+                Showing <strong>{range[0]}-{range[1]}</strong> of{" "}
+                <strong>{total}</strong> orders
+              </span>
+            ),
+            position: ["bottomRight"],
+            className: "px-4 pb-3",
+          }}
+        />
+      </div>
 
       {/* Order Detail Drawer */}
       <Drawer

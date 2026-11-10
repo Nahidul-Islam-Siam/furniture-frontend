@@ -204,7 +204,7 @@ export const ProfilePage: React.FC = () => {
       </div>
       
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm space-y-6">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-6">
         {/* Avatar and Identity Header */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-5 pb-6 border-b">
           <div className="relative group self-start">
@@ -409,15 +409,15 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-slate-100">
             <button
               type="submit"
               disabled={isUpdating || isUploadingAvatar || isProfileLoading}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 transition cursor-pointer border-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isUpdating ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Saving changes...
                 </>
               ) : (
                 "Save Profile Changes"

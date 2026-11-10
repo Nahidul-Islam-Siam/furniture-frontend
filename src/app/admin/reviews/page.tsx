@@ -234,18 +234,18 @@ export default function AdminReviewsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <Title level={4} style={{ margin: 0 }}>
-            Customer Reviews & Ratings
+          <Title level={3} style={{ margin: 0, color: "#0f172a" }}>
+            Customer Reviews &amp; Ratings
           </Title>
           <Text type="secondary">
             Manage, approve, or feature customer reviews and testimonials.
           </Text>
         </div>
 
-        <Space>
+        <Space wrap>
           <Select
             placeholder="Filter by Status"
             allowClear
@@ -269,14 +269,16 @@ export default function AdminReviewsPage() {
         </Space>
       </div>
 
-      <Table
-        rowKey="_id"
-        columns={columns}
-        dataSource={reviews}
-        loading={isLoading}
-        pagination={{ pageSize: 10 }}
-        bordered
-      />
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden">
+        <Table
+          rowKey="_id"
+          columns={columns}
+          dataSource={reviews}
+          loading={isLoading}
+          scroll={{ x: 820 }}
+          pagination={{ pageSize: 10, className: "px-4 pb-3" }}
+        />
+      </div>
     </div>
   );
 }

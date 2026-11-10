@@ -120,7 +120,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Security */}
-      <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="font-semibold text-base flex items-center gap-2">
@@ -270,7 +270,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Notifications */}
-      <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-4">
         <h3 className="font-semibold text-base flex items-center gap-2">
           <Bell className="h-4 w-4 text-primary" /> Email Notifications
         </h3>

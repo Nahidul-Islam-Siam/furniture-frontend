@@ -291,9 +291,7 @@ export default function AdminLayout({
         onLogout={handleLogout}
         isLoggingOut={isLoggingOut}
       >
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)] min-h-[calc(100svh-8.5rem)]">
-          {children}
-        </div>
+        {children}
       </PortalSidebarShell>
     </AntdProvider>
   );

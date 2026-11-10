@@ -13,7 +13,6 @@ import {
   Tag,
   Space,
   Typography,
-  Card,
   Popconfirm,
   message,
   Image,
@@ -388,31 +387,22 @@ export default function AdminProductsPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-5">
       {/* Header Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 20,
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <Title level={3} style={{ margin: 0 }}>
-            Products & Catalog Management
+          <Title level={3} style={{ margin: 0, color: "#0f172a" }}>
+            Products &amp; Catalog Management
           </Title>
           <Text type="secondary">
-            Live database catalog with MongoDB backend & Cloudinary image support.
+            Live database catalog with MongoDB backend &amp; Cloudinary image support.
           </Text>
         </div>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           size="large"
-          style={{ background: "#09090b" }}
+          style={{ background: "#0f172a" }}
           onClick={() => handleOpenModal()}
         >
           Upload New Product
@@ -420,66 +410,66 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <Card bodyStyle={{ padding: "16px 20px" }} style={{ marginBottom: 16 }}>
-        <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
-          <Space wrap>
-            <Input
-              placeholder="Search product name, SKU, material..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 280 }}
-              allowClear
-            />
-            <Select
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              style={{ width: 180 }}
-              loading={isCategoriesLoading}
-            >
-              <Option value="ALL">All Categories</Option>
-              {categoriesList.map((cat) => (
-                <Option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </Option>
-              ))}
-            </Select>
-          </Space>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+          <Input
+            placeholder="Search product name, SKU, material..."
+            prefix={<SearchOutlined className="text-slate-400" />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="w-full sm:w-64"
+            allowClear
+          />
+          <Select
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            className="w-full sm:w-48"
+            loading={isCategoriesLoading}
+          >
+            <Option value="ALL">All Categories</Option>
+            {categoriesList.map((cat) => (
+              <Option key={cat._id} value={cat._id}>
+                {cat.name}
+              </Option>
+            ))}
+          </Select>
+        </div>
 
-          <Text type="secondary">
-            Showing <strong>{productsData?.meta?.total ?? productsList.length}</strong> live catalog items
-          </Text>
-        </Space>
-      </Card>
+        <Text type="secondary" className="text-xs whitespace-nowrap">
+          Showing <strong>{productsData?.meta?.total ?? productsList.length}</strong> live catalog items
+        </Text>
+      </div>
 
       {/* Product List Table */}
-      <Table
-        dataSource={productsList}
-        columns={columns}
-        rowKey="_id"
-        loading={isProductsLoading}
-        scroll={{ x: 800 }}
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          total: productsData?.meta?.total ?? productsList.length,
-          onChange: (page, size) => {
-            setCurrentPage(page);
-            setPageSize(size);
-          },
-          pageSizeOptions: ["8", "16", "24", "48"],
-          showSizeChanger: true,
-          showQuickJumper: true,
-          responsive: true,
-          showTotal: (total, range) => (
-            <span style={{ fontSize: 13, color: "#595959" }}>
-              Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> products
-            </span>
-          ),
-          position: ["bottomRight"],
-          style: { marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 },
-        }}
-      />
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden">
+        <Table
+          dataSource={productsList}
+          columns={columns}
+          rowKey="_id"
+          loading={isProductsLoading}
+          scroll={{ x: 800 }}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: productsData?.meta?.total ?? productsList.length,
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+            },
+            pageSizeOptions: ["8", "16", "24", "48"],
+            showSizeChanger: true,
+            showQuickJumper: true,
+            responsive: true,
+            showTotal: (total, range) => (
+              <span className="text-xs text-slate-500">
+                Showing <strong>{range[0]}-{range[1]}</strong> of <strong>{total}</strong> products
+              </span>
+            ),
+            position: ["bottomRight"],
+            className: "px-4 pb-3",
+          }}
+        />
+      </div>
 
       {/* Upload / Edit Product Modal */}
       <Modal

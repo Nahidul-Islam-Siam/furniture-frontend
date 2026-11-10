@@ -5,7 +5,6 @@ import {
   Table,
   Tag,
   Typography,
-  Card,
   Input,
   Avatar,
   Space,
@@ -155,35 +154,36 @@ export default function AdminUsersPage() {
         />
       )}
 
-      <Card styles={{ body: { padding: "14px 18px" } }}>
-        <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
-          <Input
-            placeholder="Search by name, email, or phone..."
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-            allowClear
-          />
-          <Text type="secondary">
-            Total Accounts: <strong>{filteredUsers.length}</strong>
-          </Text>
-        </Space>
-      </Card>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <Input
+          placeholder="Search by name, email, or phone..."
+          prefix={<SearchOutlined className="text-slate-400" />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="w-full sm:w-72"
+          allowClear
+        />
+        <Text type="secondary" className="text-xs whitespace-nowrap">
+          Total Accounts: <strong>{filteredUsers.length}</strong>
+        </Text>
+      </div>
 
-      <Table
-        dataSource={filteredUsers}
-        columns={columns}
-        rowKey={(r) => r._id || r.id || r.email}
-        loading={isLoading}
-        scroll={{ x: 680 }}
-        pagination={{
-          defaultPageSize: 10,
-          pageSizeOptions: ["10", "20", "50"],
-          showSizeChanger: true,
-        }}
-        locale={{ emptyText: "No registered accounts found." }}
-      />
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden">
+        <Table
+          dataSource={filteredUsers}
+          columns={columns}
+          rowKey={(r) => r._id || r.id || r.email}
+          loading={isLoading}
+          scroll={{ x: 680 }}
+          pagination={{
+            defaultPageSize: 10,
+            pageSizeOptions: ["10", "20", "50"],
+            showSizeChanger: true,
+            className: "px-4 pb-3",
+          }}
+          locale={{ emptyText: "No registered accounts found." }}
+        />
+      </div>
     </div>
   );
 }

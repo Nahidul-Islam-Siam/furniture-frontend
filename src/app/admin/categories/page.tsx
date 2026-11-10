@@ -11,7 +11,6 @@ import {
   Tag,
   Space,
   Typography,
-  Card,
   Popconfirm,
   message,
   Image,
@@ -256,20 +255,11 @@ export default function AdminCategoriesPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-5">
       {/* Header Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 20,
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <Title level={3} style={{ margin: 0 }}>
+          <Title level={3} style={{ margin: 0, color: "#0f172a" }}>
             Category Management
           </Title>
           <Text type="secondary">
@@ -280,7 +270,7 @@ export default function AdminCategoriesPage() {
           type="primary"
           icon={<PlusOutlined />}
           size="large"
-          style={{ background: "#09090b" }}
+          style={{ background: "#0f172a" }}
           onClick={() => handleOpenModal()}
         >
           Add New Category
@@ -288,30 +278,31 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <Card bodyStyle={{ padding: "16px 20px" }} style={{ marginBottom: 16 }}>
-        <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
-          <Input
-            placeholder="Search category name or slug..."
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-            allowClear
-          />
-          <Text type="secondary">
-            Total Categories: <strong>{filteredCategories.length}</strong>
-          </Text>
-        </Space>
-      </Card>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <Input
+          placeholder="Search category name or slug..."
+          prefix={<SearchOutlined className="text-slate-400" />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="w-full sm:w-72"
+          allowClear
+        />
+        <Text type="secondary" className="text-xs whitespace-nowrap">
+          Total Categories: <strong>{filteredCategories.length}</strong>
+        </Text>
+      </div>
 
       {/* Categories Table */}
-      <Table
-        dataSource={filteredCategories}
-        columns={columns}
-        rowKey="_id"
-        loading={isLoading}
-        pagination={{ defaultPageSize: 10 }}
-      />
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden">
+        <Table
+          dataSource={filteredCategories}
+          columns={columns}
+          rowKey="_id"
+          loading={isLoading}
+          scroll={{ x: 700 }}
+          pagination={{ defaultPageSize: 10, className: "px-4 pb-3" }}
+        />
+      </div>
 
       {/* Create / Edit Modal */}
       <Modal

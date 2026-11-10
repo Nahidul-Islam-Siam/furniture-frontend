@@ -267,7 +267,7 @@ export default function AdminDashboardPage() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              style={{ background: "#09090b" }}
+              style={{ background: "#0f172a" }}
             >
               Add Product
             </Button>
