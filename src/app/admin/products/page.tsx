@@ -55,6 +55,7 @@ export default function AdminProductsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   const { accessToken } = useAppSelector((state) => state.auth);
   const [form] = Form.useForm();
@@ -225,12 +226,15 @@ export default function AdminProductsPage() {
 
   // Delete product
   const handleDeleteProduct = async (id: string) => {
+    setDeletingProductId(id);
     try {
       await deleteProduct(id).unwrap();
       message.success("Product deleted successfully");
       refetchProducts();
     } catch (err: any) {
       message.error(err?.data?.message || "Failed to delete product");
+    } finally {
+      setDeletingProductId(null);
     }
   };
 

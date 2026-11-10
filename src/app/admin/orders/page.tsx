@@ -46,14 +46,16 @@ export default function AdminOrdersPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   // RTK Query & Mutation
   const { data: ordersData, isLoading, refetch } = useGetAllOrdersQuery();
-  const [updateOrderStatus, { isLoading: isUpdatingStatus }] = useUpdateOrderStatusMutation();
+  const [updateOrderStatus] = useUpdateOrderStatusMutation();
 
   const ordersList: IOrder[] = ordersData?.data || [];
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
+    setUpdatingOrderId(orderId);
     try {
       await updateOrderStatus({
         id: orderId,
@@ -74,6 +76,8 @@ export default function AdminOrdersPage() {
       refetch();
     } catch (err: any) {
       message.error(err?.data?.message || "Failed to update order status");
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -201,6 +205,7 @@ export default function AdminOrdersPage() {
         <Button
           type="link"
           icon={<EyeOutlined />}
+          loading={updatingOrderId === record._id}
           onClick={() => {
             setSelectedOrder(record);
             setIsDrawerOpen(true);
@@ -307,7 +312,8 @@ export default function AdminOrdersPage() {
               <Select
                 value={getOrderStatus(selectedOrder)}
                 onChange={(val) => handleStatusChange(selectedOrder._id, val)}
-                loading={isUpdatingStatus}
+                loading={updatingOrderId === selectedOrder._id}
+                disabled={updatingOrderId === selectedOrder._id}
                 style={{ width: 140 }}
               >
                 <Option value="pending">Pending</Option>

@@ -28,6 +28,10 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ||
+  "http://localhost:5000";
+
 export default function Signup() {
   const router = useRouter();
   const [registerUser, { isLoading }] = useRegisterUserMutation();
@@ -68,6 +72,10 @@ export default function Signup() {
   const inputBaseClass =
     "w-full h-12 px-4 rounded-2xl bg-[#f2f4f7] hover:bg-[#ebeff3] focus:bg-white focus:ring-2 focus:ring-slate-900/10 border border-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200";
 
+  const handleGoogleSignup = () => {
+    window.location.href = `${BACKEND_URL}/api/v1/auth/google?redirect=${encodeURIComponent("/dashboard")}`;
+  };
+
   return (
     <>
       <Seo
@@ -83,6 +91,28 @@ export default function Signup() {
           </>
         }
       >
+        {/* Google Sign Up */}
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          className="w-full h-12 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium flex items-center justify-center gap-3 shadow-sm transition-all duration-200 cursor-pointer mb-4"
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+            <path d="M47.5 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h13.2c-.6 3-2.3 5.5-4.9 7.2v6h7.9c4.6-4.2 7.3-10.5 7.3-17.4z" fill="#4285F4"/>
+            <path d="M24 48c6.5 0 12-2.1 16-5.8l-7.9-6c-2.1 1.4-4.9 2.3-8.1 2.3-6.2 0-11.5-4.2-13.4-9.9H2.5v6.2C6.5 42.7 14.7 48 24 48z" fill="#34A853"/>
+            <path d="M10.6 28.6A14.7 14.7 0 0 1 9.3 24c0-1.6.3-3.1.8-4.6v-6.2H2.5A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.8l8.1-6.2z" fill="#FBBC05"/>
+            <path d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.9 2.3 30.4 0 24 0 14.7 0 6.5 5.3 2.5 13.2l8.1 6.2C12.5 13.7 17.8 9.5 24 9.5z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-slate-200" />
+          <span className="text-[11px] text-slate-400 font-medium">or sign up with email</span>
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
+
         {errorMessage && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -191,7 +221,7 @@ export default function Signup() {
               </p>
             ) : (
               <p className="text-slate-400 text-[11px] mt-1 pl-2">
-                8+ chars, 1 uppercase, 1 number &amp; 1 special character (!@#$%^&amp;*)
+                8+ chars, 1 uppercase, 1 number & 1 special character (!@#$%^&*)
               </p>
             )}
           </div>
@@ -232,7 +262,7 @@ export default function Signup() {
           .
         </p>
 
-        <p className="mt-5 text-center text-xs text-slate-600">
+        <p className="mt-4 text-center text-xs text-slate-600">
           Have an account?{" "}
           <Link
             href="/login"

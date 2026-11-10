@@ -36,6 +36,20 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface SendOtpRequest {
+  email: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface OtpResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface EmailVerificationRequest {
   email: string;
   token: string;
@@ -153,11 +167,27 @@ export const authApi = baseApi.injectEndpoints({
 
     changePassword: builder.mutation<ChangePasswordResponse, ChangePasswordRequest>({
       query: (user) => ({
-        url: "/auth/change-pass",
-        method: "PATCH",
+        url: "/auth/change-password",
+        method: "POST",
         body: user,
       }),
       invalidatesTags: ["auth"],
+    }),
+
+    sendOtp: builder.mutation<OtpResponse, SendOtpRequest>({
+      query: (body) => ({
+        url: "/otp/send",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    verifyOtp: builder.mutation<OtpResponse, VerifyOtpRequest>({
+      query: (body) => ({
+        url: "/otp/verify",
+        method: "POST",
+        body,
+      }),
     }),
   }),
 });
@@ -170,6 +200,8 @@ export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useEmailVerificationMutation,
+  useSendOtpMutation,
+  useVerifyOtpMutation,
 } = authApi;
 
 export const { endpoints: authEndpoints } = authApi;
