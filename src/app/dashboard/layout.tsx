@@ -27,10 +27,37 @@ export default function DashboardLayout({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  React.useEffect(() => {
+    const getCookie = (name: string) => {
+      if (typeof document === "undefined") return null;
+      const match = document.cookie.match(
+        new RegExp("(^| )" + name + "=([^;]+)")
+      );
+      return match ? match[2] : null;
+    };
+
+    const token = getCookie("accessToken") || getCookie("token");
+
+    if (!token && !user) {
+      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    setIsAuthorized(true);
+    setCheckingAuth(false);
+  }, [user, pathname, router]);
 
   const handleLogout = () => {
+    if (typeof document !== "undefined") {
+      document.cookie = "accessToken=; path=/; max-age=0";
+      document.cookie = "token=; path=/; max-age=0";
+      document.cookie = "role=; path=/; max-age=0";
+    }
     dispatch(logout());
-    router.push("/login");
+    router.replace("/login");
   };
 
   const navItems = [
@@ -39,6 +66,19 @@ export default function DashboardLayout({
     { name: "My Profile", path: "/dashboard/profile", icon: UserIcon },
     { name: "Account Settings", path: "/dashboard/settings", icon: Settings },
   ];
+
+  if (checkingAuth || !isAuthorized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground font-medium">
+            Verifying account access...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground">

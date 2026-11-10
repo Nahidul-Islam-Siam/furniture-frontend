@@ -62,6 +62,29 @@ const authSlice = createSlice({
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
+    updateUserAvatar(state, action: PayloadAction<string>) {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          avatar: { url: action.payload, publicId: "" },
+        };
+      }
+    },
+    updateUserProfileData(
+      state,
+      action: PayloadAction<{ name?: string; phone?: string; avatar?: string }>
+    ) {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          ...(action.payload.name && { name: action.payload.name }),
+          ...(action.payload.phone && { phone: action.payload.phone }),
+          ...(action.payload.avatar && {
+            avatar: { url: action.payload.avatar, publicId: "" },
+          }),
+        };
+      }
+    },
     logout(state) {
       state.user = null;
       state.token = null;
@@ -84,6 +107,8 @@ export const {
   setRefreshToken,
   setIsLoading,
   setError,
+  updateUserAvatar,
+  updateUserProfileData,
   logout,
 } = authSlice.actions;
 

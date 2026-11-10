@@ -1,65 +1,55 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Instagram, Facebook, Youtube, Send } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import Link from "next/link";
+import { Facebook, Phone, MessageCircle, Send } from "lucide-react";
+import { toast } from "sonner";
+import { UEFLogo } from "../ui/UEFLogo";
 
 export const Footer: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    toast.success('Thank you for subscribing to GRID Furniture exclusive offers!');
-    setEmail('');
+    toast.success("Thank you for subscribing to Unique Engineering updates!");
+    setEmail("");
   };
 
   return (
-    <footer className="bg-[#111111] text-neutral-300 pt-16 pb-12 border-t border-neutral-800 font-sans">
+    <footer className="bg-[#0b1322] text-neutral-300 pt-16 pb-12 border-t border-slate-800 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Main 4-column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 pb-16 border-b border-neutral-800">
-          
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 pb-16 border-b border-slate-800">
           {/* Col 1: Brand & Mission */}
           <div className="space-y-4">
-            <Link href="/" className="inline-block">
-              <span className="font-heading font-black tracking-widest text-2xl text-white">
-                GRID
-              </span>
+            <Link href="/" className="inline-block no-underline">
+              <UEFLogo size="md" variant="white" showText={true} />
             </Link>
-            <p className="text-sm text-neutral-400 leading-relaxed font-light">
-              Modern work furniture in Bangladesh. High quality office Desk, Chair, Cabinet, shelves, and ergonomic chairs with up to 5 years warranty.
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-normal">
+              Precision CNC laser cutting and custom metal fabrication. Engineered to perfection in our own factory with 100% quality assurance and nationwide delivery.
             </p>
-            {/* Social Icons */}
-            <div className="flex items-center gap-4 pt-2 text-neutral-400">
+
+            {/* Social & Contact Buttons */}
+            <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://www.instagram.com/gridfurnitures"
+                href="https://www.facebook.com/uniqueengineeringfurniture"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center hover:text-white hover:border-neutral-600 transition-colors"
-                title="Follow us on Instagram"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href="https://www.facebook.com/99grid"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center hover:text-white hover:border-neutral-600 transition-colors"
-                title="Follow us on Facebook"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold no-underline transition-colors"
+                title="Follow UEF on Facebook (8.7K+ Followers)"
               >
                 <Facebook className="w-4 h-4" />
+                <span>Facebook Page (8.7K)</span>
               </a>
               <a
-                href="https://www.youtube.com/@gridfurniture5735"
+                href="https://wa.me/8801755348053"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center hover:text-white hover:border-neutral-600 transition-colors"
-                title="Watch on YouTube"
+                className="w-9 h-9 rounded-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors"
+                title="Chat on WhatsApp"
               >
-                <Youtube className="w-4 h-4" />
+                <MessageCircle className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -69,35 +59,35 @@ export const Footer: React.FC = () => {
             <h4 className="font-heading font-semibold text-white text-base tracking-wide">
               Quick Links
             </h4>
-            <ul className="space-y-2.5 text-sm text-neutral-400 font-normal">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-slate-400 font-normal">
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/" className="hover:text-cyan-400 transition-colors no-underline">
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/collections" className="hover:text-white transition-colors">
-                  Search & Explore
+                <Link href="/collections" className="hover:text-cyan-400 transition-colors no-underline">
+                  All Collections
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  Know More About GRID
+                <Link href="/about" className="hover:text-cyan-400 transition-colors no-underline">
+                  About Unique Engineering
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-white transition-colors">
-                  Contact Us
+                <Link href="/contact" className="hover:text-cyan-400 transition-colors no-underline">
+                  Custom Size Order &amp; Contact
                 </Link>
               </li>
               <li>
-                <Link href="/pages/warranty" className="hover:text-white transition-colors">
-                  Return & Warranty Policy
+                <Link href="/policies/privacy-policy" className="hover:text-cyan-400 transition-colors no-underline">
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/policies/terms-of-service" className="hover:text-white transition-colors">
-                  Terms of Service
+                <Link href="/policies/terms-of-service" className="hover:text-cyan-400 transition-colors no-underline">
+                  Terms &amp; Warranty
                 </Link>
               </li>
             </ul>
@@ -106,52 +96,64 @@ export const Footer: React.FC = () => {
           {/* Col 3: Product Collections */}
           <div className="space-y-4">
             <h4 className="font-heading font-semibold text-white text-base tracking-wide">
-              Collections
+              Specialized Products
             </h4>
-            <ul className="space-y-2.5 text-sm text-neutral-400 font-normal">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-slate-400 font-normal">
               <li>
-                <Link href="/collections/chair" className="hover:text-white transition-colors">
-                  GRID Chair Collection
+                <Link href="/collections/table" className="hover:text-cyan-400 transition-colors no-underline">
+                  Gaming Desks &amp; Workstations
                 </Link>
               </li>
               <li>
-                <Link href="/collections/chair" className="hover:text-white transition-colors">
-                  Steelcase Chair Collection
+                <Link href="/collections/table" className="hover:text-cyan-400 transition-colors no-underline">
+                  CNC Laser Cut Metal Desks
                 </Link>
               </li>
               <li>
-                <Link href="/collections/table" className="hover:text-white transition-colors">
-                  GRID Table & Desk Collection
+                <Link href="/collections/table" className="hover:text-cyan-400 transition-colors no-underline">
+                  Executive Office Tables
                 </Link>
               </li>
               <li>
-                <Link href="/collections/sofa" className="hover:text-white transition-colors">
-                  GRID Sofa Collection
+                <Link href="/collections/storage" className="hover:text-cyan-400 transition-colors no-underline">
+                  Slotted Metal Racks &amp; Channels
                 </Link>
               </li>
               <li>
-                <Link href="/collections/storage" className="hover:text-white transition-colors">
-                  GRID Storage Solutions
+                <Link href="/contact" className="hover:text-cyan-400 transition-colors no-underline">
+                  Custom Laser-Cut Gates &amp; Panels
                 </Link>
               </li>
               <li>
-                <Link href="/collections" className="hover:text-white transition-colors">
-                  All Collections
+                <Link href="/contact" className="hover:text-cyan-400 transition-colors no-underline">
+                  Electrical Panel Enclosures
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Newsletter Subscription */}
+          {/* Col 4: Factory Hotline & Direct Order */}
           <div className="space-y-4">
             <h4 className="font-heading font-semibold text-white text-base tracking-wide">
-              Stay Connected
+              Factory &amp; Hotline
             </h4>
-            <p className="text-sm text-neutral-400 font-light leading-relaxed">
-              Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
+            <p className="text-xs sm:text-sm text-slate-400 font-light leading-relaxed">
+              Call us directly or share your custom drawings via WhatsApp for immediate fabrication quotes.
             </p>
 
-            <form onSubmit={handleSubscribe} className="space-y-2.5">
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
+                <Phone className="w-4 h-4" />
+                <a href="tel:01755348053" className="text-white hover:text-cyan-300 no-underline">
+                  +880 1755-348053
+                </a>
+              </div>
+              <div className="text-[11px] text-slate-400">
+                Direct WhatsApp &amp; Call Hotline (9:00 AM - 9:00 PM)
+              </div>
+            </div>
+
+            <form onSubmit={handleSubscribe} className="space-y-2 pt-1">
               <div className="relative">
                 <input
                   type="email"
@@ -159,51 +161,44 @@ export const Footer: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
-                  className="w-full px-4 py-3 bg-neutral-900 border border-neutral-800 rounded-full text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-white transition-colors"
+                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-full text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-white hover:bg-neutral-200 text-black text-xs font-semibold rounded-full flex items-center justify-center transition-colors"
+                  className="absolute right-1 top-1 bottom-1 px-3 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-full flex items-center justify-center transition-colors"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  <Send className="w-3 h-3" />
                 </button>
               </div>
             </form>
-
-            <div className="text-xs text-neutral-500 pt-1">
-              Hotline: +880 1700-009947 (10 AM - 8 PM)
-            </div>
           </div>
-
         </div>
 
         {/* Bottom Bar: Copyright & Payment icons */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © 2026 GRID Furniture • GRID Ventures Ltd. All rights reserved.
+            © 2026 Unique Engineering &amp; Furniture (UEF) • All rights reserved.
           </div>
 
           {/* Supported payment badges */}
-          <div className="flex items-center gap-3 text-neutral-400 font-medium">
-            <span className="px-2.5 py-1 bg-neutral-900 rounded border border-neutral-800">
+          <div className="flex items-center gap-2 text-slate-400 font-medium">
+            <span className="px-2 py-0.5 bg-slate-900 rounded border border-slate-800 text-[11px]">
+              Cash on Delivery (COD)
+            </span>
+            <span className="px-2 py-0.5 bg-slate-900 rounded border border-slate-800 text-[11px]">
               bKash
             </span>
-            <span className="px-2.5 py-1 bg-neutral-900 rounded border border-neutral-800">
+            <span className="px-2 py-0.5 bg-slate-900 rounded border border-slate-800 text-[11px]">
               Nagad
             </span>
-            <span className="px-2.5 py-1 bg-neutral-900 rounded border border-neutral-800">
-              Visa
-            </span>
-            <span className="px-2.5 py-1 bg-neutral-900 rounded border border-neutral-800">
-              Mastercard
-            </span>
-            <span className="px-2.5 py-1 bg-neutral-900 rounded border border-neutral-800">
-              COD
+            <span className="px-2 py-0.5 bg-slate-900 rounded border border-slate-800 text-[11px]">
+              Bank Transfer
             </span>
           </div>
         </div>
-
       </div>
     </footer>
   );
 };
+
+export default Footer;

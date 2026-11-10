@@ -654,30 +654,30 @@ export const COMPANY_LOGOS = [
 
 export const FOOTER_PROMOTIONS = [
   {
-    title: 'Exceptional Furniture For The Taskmasters',
-    text: 'We founded GRID: to make it easy for teams of all sizes to create an office you love. We sell direct, so our collection costs half as much as premium furniture of comparable quality.',
+    title: 'Exceptional Furniture For Work & Gaming',
+    text: 'Unique Engineering & Furniture: Precision metal design & CNC laser cutting. Direct factory manufacturing ensures top-tier quality at unbeatable direct pricing.',
     image: 'https://99grid.com/cdn/shop/files/Group_834_600x.png?v=1633346197'
   },
   {
-    title: 'Ergonomic Design',
-    text: 'Enjoy stylish and ergonomic work seating for every budget, from the home office to the open office. Durable, adjustable and built to inspire: make your office feel like home with contract-grade desks & chairs from GRID Furniture.',
+    title: 'Precision CNC Laser Cutting',
+    text: 'Enjoy durable and custom metal furniture for home, gaming setup, or modern corporate office. Heavy-duty powder coated steel frames built to last with up to 5 years structural frame guarantee.',
     image: 'https://99grid.com/cdn/shop/files/ASDASDA_600x.jpg?v=1652694147'
   },
   {
-    title: 'Wherever you are, work your best.',
-    text: 'Our breathable mesh material provides an optimal air flow to avoid sweating and sticking, keep air circulation for extra comfy, and the mesh office chair resists abrasion and transformation.',
+    title: 'Nationwide Delivery & Custom Sizing',
+    text: '100% quality guaranteed custom manufacturing. Handcrafted in our own factory and delivered safely across all 64 districts. Call or WhatsApp: +880 1755-348053.',
     image: 'https://99grid.com/cdn/shop/files/5A2A5635_600x.jpg?v=1613715225'
   }
 ];
 
 export const VALUE_PROPOSITIONS = [
   {
-    title: 'Free Delivery',
-    description: 'FREE home delivery with assembly inside Dhaka within 3 working days. Delivery anywhere in Bangladesh takes 5-7 working days with delivery charge.'
+    title: 'Nationwide Delivery',
+    description: 'Safe and insured doorstep delivery across all 64 districts in Bangladesh with safe wooden packaging.'
   },
   {
-    title: 'Returns & Warranty',
-    description: 'GRID provides an easy, hassle-free servicing system where we pick up your product from your home if there is any problem and get it back to you.'
+    title: 'Returns & 5-Year Warranty',
+    description: 'Unique Engineering & Furniture provides an easy servicing and replacement support guarantee for all structural metal frames.'
   },
   {
     title: 'EMI Policy',

@@ -27,10 +27,12 @@ export interface UserProfileResponse {
 export interface UpdateProfilePayload {
   name?: string;
   phone?: string;
-  avatar?: {
-    url: string;
-    publicId?: string;
-  };
+  avatar?:
+    | {
+        url: string;
+        publicId?: string;
+      }
+    | string;
 }
 
 export interface UpdateProfileResponse {

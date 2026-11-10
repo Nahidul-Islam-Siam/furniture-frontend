@@ -1,20 +1,22 @@
-import { useState } from 'react';
-import { FooterPromotions } from '../components/grid/FooterPromotions';
-import { toast } from 'sonner';
-import { CheckCircle2, MapPin, Loader2 } from 'lucide-react';
-import { useAddContactMutation } from '@/redux/service/contactApi/contactApi';
+"use client";
+
+import { useState } from "react";
+import { FooterPromotions } from "../components/grid/FooterPromotions";
+import { toast } from "sonner";
+import { CheckCircle2, Phone, MessageCircle } from "lucide-react";
+import { useAddContactMutation } from "@/redux/service/contactApi/contactApi";
 
 export default function Contact() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [addContact, { isLoading }] = useAddContactMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
-      toast.error('Please fill in all fields');
+      toast.error("Please fill in all fields");
       return;
     }
 
@@ -22,23 +24,26 @@ export default function Contact() {
       await addContact({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        subject: 'General Customer Contact',
+        subject: "Unique Engineering Customer Inquiry",
         message: message.trim(),
       }).unwrap();
 
       setIsSubmitted(true);
-      toast.success('Thanks for contacting us. We will get back to you as soon as possible.');
-      setName('');
-      setEmail('');
-      setMessage('');
+      toast.success(
+        "Thanks for contacting Unique Engineering & Furniture. We will get back to you as soon as possible."
+      );
+      setName("");
+      setEmail("");
+      setMessage("");
     } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to submit message. Please try again.');
+      toast.error(
+        err?.data?.message || "Failed to submit message. Please try again."
+      );
     }
   };
 
   return (
     <div className="w-full bg-white font-sans text-neutral-900">
-      
       {/* 1. Rich Text Section: Get in touch */}
       <section className="pt-16 pb-12 border-b border-neutral-100">
         <div className="max-w-[750px] mx-auto px-4 sm:px-6 text-center">
@@ -47,48 +52,52 @@ export default function Contact() {
           </h2>
           <div className="text-base sm:text-lg text-neutral-700 leading-relaxed space-y-3 font-normal">
             <p>
-              Email us:
+              Email us:&nbsp;
               <a
-                href="mailto:gridfurnitures@gmail.com"
+                href="mailto:info@uniqueengineeringbd.com"
                 className="underline hover:text-black transition-colors"
               >
-                gridfurnitures@gmail.com
+                info@uniqueengineeringbd.com
               </a>
             </p>
             <p>
-              Call us:
+              Call us:&nbsp;
               <a
-                href="tel:01404431330"
-                className="underline hover:text-black transition-colors"
+                href="tel:01755348053"
+                className="underline hover:text-black transition-colors font-medium"
               >
-                014044 31330-5
+                01755-348053
               </a>
+            </p>
+            <p className="text-sm text-neutral-500 pt-1">
+              WhatsApp / Hotline: +880 1755-348053 (9:00 AM - 9:00 PM)
             </p>
           </div>
         </div>
       </section>
 
-      {/* 2. Rich Text Section: Display Center */}
+      {/* 2. Rich Text Section: Display Center & Factory */}
       <section className="py-14 border-b border-neutral-100">
         <div className="max-w-[750px] mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-heading font-bold text-3xl sm:text-4xl text-neutral-900 tracking-tight mb-5">
-            Display Center
+            Display Center &amp; Factory
           </h2>
-          <div className="text-base sm:text-lg text-neutral-700 leading-relaxed font-normal">
-            <p className="mb-2">
-              House 111, Road 8, Block C, Banani (Behind Hotel Sarina)
+          <div className="text-base sm:text-lg text-neutral-700 leading-relaxed font-normal space-y-2">
+            <p className="font-medium text-neutral-900">
+              Unique Engineering &amp; CNC Laser Cutting Furniture
             </p>
-            <p>
-              Google Map Location link:&nbsp;
+            <p className="text-sm text-neutral-600 max-w-lg mx-auto">
+              Precision CNC laser cutting &amp; custom metal engineering • 100% quality guarantee with custom dimensions • Factory-direct production delivered nationwide across all 64 districts.
+            </p>
+            <p className="text-sm text-neutral-500 pt-1">
+              Facebook:&nbsp;
               <a
-                href="https://goo.gl/maps/XZmY1nKkqqtgKnrw5"
+                href="https://www.facebook.com/uniqueengineeringfurniture"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline font-medium hover:text-black transition-colors inline-flex items-center gap-1"
-                title="Map View"
+                className="underline font-medium hover:text-black transition-colors"
               >
-                <span>Click Here</span>
-                <MapPin className="w-4 h-4 text-neutral-500" />
+                facebook.com/uniqueengineeringfurniture
               </a>
             </p>
           </div>
@@ -98,7 +107,6 @@ export default function Contact() {
       {/* 3. Form Section: Contact us */}
       <section className="py-16">
         <div className="max-w-[750px] mx-auto px-4 sm:px-6">
-          
           <div className="mb-8">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight text-center">
               Contact us
@@ -114,9 +122,11 @@ export default function Contact() {
                 Message Sent
               </h3>
               <p className="text-neutral-600 text-sm max-w-md mx-auto">
-                Thanks for contacting us. We’ll get back to you as soon as possible.
+                Thanks for contacting us. We’ll get back to you as soon as
+                possible.
               </p>
               <button
+                type="button"
                 onClick={() => setIsSubmitted(false)}
                 className="mt-2 px-6 py-2.5 bg-black text-white text-xs font-semibold rounded-full hover:bg-neutral-800 transition-colors"
               >
@@ -125,7 +135,6 @@ export default function Contact() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              
               {/* Name & Email 2-column Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
@@ -177,6 +186,7 @@ export default function Contact() {
                   required
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Tell us about your requirements or custom dimensions..."
                   className="w-full px-4 py-3 bg-white border border-neutral-300 rounded-md text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors resize-y"
                 />
               </div>
@@ -186,39 +196,17 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-8 py-3.5 bg-black text-white text-xs font-bold  tracking-widest  transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
+                  className="px-8 py-3.5 bg-black text-white text-xs font-bold tracking-widest uppercase transition-all active:scale-[0.99] disabled:opacity-75 shadow-sm"
                 >
-                  {isLoading ? 'Sending...' : 'Send'}
+                  {isLoading ? "Sending..." : "Send"}
                 </button>
               </div>
-
-              {/* Privacy and Security Disclaimer */}
-              <p className="text-[11px] text-neutral-400 leading-relaxed pt-2">
-                This site is protected by hCaptcha and the hCaptcha{' '}
-                <a
-                  href="https://hcaptcha.com/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-neutral-600"
-                >
-                  Privacy Policy
-                </a>
-                and
-                <a
-                  href="https://hcaptcha.com/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-neutral-600"
-                >
-                  Terms of Service
-                </a>
-                apply.
-              </p>
             </form>
           )}
         </div>
       </section>
-      {/* 4. Footer Promotions (3 Cards identical to 99grid.com contact page) */}
+
+      {/* 4. Footer Promotions */}
       <FooterPromotions />
     </div>
   );

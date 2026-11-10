@@ -8,13 +8,13 @@ export default function About() {
       <section className="py-20 sm:py-24 bg-neutral-900 text-white text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 space-y-4">
           <span className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
-            About GRID Furniture
+            About Unique Engineering &amp; Furniture
           </span>
           <h1 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl tracking-tight leading-tight">
-            Redefining Modern Workspaces in Bangladesh
+            Precision CNC Laser Cutting &amp; Metal Furniture
           </h1>
           <p className="text-neutral-300 text-base sm:text-lg max-w-2xl mx-auto font-light leading-relaxed">
-            We founded GRID to make it effortless for individuals and high-growth companies across Bangladesh to furnish workspaces that inspire productivity and physical well-being.
+            Engineered in our dedicated factory with 100% quality guarantee. We create bespoke gaming setups, industrial metal racks, and modern furniture delivered safely across Bangladesh.
           </p>
         </div>
       </section>
@@ -24,19 +24,19 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div className="space-y-4">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900">
-              Contract-Grade Quality Direct to You
+              Direct Factory Manufacturing &amp; Custom Sizing
             </h2>
             <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
-              Traditional commercial furniture in Bangladesh was either exorbitantly overpriced through layers of importers or lacked the ergonomic engineering required for 10+ hour creative and tech workdays.
+              At Unique Engineering &amp; Furniture, we combine high-precision CNC laser cutting technology with heavy-duty metal fabrication. Every cut, weld, and powder coating finish is performed in-house under strict quality supervision.
             </p>
             <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
-              We sell directly to our customers. By eliminating middlemen and showrooms markups, our collection costs half as much as premium furniture of comparable quality, backed by up to 5 years of local servicing warranty.
+              By manufacturing directly in our own workshop, we deliver custom-tailored dimensions, reinforced steel structures, and premium aesthetics at honest direct factory prices without middleman markups.
             </p>
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg border border-neutral-100 aspect-[4/3]">
             <img
               src="https://99grid.com/cdn/shop/files/unnamed_600x.jpg?v=1652694957"
-              alt="GRID Workspace"
+              alt="Unique Engineering & Furniture Factory"
               className="w-full h-full object-cover"
             />
           </div>
@@ -46,33 +46,33 @@ export default function About() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-6">
           <div className="p-6 rounded-2xl bg-neutral-50 border border-neutral-100 space-y-2.5">
             <Sparkles className="w-6 h-6 text-neutral-900" />
-            <h3 className="font-heading font-bold text-base text-neutral-900">Ergonomic First</h3>
+            <h3 className="font-heading font-bold text-base text-neutral-900">CNC Precision</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
-              Every chair and motorized desk is engineered to alleviate spinal pressure and improve posture.
+              Millimeter-level laser cutting for intricate patterns, perforated metal grills, and custom brackets.
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-neutral-50 border border-neutral-100 space-y-2.5">
             <Truck className="w-6 h-6 text-neutral-900" />
-            <h3 className="font-heading font-bold text-base text-neutral-900">Free Dhaka Assembly</h3>
+            <h3 className="font-heading font-bold text-base text-neutral-900">Nationwide Delivery</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
-              We don't just drop off boxes. Our technicians assemble and calibrate your desk inside your room.
+              Carefully wrapped and delivered safely to your doorstep across all 64 districts in Bangladesh.
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-neutral-50 border border-neutral-100 space-y-2.5">
             <ShieldCheck className="w-6 h-6 text-neutral-900" />
-            <h3 className="font-heading font-bold text-base text-neutral-900">Up to 5 Years Warranty</h3>
+            <h3 className="font-heading font-bold text-base text-neutral-900">5-Year Structural Frame</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
-              Hassle-free pickup and doorstep servicing. Genuine parts and manufacturer support guaranteed.
+              Solid steel construction backed by our long-term structural integrity and servicing guarantee.
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-neutral-50 border border-neutral-100 space-y-2.5">
             <Award className="w-6 h-6 text-neutral-900" />
-            <h3 className="font-heading font-bold text-base text-neutral-900">Trusted By Leaders</h3>
+            <h3 className="font-heading font-bold text-base text-neutral-900">100% Custom Sizing</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
-              Equipping startups, agencies, multinationals, and home creators throughout Bangladesh.
+              Share your room dimensions or custom drawings via WhatsApp for custom tailored fabrication.
             </p>
           </div>
         </div>

@@ -5,34 +5,51 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://uniqueengineeringbd.com"
   ),
   title: {
-    default: "React SaaS Platform | Modern Business Suite",
-    template: "%s | React SaaS",
+    default: "Unique Engineering & Furniture | CNC Laser Cutting & Custom Furniture",
+    template: "%s | Unique Engineering & Furniture",
   },
   description:
-    "Enterprise-ready SaaS application with advanced user management, billing, analytics, and responsive dashboards.",
-  keywords: ["SaaS", "Dashboard", "Admin Portal", "Analytics", "React", "Next.js"],
-  authors: [{ name: "SaaS Team" }],
+    "Precision CNC laser cutting and custom metal furniture manufactured in our own factory with 100% quality guarantee. Gaming desks, metal racks, and nationwide delivery in Bangladesh.",
+  keywords: [
+    "Unique Engineering & Furniture",
+    "UEF",
+    "CNC Laser Cutting",
+    "Gaming Desk Bangladesh",
+    "Custom Metal Furniture",
+    "Industrial Furniture Dhaka",
+    "Metal Racks Bangladesh"
+  ],
+  authors: [{ name: "Unique Engineering & Furniture" }],
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://example.com",
-    title: "React SaaS Platform | Modern Business Suite",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://uniqueengineeringbd.com",
+    title: "Unique Engineering & Furniture | CNC Laser Cutting & Custom Furniture",
     description:
-      "Enterprise-ready SaaS application with advanced user management, billing, and analytics.",
-    siteName: "React SaaS",
+      "Precision CNC laser cutting and custom metal furniture manufactured in our own factory with 100% quality guarantee.",
+    siteName: "Unique Engineering & Furniture",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 800,
+        height: 600,
+        alt: "Unique Engineering & Furniture Logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "React SaaS Platform",
+    title: "Unique Engineering & Furniture",
     description:
-      "Enterprise-ready SaaS application with advanced user management, billing, and analytics.",
+      "Precision CNC laser cutting and custom metal furniture manufactured in our own factory with 100% quality guarantee.",
+    images: ["/images/logo.png"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/icons/apple-touch-icon.png",
+    icon: "/images/uef-emblem.png",
+    apple: "/images/uef-emblem.png",
   },
   robots: {
     index: true,
@@ -47,10 +64,11 @@ export default function RootLayout({
 }) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "React SaaS Platform",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "All",
+    "@type": "FurnitureStore",
+    name: "Unique Engineering & Furniture",
+    telephone: "+8801755348053",
+    url: "https://www.facebook.com/uniqueengineeringfurniture",
+    sameAs: ["https://www.facebook.com/uniqueengineeringfurniture"],
   };
 
   return (

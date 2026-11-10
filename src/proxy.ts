@@ -2,43 +2,45 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
   const token =
     request.cookies.get("accessToken")?.value ||
     request.cookies.get("token")?.value;
   const role = request.cookies.get("role")?.value?.toUpperCase();
-  const { pathname } = request.nextUrl;
 
-  // In development, allow seamless direct access to /admin and /dashboard
-  const isDev = process.env.NODE_ENV !== "production";
-  if (isDev) {
-    return NextResponse.next();
-  }
-
-  // Protect /admin routes in production
+  // 1. Protect /admin routes (Admin & Super Admin only)
   if (pathname.startsWith("/admin")) {
     if (!token) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
+      loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    // Only redirect if explicitly a regular non-admin user
-    if (role && role !== "ADMIN") {
+
+    const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+    if (!isAdmin) {
+      // Non-admin user trying to access admin panel -> redirect to user dashboard
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
-  // Protect /dashboard routes in production
+  // 2. Protect /dashboard routes (Any logged-in user)
   if (pathname.startsWith("/dashboard")) {
     if (!token) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
+      loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  // Redirect logged-in users away from /login or /signup
-  if ((pathname === "/login" || pathname === "/signup") && token) {
-    if (role === "ADMIN") {
+  // 3. Redirect logged-in users away from /login or /register
+  if (
+    (pathname === "/login" ||
+      pathname === "/register" ||
+      pathname === "/signup") &&
+    token
+  ) {
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -52,6 +54,7 @@ export const config = {
     "/admin/:path*",
     "/dashboard/:path*",
     "/login",
+    "/register",
     "/signup",
   ],
 };

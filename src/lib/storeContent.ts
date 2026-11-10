@@ -2,67 +2,68 @@
 
 // Default content for legal pages and store settings
 export const DEFAULT_STORE_CONTENT = {
-  aboutText: `## Welcome to GRID Furniture
-GRID is a modern work lifestyle brand committed to reimagining ergonomics, craftsmanship, and aesthetic balance for forward-thinking workspaces in Bangladesh.
+  aboutText: `## Welcome to Unique Engineering & Furniture
+Unique Engineering & Furniture (UEF) is a premier precision metal engineering and modern furniture manufacturing factory in Bangladesh.
 
-In direct collaboration with global pioneers like **Steelcase**, we engineer and distribute high-performance ergonomic seating, motorized sit-to-stand elevating desks, modular executive workstations, and contract-grade acoustic solutions.
+Specializing in advanced **CNC Laser Cutting**, high-grade steel fabrication, industrial gaming desks, executive workstations, and customized interior metalwork, we build directly in our own dedicated factory to ensure unmatched durability and direct factory pricing.
 
-### Why Bangladesh Chooses GRID
-- **100% Authentic Imports:** Directly sourced and certified from precision manufacturers in Taiwan, China, and Vietnam.
-- **Contract-Grade Build:** Tested for 50,000+ lifecycle movements and high-load workplace stability.
-- **White Glove Delivery:** Free doorstep assembly by certified product technicians anywhere in Dhaka.
-- **Up to 5 Years Warranty:** Full local warranty backing with dedicated replacement part inventory.`,
+### Why Bangladesh Chooses Unique Engineering & Furniture
+- **Direct Factory Manufacturing:** Handcrafted and precision laser-cut in our own factory with zero middleman markups.
+- **Advanced CNC Precision:** High-grade MS and SS sheet laser cutting with millimeter-level accuracy and clean aesthetic welds.
+- **Custom Sizing & Bespoke Builds:** Built to your room measurements, drawings, and custom color specifications.
+- **Nationwide Doorstep Delivery:** Safe delivery across all 64 districts in Bangladesh with secure packaging.
+- **Structural Warranty:** Long-term warranty backing with direct manufacturer servicing and support.`,
 
   privacyText: `## Privacy & Data Protection Policy
-At **GRID Furniture** (GRID Ventures Ltd.), we hold customer trust and privacy to the highest global standards. This privacy charter explains how we handle your information when visiting our store, placing furniture orders, or utilizing our workspace design tools.
+At **Unique Engineering & Furniture** (UEF), we prioritize customer trust and data security. This privacy policy explains how we handle your information when visiting our website, ordering custom furniture, or requesting factory quotations.
 
 ### 1. Information We Collect
-- **Personal Identifiers:** Full Name, delivery address, contact phone number, and email.
-- **Transaction Details:** Order line items, payment reference numbers, billing address, and VAT registration.
-- **Workspace Dimensions:** Room measurements and configuration files submitted through Grid Studio.
+- **Personal Details:** Full name, delivery address, phone number, and email.
+- **Transaction Details:** Order specifications, invoices, payment reference details, and delivery instructions.
+- **Custom Drawings & Specifications:** CAD files, sketches, and room dimensions provided for custom fabrication.
 
 ### 2. How Your Information Is Used
-- Coordinating White-Glove delivery and on-site furniture assembly.
-- Generating formal VAT-compliant invoices and 5-Year warranty certificates.
-- Providing post-purchase maintenance updates and ergonomic adjustments.
+- Processing and manufacturing your custom furniture orders.
+- Coordinating safe doorstep delivery across Bangladesh.
+- Providing warranty certification, receipts, and customer support.
 
-### 3. Payment Security & Encryption
-All online transactions are encrypted via **SSLCommerz** under bank-grade 256-bit SSL protocols. We never store credit/debit card numbers or mobile wallet PINs on our servers.
+### 3. Payment Security & Integrity
+All online transactions are processed through bank-grade secured payment gateways with full SSL encryption. We never store debit/credit card credentials or mobile banking PINs.
 
-> **Our Pledge:** We never sell, lease, or distribute customer details to third-party marketing companies.`,
+> **Our Promise:** We respect your privacy and never sell or share your personal data with third-party marketing companies.`,
 
   termsText: `## Terms of Service & Sales Agreement
-Welcome to GRID. By viewing our catalog, purchasing furniture, or booking consultation sessions, you agree to the following terms and commercial guidelines:
+Welcome to Unique Engineering & Furniture. By purchasing from our catalog or commissioning custom fabrication, you agree to the following terms:
 
-### 1. Product Authenticity & Manufacturing
-All products advertised on this platform are brand new, original, and contract-grade. Minor natural variations in solid wood grain, marble patterns, or leather textures are hallmarks of authentic materials and not manufacturing defects.
+### 1. Custom Sizing & Fabrication
+Custom CNC laser-cut items are manufactured specifically to client drawings and dimensions. Customers are requested to review final measurements prior to cutting commencement.
 
-### 2. Delivery & On-Site Assembly
-- **Dhaka Metro:** Delivery is completed within 24 to 48 hours with complimentary on-site assembly.
-- **Outside Dhaka:** Delivered via insured logistics within 3 to 5 business days.
+### 2. Delivery & Logistics
+- **Inside Dhaka:** Delivered safely within 24 to 72 hours.
+- **Across Bangladesh:** Shipped via insured freight logistics across all 64 districts within 3 to 6 business days.
 
-### 3. Order Cancellation & Modifications
-Custom-fabricated executive desks and bespoke color orders may be modified or cancelled within **24 hours** of order placement before factory processing begins.`,
+### 3. Quality Guarantee & Order Modifications
+Order modifications or cancellations for custom fabrication can be requested within **24 hours** of order placement before laser cutting begins.`,
 
-  warrantyText: `## 5-Year Warranty & Return Guarantee
-Every GRID product is engineered for longevity and back-health excellence. We provide comprehensive local warranty support across Bangladesh.
+  warrantyText: `## Quality Guarantee & Warranty Policy
+Every product from Unique Engineering & Furniture is engineered for exceptional durability and heavy-duty load performance.
 
-### Warranty Coverage Windows:
-- **Motorized Elevating Desks:** 5-Year warranty on dual motor systems, digital handset controllers, and heavy-duty steel columns.
-- **Ergonomic Chairs (Steelcase Series):** 5-Year warranty on pneumatic gas cylinders, synchronous tilt mechanisms, and multi-directional 4D armrests.
-- **GRID Task Chairs & Sofas:** 3-Year warranty on structural frame, swivel base, and high-resilience foam integrity.
+### Warranty Coverage:
+- **Structural Steel Frames:** 5-Year structural frame warranty against welding fractures and metal fatigue.
+- **Motorized & Ergonomic Desks:** Full warranty on elevating drive systems and controllers.
+- **Powder Coating & Finish:** Industrial-grade electrostatic powder coating resistant to corrosion and chipping.
 
-### 7-Day Replacement Guarantee
-If an item arrives with transit damage or factory imperfections, our Dhaka team will inspect and replace the affected component or entire unit within **7 days of delivery**.`,
+### Replacement Guarantee
+In the rare event of transit damage or manufacturing defect, our support team will inspect and replace the affected component or entire unit promptly.`,
 
   storeInfo: {
-    storeName: "GRID Furniture Bangladesh",
-    hotline: "+880 1700-009947",
-    whatsapp: "+880 1700-009947",
-    email: "support@99grid.com",
-    address: "Plot 42, Road 11, Block D, Banani, Dhaka 1213",
-    showroom: "GRID Experience Center, Level 4, Banani, Dhaka",
-    workingHours: "Saturday - Thursday: 10:00 AM - 8:30 PM",
+    storeName: "Unique Engineering & Furniture",
+    hotline: "+880 1755-348053",
+    whatsapp: "+880 1755-348053",
+    email: "info@uniqueengineeringbd.com",
+    address: "Dhaka, Bangladesh",
+    showroom: "Unique Engineering & Furniture Factory & Display Center",
+    workingHours: "Saturday - Thursday: 9:00 AM - 9:00 PM",
   },
 
   adminProfile: {
