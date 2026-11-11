@@ -105,6 +105,225 @@ const MOBILE_CATEGORIES: MobileCategoryGroup[] = [
   },
 ];
 
+interface MegaMenuColumn {
+  heading: string;
+  links: { label: string; href: string; emphasize?: boolean }[];
+}
+
+interface MegaMenuCard {
+  title: string;
+  href: string;
+  image: string;
+}
+
+interface DesktopMegaMenu {
+  key: string;
+  label: string;
+  href: string;
+  columns: [MegaMenuColumn, MegaMenuColumn];
+  cards: [MegaMenuCard, MegaMenuCard, MegaMenuCard, MegaMenuCard];
+}
+
+const DESKTOP_MEGA_MENUS: DesktopMegaMenu[] = [
+  {
+    key: "collections",
+    label: "Collections",
+    href: "/collections",
+    columns: [
+      {
+        heading: "Categories",
+        links: [
+          { label: "Ergonomic Chairs", href: "/collections/chair" },
+          { label: "Desks & Tables", href: "/collections/table" },
+          { label: "Storage & Racks", href: "/collections/storage" },
+          { label: "Lounge Sofas", href: "/collections/sofa" },
+          { label: "Custom CNC Steel", href: "/contact" },
+          { label: "Shop All", href: "/collections", emphasize: true },
+        ],
+      },
+      {
+        heading: "Curated Series",
+        links: [
+          { label: "Motorized Standing", href: "/collections/table" },
+          { label: "Executive Seating", href: "/collections/chair" },
+          { label: "Studio & Corporate", href: "/pages/grid-studio" },
+          { label: "Shegun Solid Wood", href: "/products/grid-teakwood-table" },
+          { label: "5-Year Warranty", href: "/warranty" },
+        ],
+      },
+    ],
+    cards: [
+      {
+        title: "All Desks & Tables",
+        href: "/collections/table",
+        image: CATEGORIES[1].image,
+      },
+      {
+        title: "Ergonomic Seating",
+        href: "/collections/chair",
+        image: CHAIR_PRODUCTS[0].images[0],
+      },
+      {
+        title: "Modular Storage",
+        href: "/collections/storage",
+        image: CATEGORIES[3].image,
+      },
+      {
+        title: "Precision CNC Metal",
+        href: "/pages/grid-studio",
+        image: FOOTER_PROMOTIONS[1].image,
+      },
+    ],
+  },
+  {
+    key: "desks",
+    label: "Desks",
+    href: "/collections/table",
+    columns: [
+      {
+        heading: "By Model",
+        links: [
+          { label: "Elevating L-Shape Pro", href: "/products/grid-elevating-l-shape-table" },
+          { label: "Dual Motor Standing", href: "/products/grid-elevating-desk-pro" },
+          { label: "Single Motor Standing", href: "/products/grid-elevating-desk" },
+          { label: "Supreme Conference", href: "/products/grid" },
+          { label: "Quad Desk Pro", href: "/products/grid-quad-desk-pro" },
+          { label: "Shop All Desks", href: "/collections/table", emphasize: true },
+        ],
+      },
+      {
+        heading: "Workspaces",
+        links: [
+          { label: "Creator & Coding Studio", href: "/products/grid-taskmaster-table" },
+          { label: "Corner L-Layouts", href: "/products/grid-indie-desk-l-shape" },
+          { label: "Solid Shegun Top", href: "/products/grid-solid-shegun-wooden-table-top" },
+          { label: "Teakwood Industrial", href: "/products/grid-teakwood-table" },
+          { label: "Custom Size Quote", href: "/contact" },
+        ],
+      },
+    ],
+    cards: [
+      {
+        title: "Elevating L-Shape Pro",
+        href: "/products/grid-elevating-l-shape-table",
+        image: TABLE_PRODUCTS[0].images[0],
+      },
+      {
+        title: "Dual Motor Standing",
+        href: "/products/grid-elevating-desk-pro",
+        image: TABLE_PRODUCTS[1].images[0],
+      },
+      {
+        title: "Taskmaster Studio",
+        href: "/products/grid-taskmaster-table",
+        image: TABLE_PRODUCTS[5].images[0],
+      },
+      {
+        title: "Solid Shegun Wood",
+        href: "/products/grid-solid-shegun-wooden-table-top",
+        image: TABLE_PRODUCTS[11].images[0],
+      },
+    ],
+  },
+  {
+    key: "chairs",
+    label: "Chairs",
+    href: "/collections/chair",
+    columns: [
+      {
+        heading: "Categories",
+        links: [
+          { label: "All Office Seating", href: "/collections/chair" },
+          { label: "Executive High-Back", href: "/products/grid-grand-master-chair" },
+          { label: "Ergonomic Mesh", href: "/products/grid-ergofit-chair" },
+          { label: "Split-Lumbar Posture", href: "/products/grid-spine-chair" },
+          { label: "Compact Task Chairs", href: "/products/grid-swift-pro-chair" },
+          { label: "Shop All Chairs", href: "/collections/chair", emphasize: true },
+        ],
+      },
+      {
+        heading: "Engineering Line",
+        links: [
+          { label: "Steelcase Leap Series", href: "/products/grid-x-steelcase-leap" },
+          { label: "Haworth Fern Mesh", href: "/products/grid-x-haworth-fern" },
+          { label: "Personality Plus", href: "/products/grid-x-steelcase-personality-plus" },
+          { label: "5-Year Servicing", href: "/warranty" },
+        ],
+      },
+    ],
+    cards: [
+      {
+        title: "Steelcase Leap",
+        href: "/products/grid-x-steelcase-leap",
+        image: CHAIR_PRODUCTS[0].images[0],
+      },
+      {
+        title: "Haworth Fern",
+        href: "/products/grid-x-haworth-fern",
+        image: CHAIR_PRODUCTS[2].images[0],
+      },
+      {
+        title: "ErgoFit 12-Hour",
+        href: "/products/grid-ergofit-chair",
+        image: CHAIR_PRODUCTS[7].images[0],
+      },
+      {
+        title: "Split Spine Series",
+        href: "/products/grid-spine-chair",
+        image: CHAIR_PRODUCTS[14].images[0],
+      },
+    ],
+  },
+  {
+    key: "storage-cnc",
+    label: "Storage & CNC",
+    href: "/collections/storage",
+    columns: [
+      {
+        heading: "Systems & Metalwork",
+        links: [
+          { label: "Metal Storage Systems", href: "/collections/storage" },
+          { label: "Slotted Steel Racks", href: "/collections/storage" },
+          { label: "Credenzas & Cabinets", href: "/collections/storage" },
+          { label: "Laser-Cut Gates & Panels", href: "/contact" },
+          { label: "Electrical Enclosures", href: "/contact" },
+        ],
+      },
+      {
+        heading: "Factory Services",
+        links: [
+          { label: "Grid Studio Fit-Outs", href: "/pages/grid-studio" },
+          { label: "Custom CAD Drawings", href: "/contact" },
+          { label: "Nationwide Delivery", href: "/warranty" },
+          { label: "Request Quote", href: "/contact", emphasize: true },
+        ],
+      },
+    ],
+    cards: [
+      {
+        title: "Modern Credenzas",
+        href: "/collections/storage",
+        image: CATEGORIES[3].image,
+      },
+      {
+        title: "CNC Laser Fabrication",
+        href: "/pages/grid-studio",
+        image: FOOTER_PROMOTIONS[1].image,
+      },
+      {
+        title: "Factory Workstations",
+        href: "/collections/table",
+        image: FOOTER_PROMOTIONS[0].image,
+      },
+      {
+        title: "Custom Sizing & Delivery",
+        href: "/contact",
+        image: FOOTER_PROMOTIONS[2].image,
+      },
+    ],
+  },
+];
+
 export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
   const { totalItems, setIsCartOpen } = useCart();
   const dispatch = useAppDispatch();
@@ -116,13 +335,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
   const [activeSubmenu, setActiveSubmenu] = useState<MobileCategoryGroup | null>(
     null
   );
-  const [collectionDropdownOpen, setCollectionDropdownOpen] = useState(false);
+  const [activeMegaKey, setActiveMegaKey] = useState<string | null>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [cookieRole, setCookieRole] = useState<string | null>(null);
   const [tokenEmail, setTokenEmail] = useState<string | null>(null);
 
+  const headerRef = useRef<HTMLElement>(null);
+  const megaCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileDrawerRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
@@ -175,8 +396,45 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     }
   }, [profileRes, user, hasSession, accessToken, dispatch]);
 
+  const activeMega =
+    DESKTOP_MEGA_MENUS.find((item) => item.key === activeMegaKey) ?? null;
+  const isMegaMenuOpen = activeMega !== null;
   const isHome = pathname === "/";
-  const isTransparent = isHome && !isScrolled;
+  const isTransparent = isHome && !isScrolled && !isMegaMenuOpen;
+
+  const openMegaMenu = (key: string) => {
+    if (megaCloseTimerRef.current) {
+      clearTimeout(megaCloseTimerRef.current);
+      megaCloseTimerRef.current = null;
+    }
+    setAccountMenuOpen(false);
+    setActiveMegaKey(key);
+  };
+
+  const scheduleCloseMegaMenu = () => {
+    if (megaCloseTimerRef.current) {
+      clearTimeout(megaCloseTimerRef.current);
+    }
+    megaCloseTimerRef.current = setTimeout(() => {
+      setActiveMegaKey(null);
+    }, 140);
+  };
+
+  const closeMegaMenuNow = () => {
+    if (megaCloseTimerRef.current) {
+      clearTimeout(megaCloseTimerRef.current);
+      megaCloseTimerRef.current = null;
+    }
+    setActiveMegaKey(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (megaCloseTimerRef.current) {
+        clearTimeout(megaCloseTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -185,6 +443,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close desktop mega-menu on outside click or Escape
+  useEffect(() => {
+    if (!isMegaMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        headerRef.current &&
+        !headerRef.current.contains(e.target as Node)
+      ) {
+        closeMegaMenuNow();
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMegaMenuNow();
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [isMegaMenuOpen]);
 
   // Close desktop account dropdown on outside click or Escape
   useEffect(() => {
@@ -244,6 +526,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     setMobileMenuOpen(false);
     setActiveSubmenu(null);
     setAccountMenuOpen(false);
+    closeMegaMenuNow();
   }, [pathname]);
 
   const closeMobileMenu = () => {
@@ -285,28 +568,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
       : user?.avatar?.url || profileRes?.data?.avatar?.url || "";
   const avatarInitial = (displayName[0] || "U").toUpperCase();
 
-  const collectionLinks = [
-    { label: "All Furniture Collections", href: "/collections" },
-    { label: "Gaming & Workstation Desks", href: "/collections/table" },
-    { label: "CNC Laser Cut Metal Furniture", href: "/collections/table" },
-    { label: "Executive Office Desks", href: "/collections/table" },
-    { label: "Metal Storage & Slotted Racks", href: "/collections/storage" },
-    { label: "Ergonomic & Office Chairs", href: "/collections/chair" },
-    { label: "Custom Fabrication & Gates", href: "/contact" },
-  ];
-
   const portalLabel = userIsAdmin ? "Admin Portal" : "My Dashboard";
 
   return (
     <>
+      {/* Subtle backdrop scrim below desktop mega-menu */}
+      {isMegaMenuOpen && (
+        <div
+          aria-hidden="true"
+          onClick={closeMegaMenuNow}
+          className="hidden lg:block fixed inset-0 bg-black/15 z-30 animate-in fade-in duration-150"
+        />
+      )}
+
       {/* Main Navigation Bar */}
       <header
-        className={`w-full transition-all duration-300 z-40 ${
+        ref={headerRef}
+        onMouseLeave={scheduleCloseMegaMenu}
+        className={`w-full transition-colors duration-200 z-40 ${
           isHome
-            ? isScrolled
-              ? "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200/80 py-3 text-neutral-900"
-              : "fixed top-0 left-0 right-0 bg-gradient-to-b from-black/55 via-black/20 to-transparent py-4 border-none text-white"
-            : "sticky top-0 bg-white border-b border-neutral-100 py-3.5 text-neutral-900 shadow-sm"
+            ? isTransparent
+              ? "fixed top-0 left-0 right-0 bg-gradient-to-b from-black/55 via-black/20 to-transparent py-4 border-none text-white"
+              : "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-stone-200/80 py-3.5 text-neutral-900"
+            : "sticky top-0 bg-white border-b border-stone-200/80 py-3.5 text-neutral-900 shadow-sm"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -344,74 +628,44 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
           {/* Center: Desktop Navigation Links */}
           <nav
             aria-label="Primary"
-            className="hidden lg:flex items-center gap-5 xl:gap-7 font-sans text-[14px] font-medium tracking-[0.015em]"
+            className="hidden lg:flex items-center gap-6 xl:gap-8 font-sans text-[12.5px] font-medium uppercase tracking-[0.07em]"
           >
-            {/* All Collection Dropdown */}
-            <div
-              className="relative group py-2"
-              onMouseEnter={() => setCollectionDropdownOpen(true)}
-              onMouseLeave={() => setCollectionDropdownOpen(false)}
-            >
-              <button
-                type="button"
-                onClick={() => router.push("/collections")}
-                className={`bg-transparent border-0 outline-none cursor-pointer flex items-center gap-1 transition-colors ${
-                  isTransparent
-                    ? "text-white hover:text-white/85"
-                    : "text-neutral-900 hover:text-cyan-700"
-                }`}
-              >
-                <span>Collections</span>
-                <ChevronDown
-                  className="w-3.5 h-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180"
-                  aria-hidden="true"
-                />
-              </button>
-
-              {collectionDropdownOpen && (
-                <div className="absolute top-full left-0 w-64 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-neutral-100 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {collectionLinks.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="block px-5 py-2.5 text-xs sm:text-sm text-neutral-800 hover:text-cyan-700 hover:bg-cyan-50 font-medium no-underline hover:no-underline transition-colors"
-                      onClick={() => setCollectionDropdownOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Link
-              href="/collections/table"
-              className={`py-2 no-underline hover:no-underline transition-colors ${
-                isTransparent
-                  ? "text-white hover:text-white/85"
-                  : "text-neutral-800 hover:text-cyan-700"
-              }`}
-            >
-              Gaming &amp; Desks
-            </Link>
-
-            <Link
-              href="/collections/storage"
-              className={`py-2 no-underline hover:no-underline transition-colors ${
-                isTransparent
-                  ? "text-white hover:text-white/85"
-                  : "text-neutral-800 hover:text-cyan-700"
-              }`}
-            >
-              Metal Racks
-            </Link>
+            {DESKTOP_MEGA_MENUS.map((menu) => {
+              const isActive = activeMegaKey === menu.key;
+              return (
+                <button
+                  key={menu.key}
+                  type="button"
+                  aria-expanded={isActive}
+                  aria-controls="desktop-mega-menu-panel"
+                  onMouseEnter={() => openMegaMenu(menu.key)}
+                  onFocus={() => openMegaMenu(menu.key)}
+                  onClick={() =>
+                    isActive ? closeMegaMenuNow() : openMegaMenu(menu.key)
+                  }
+                  className={`relative py-2 bg-transparent border-0 outline-none cursor-pointer transition-colors after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-0.5 after:h-[1.5px] after:transition-transform after:duration-200 after:origin-center ${
+                    isTransparent
+                      ? `text-white hover:text-white/85 after:bg-white ${
+                          isActive ? "after:scale-x-100" : "after:scale-x-0"
+                        }`
+                      : `text-neutral-800 hover:text-black after:bg-neutral-900 ${
+                          isActive ? "text-black after:scale-x-100" : "after:scale-x-0"
+                        }`
+                  }`}
+                >
+                  {menu.label}
+                </button>
+              );
+            })}
 
             <Link
               href="/about"
+              onMouseEnter={closeMegaMenuNow}
+              onFocus={closeMegaMenuNow}
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
                   ? "text-white hover:text-white/85"
-                  : "text-neutral-800 hover:text-cyan-700"
+                  : "text-neutral-800 hover:text-black"
               }`}
             >
               About UEF
@@ -419,10 +673,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
 
             <Link
               href="/contact"
+              onMouseEnter={closeMegaMenuNow}
+              onFocus={closeMegaMenuNow}
               className={`py-2 no-underline hover:no-underline transition-colors ${
                 isTransparent
-                  ? "text-white hover:text-white/85"
-                  : "text-neutral-800 hover:text-cyan-700"
+                  ? "text-cyan-200 hover:text-white"
+                  : "text-cyan-700 hover:text-cyan-900"
               }`}
             >
               Custom Order
@@ -478,7 +734,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
               <div ref={accountDropdownRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => setAccountMenuOpen((prev) => !prev)}
+                  onClick={() => {
+                    closeMegaMenuNow();
+                    setAccountMenuOpen((prev) => !prev);
+                  }}
                   aria-expanded={accountMenuOpen}
                   aria-haspopup="menu"
                   aria-label={`${displayName} account menu`}
@@ -666,6 +925,74 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
             )}
           </div>
         </div>
+
+        {/* Full-Width Editorial Desktop Mega Menu */}
+        {activeMega && (
+          <div
+            id="desktop-mega-menu-panel"
+            className="hidden lg:block absolute top-full left-0 right-0 bg-white text-neutral-900 border-t border-stone-200/80 border-b border-stone-200 shadow-[0_24px_48px_-14px_rgba(15,23,42,0.14)] z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+          >
+            <div
+              key={activeMega.key}
+              className="max-w-7xl mx-auto px-6 lg:px-8 py-8 grid grid-cols-12 gap-7 items-start animate-in fade-in duration-150"
+            >
+              {/* Left Columns: Category & Curated Link Lists */}
+              {activeMega.columns.map((column, colIdx) => (
+                <div
+                  key={column.heading}
+                  className={`col-span-2 ${
+                    colIdx > 0 ? "border-l border-stone-100 pl-6" : ""
+                  }`}
+                >
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-4">
+                    {column.heading}
+                  </div>
+                  <ul role="list" className="m-0 p-0 list-none space-y-2.5">
+                    {column.links.map((item) => (
+                      <li key={item.label}>
+                        <Link
+                          href={item.href}
+                          onClick={closeMegaMenuNow}
+                          className={`block text-[13px] leading-snug no-underline transition-colors ${
+                            item.emphasize
+                              ? "pt-1 font-semibold text-neutral-900 hover:text-cyan-700"
+                              : "font-normal text-stone-600 hover:text-black"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
+              {/* Right Columns: 4 Editorial Product/Collection Showcase Cards */}
+              <div className="col-span-8 grid grid-cols-4 gap-5 pl-2">
+                {activeMega.cards.map((card) => (
+                  <Link
+                    key={card.title}
+                    href={card.href}
+                    onClick={closeMegaMenuNow}
+                    className="group block no-underline"
+                  >
+                    <div className="aspect-[4/4.3] w-full overflow-hidden bg-stone-50 border border-stone-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      />
+                    </div>
+                    <p className="mt-2.5 mb-0 text-[12.5px] font-medium text-stone-800 group-hover:text-black truncate transition-colors">
+                      {card.title}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Aesop-Inspired Full-Screen Editorial Mobile Navigation Overlay */}
