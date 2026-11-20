@@ -3,9 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { AuthCardShell } from "@/components/auth/AuthCardShell";
 import { cn } from "@/lib/utils";
 import Seo from "../components/Seo";
@@ -14,81 +11,100 @@ import { useRegisterUserMutation } from "@/redux/service/auth/authApi";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const schema = z
-  .object({
-    firstName: z.string().min(2, "Please enter your name (at least 2 characters)"),
-    lastName: z.string().optional(),
-    email: z.string().trim().email("Please enter a valid email address"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must include at least 1 uppercase letter (A-Z)")
-      .regex(/[0-9]/, "Password must include at least 1 number (0-9)")
-      .regex(
-        /[!@#$%^&*.,_\-+=<>?~`]/,
-        "Password must include at least 1 special character (!@#$%^&*)"
-      ),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type Inputs = z.infer<typeof schema>;
-
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ||
-  "http://localhost:5000";
+  "https://furniture-backend-beta-eight.vercel.app";
 
 export default function Signup() {
   const router = useRouter();
   const [registerUser, { isLoading }] = useRegisterUserMutation();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Inputs>({
-    resolver: zodResolver(schema),
-  });
-
   const isBusy = isLoading || isRedirecting || isGoogleLoading;
 
-  const onError = (formErrors: any) => {
-    const errorEntries = Object.values(formErrors);
-    if (errorEntries.length > 0) {
-      const firstError =
-        (errorEntries[0] as any)?.message ||
-        "Please fill in all required fields properly.";
-      setErrorMessage(firstError);
-      toast.error(firstError);
-    }
-  };
-
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+  const handleRegister = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setErrorMessage(null);
-    const fullName = data.lastName?.trim()
-      ? `${data.firstName.trim()} ${data.lastName.trim()}`
-      : data.firstName.trim();
-    const normalizedEmail = data.email.trim().toLowerCase();
+
+    // Validation
+    const trimmedFirst = firstName.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedFirst) {
+      const msg = "Please enter your name";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (trimmedFirst.length < 2) {
+      const msg = "Name must be at least 2 characters long";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!trimmedEmail || !trimmedEmail.includes("@") || !trimmedEmail.includes(".")) {
+      const msg = "Please enter a valid email address";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!password) {
+      const msg = "Please enter a password";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (password.length < 6) {
+      const msg = "Password must be at least 6 characters long";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!confirmPassword) {
+      const msg = "Please confirm your password";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      const msg = "Passwords do not match. Please verify both passwords.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    const fullName = lastName.trim()
+      ? `${trimmedFirst} ${lastName.trim()}`
+      : trimmedFirst;
 
     try {
       const res: any = await registerUser({
         name: fullName,
-        email: normalizedEmail,
-        password: data.password,
+        email: trimmedEmail,
+        password: password,
       }).unwrap();
 
       setIsRedirecting(true);
       if (res?.data?.isEmailVerified === false) {
-        toast.success("Account created! Please verify the OTP sent to your email.");
-        router.push(`/verify-otp?email=${encodeURIComponent(normalizedEmail)}`);
+        toast.success("Account created! Please verify your email.");
+        router.push(`/verify-otp?email=${encodeURIComponent(trimmedEmail)}`);
       } else {
         toast.success("Account created successfully! Please sign in.");
         router.push("/login");
@@ -167,13 +183,14 @@ export default function Signup() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200/70 text-red-600 text-xs text-center"
+            className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200/70 text-red-600 text-xs text-center flex items-center justify-center gap-2"
           >
-            {errorMessage}
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{errorMessage}</span>
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-3">
+        <form onSubmit={handleRegister} className="space-y-3">
           {/* Side-by-side First Name & Last Name */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
@@ -184,17 +201,10 @@ export default function Signup() {
                 placeholder="First Name *"
                 autoComplete="given-name"
                 disabled={isBusy}
-                className={cn(
-                  inputBaseClass,
-                  errors.firstName && "bg-red-50/70 ring-2 ring-red-400/50"
-                )}
-                {...register("firstName")}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className={inputBaseClass}
               />
-              {errors.firstName && (
-                <p className="text-red-500 text-[11px] mt-1 pl-2">
-                  {errors.firstName.message}
-                </p>
-              )}
             </div>
 
             <div>
@@ -205,17 +215,10 @@ export default function Signup() {
                 placeholder="Last Name (Optional)"
                 autoComplete="family-name"
                 disabled={isBusy}
-                className={cn(
-                  inputBaseClass,
-                  errors.lastName && "bg-red-50/70 ring-2 ring-red-400/50"
-                )}
-                {...register("lastName")}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className={inputBaseClass}
               />
-              {errors.lastName && (
-                <p className="text-red-500 text-[11px] mt-1 pl-2">
-                  {errors.lastName.message}
-                </p>
-              )}
             </div>
           </div>
 
@@ -224,20 +227,13 @@ export default function Signup() {
               id="email"
               type="email"
               aria-label="Email address"
-              placeholder="Email"
+              placeholder="Email *"
               autoComplete="email"
               disabled={isBusy}
-              className={cn(
-                inputBaseClass,
-                errors.email && "bg-red-50/70 ring-2 ring-red-400/50"
-              )}
-              {...register("email")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputBaseClass}
             />
-            {errors.email && (
-              <p className="text-red-500 text-[11px] mt-1 pl-2">
-                {errors.email.message}
-              </p>
-            )}
           </div>
 
           <div>
@@ -246,15 +242,12 @@ export default function Signup() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 aria-label="Password"
-                placeholder="Password"
+                placeholder="Password (Min 6 characters) *"
                 autoComplete="new-password"
                 disabled={isBusy}
-                className={cn(
-                  inputBaseClass,
-                  "flex-1",
-                  errors.password && "bg-red-50/70 ring-2 ring-red-400/50"
-                )}
-                {...register("password")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={cn(inputBaseClass, "flex-1")}
               />
               <button
                 type="button"
@@ -270,15 +263,9 @@ export default function Signup() {
                 )}
               </button>
             </div>
-            {errors.password ? (
-              <p className="text-red-500 text-[11px] mt-1 pl-2">
-                {errors.password.message}
-              </p>
-            ) : (
-              <p className="text-slate-400 text-[11px] mt-1 pl-2">
-                8+ chars, 1 uppercase, 1 number &amp; 1 special character (!@#$%^&amp;*)
-              </p>
-            )}
+            <p className="text-slate-400 text-[11px] mt-1 pl-2">
+              Minimum 6 characters
+            </p>
           </div>
 
           <div>
@@ -287,15 +274,12 @@ export default function Signup() {
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 aria-label="Confirm Password"
-                placeholder="Confirm Password"
+                placeholder="Confirm Password *"
                 autoComplete="new-password"
                 disabled={isBusy}
-                className={cn(
-                  inputBaseClass,
-                  "flex-1",
-                  errors.confirmPassword && "bg-red-50/70 ring-2 ring-red-400/50"
-                )}
-                {...register("confirmPassword")}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={cn(inputBaseClass, "flex-1")}
               />
               <button
                 type="button"
@@ -311,16 +295,12 @@ export default function Signup() {
                 )}
               </button>
             </div>
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-[11px] mt-1 pl-2">
-                {errors.confirmPassword.message}
-              </p>
-            )}
           </div>
 
           <div className="pt-2">
             <button
               type="submit"
+              onClick={handleRegister}
               disabled={isBusy}
               className="w-full h-12 rounded-full bg-[#0a0d14] hover:bg-[#1b2232] active:scale-[0.99] text-white text-sm font-semibold shadow-sm transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
