@@ -6,6 +6,8 @@ import { Footer } from "@/components/grid/Footer";
 import { CartDrawer } from "@/components/grid/CartDrawer";
 import { SearchModal } from "@/components/grid/SearchModal";
 import { QuickViewModal } from "@/components/grid/QuickViewModal";
+import { WhatsAppWidget } from "@/components/shared/WhatsAppWidget";
+import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import { CartProvider } from "@/context/CartContext";
 import { QuickViewProvider } from "@/context/QuickViewContext";
 
@@ -21,7 +23,7 @@ export default function PublicSiteLayout({
       <QuickViewProvider>
         <div className="min-h-screen flex flex-col bg-white text-neutral-900 font-sans selection:bg-black selection:text-white">
           <Navbar onOpenSearch={() => setIsSearchOpen(true)} />
-          <main className="flex-grow">{children}</main>
+          <main className="flex-grow pb-16 lg:pb-0">{children}</main>
           <Footer />
           {/* Interactive Drawers & Modals */}
           <CartDrawer />
@@ -30,6 +32,8 @@ export default function PublicSiteLayout({
             onClose={() => setIsSearchOpen(false)}
           />
           <QuickViewModal />
+          <WhatsAppWidget />
+          <MobileBottomBar onOpenSearch={() => setIsSearchOpen(true)} />
         </div>
       </QuickViewProvider>
     </CartProvider>

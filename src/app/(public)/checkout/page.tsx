@@ -344,7 +344,7 @@ export default function CheckoutPage() {
                       placeholder="e.g. Nahidul Islam"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white"
                     />
                   </div>
 
@@ -359,7 +359,7 @@ export default function CheckoutPage() {
                       placeholder="01XXXXXXXXX"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white font-mono"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white font-mono"
                     />
                   </div>
                 </div>
@@ -375,7 +375,7 @@ export default function CheckoutPage() {
                       placeholder="01XXXXXXXXX"
                       value={altPhone}
                       onChange={(e) => setAltPhone(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white font-mono text-xs"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white font-mono"
                     />
                   </div>
 
@@ -389,7 +389,7 @@ export default function CheckoutPage() {
                       placeholder="e.g. you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition bg-white"
                     />
                   </div>
                 </div>
