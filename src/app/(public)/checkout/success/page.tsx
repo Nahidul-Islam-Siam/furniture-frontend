@@ -8,6 +8,8 @@ import { CheckCircle2, ArrowRight, Package, Home } from "lucide-react";
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("orderNumber") || "N/A";
+  const method = (searchParams.get("method") || "").toLowerCase();
+  const isCod = method === "cod";
 
   return (
     <div className="max-w-md w-full bg-white rounded-2xl border border-neutral-100 shadow-xl p-8 text-center space-y-6 animate-in zoom-in-95 duration-300">
@@ -17,13 +19,15 @@ function SuccessContent() {
 
       <div className="space-y-2">
         <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-          Payment Succeeded
+          {isCod ? "Cash on Delivery" : "Payment Succeeded"}
         </span>
         <h1 className="text-3xl font-heading font-black text-neutral-900 tracking-tight">
           Thank You!
         </h1>
         <p className="text-sm text-neutral-600">
-          Your payment via SSLCommerz was processed successfully.
+          {isCod
+            ? "Your order has been placed successfully. You can pay with cash upon receiving your furniture delivery."
+            : "Your payment was processed successfully."}
         </p>
       </div>
 

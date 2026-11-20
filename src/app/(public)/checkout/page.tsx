@@ -250,7 +250,11 @@ export default function CheckoutPage() {
 
         clearCart();
         toast.success(`Order #${orderNo} placed successfully!`);
-        router.push(`/checkout/success?orderNumber=${encodeURIComponent(orderNo)}`);
+        router.push(
+          `/checkout/success?orderNumber=${encodeURIComponent(
+            orderNo
+          )}&method=${encodeURIComponent(paymentMethod)}`
+        );
       }
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to place order. Please review your details.");
