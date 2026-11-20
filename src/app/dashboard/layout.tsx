@@ -51,6 +51,7 @@ export default function DashboardLayout({
   const [triggerLogout] = useLogoutMutation();
 
   React.useEffect(() => {
+    if (isLoggingOut) return;
     const token = getClientCookie("accessToken") || getClientCookie("token");
 
     if (!token || !isJwtTokenValid(token)) {
@@ -75,7 +76,7 @@ export default function DashboardLayout({
 
     setIsAuthorized(true);
     setCheckingAuth(false);
-  }, [user?.role, accessToken, pathname, router, dispatch]);
+  }, [user?.role, accessToken, pathname, router, dispatch, isLoggingOut]);
 
   // Rehydrate Redux user on hard refresh so header/profile name, email, and avatar appear immediately
   const { data: profileRes } = useGetUserQuery(undefined, {
@@ -115,18 +116,27 @@ export default function DashboardLayout({
     }
   }, [profileRes, user, dispatch, router]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    try {
-      await Promise.race([
-        triggerLogout().unwrap(),
-        new Promise((resolve) => setTimeout(resolve, 800)),
-      ]);
-    } catch {}
+
+    // 1. Wipe client cookies & storage synchronously
     clearAuthCookies();
+    try {
+      localStorage.removeItem("uef_auth_token");
+      localStorage.removeItem("grid_store_adminProfile");
+    } catch {}
+
+    // 2. Clear Redux
     dispatch(logout());
-    window.location.href = "/login";
+
+    // 3. Fire-and-forget backend session termination
+    try {
+      triggerLogout();
+    } catch {}
+
+    // 4. Instant hard redirect to login
+    window.location.replace("/login");
   };
 
   if (checkingAuth || !isAuthorized) {

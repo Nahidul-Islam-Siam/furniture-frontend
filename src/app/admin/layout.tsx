@@ -60,6 +60,7 @@ export default function AdminLayout({
 
   // Guard: Protect Admin routes from unauthorized or stale sessions
   React.useEffect(() => {
+    if (isLoggingOut) return;
     const token = getClientCookie("accessToken") || getClientCookie("token");
 
     if (!token || !isJwtTokenValid(token)) {
@@ -84,7 +85,7 @@ export default function AdminLayout({
 
     setIsAuthorized(true);
     setCheckingAuth(false);
-  }, [user, accessToken, pathname, router, dispatch]);
+  }, [user, accessToken, pathname, router, dispatch, isLoggingOut]);
 
   const { data: profileRes } = useGetUserQuery(undefined, {
     skip: !isAuthorized,
@@ -158,18 +159,27 @@ export default function AdminLayout({
       window.removeEventListener("grid_content_updated", handleUpdate);
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    try {
-      await Promise.race([
-        triggerLogout().unwrap(),
-        new Promise((resolve) => setTimeout(resolve, 800)),
-      ]);
-    } catch {}
+
+    // 1. Wipe client cookies & storage synchronously
     clearAuthCookies();
+    try {
+      localStorage.removeItem("uef_auth_token");
+      localStorage.removeItem("grid_store_adminProfile");
+    } catch {}
+
+    // 2. Clear Redux
     dispatch(logout());
-    window.location.href = "/login";
+
+    // 3. Fire-and-forget backend session termination
+    try {
+      triggerLogout();
+    } catch {}
+
+    // 4. Instant hard redirect to login
+    window.location.replace("/login");
   };
 
   if (checkingAuth || !isAuthorized) {

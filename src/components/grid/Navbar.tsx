@@ -535,20 +535,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
     mobileTriggerRef.current?.focus();
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    try {
-      await triggerLogout().unwrap();
-    } catch {}
     clearAuthCookies();
+    try {
+      localStorage.removeItem("uef_auth_token");
+      localStorage.removeItem("grid_store_adminProfile");
+    } catch {}
     dispatch(logout());
+    try {
+      triggerLogout();
+    } catch {}
     setHasSession(false);
     setAccountMenuOpen(false);
     setMobileMenuOpen(false);
     setIsLoggingOut(false);
     toast.success("Signed out successfully");
-    router.refresh();
+    window.location.replace("/login");
   };
 
   const normalizedRoleStr = normalizeRoleString(user?.role || cookieRole);
