@@ -1,21 +1,28 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Product } from '../data/gridData';
 
 export interface CartItem {
   id: string;
   product: Product;
   quantity: number;
+  selected?: boolean;
 }
 
 interface CartContextType {
   cart: CartItem[];
+  selectedCart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
+  buyNow: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  toggleItemSelection: (productId: string) => void;
+  selectAllItems: (selected: boolean) => void;
   clearCart: () => void;
+  clearSelectedItems: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   totalItems: number;
+  selectedItemsCount: number;
   subtotal: number;
   freeDeliveryThreshold: number;
   freeDeliveryProgress: number;
@@ -27,7 +34,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('grid_cart');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: CartItem[] = JSON.parse(saved);
+      // Ensure all loaded items have selected: true by default
+      return parsed.map((item) => ({
+        ...item,
+        selected: item.selected !== false,
+      }));
     } catch {
       return [];
     }
@@ -49,13 +62,48 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + quantity, selected: true }
             : item
         );
       }
-      return [...prev, { id: `${product.id}-${Date.now()}`, product, quantity }];
+      return [
+        ...prev,
+        {
+          id: `${product.id}-${Date.now()}`,
+          product,
+          quantity,
+          selected: true,
+        },
+      ];
     });
     setIsCartOpen(true);
+  };
+
+  const buyNow = (product: Product, quantity = 1) => {
+    setCart((prev) => {
+      // Unselect all existing items
+      const unselected = prev.map((item) => ({ ...item, selected: false }));
+      const existingIndex = unselected.findIndex((item) => item.product.id === product.id);
+
+      if (existingIndex > -1) {
+        unselected[existingIndex] = {
+          ...unselected[existingIndex],
+          quantity,
+          selected: true,
+        };
+        return unselected;
+      }
+
+      return [
+        ...unselected,
+        {
+          id: `${product.id}-${Date.now()}`,
+          product,
+          quantity,
+          selected: true,
+        },
+      ];
+    });
   };
 
   const removeFromCart = (productId: string) => {
@@ -74,12 +122,37 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const toggleItemSelection = (productId: string) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.product.id === productId
+          ? { ...item, selected: item.selected === false ? true : false }
+          : item
+      )
+    );
+  };
+
+  const selectAllItems = (selected: boolean) => {
+    setCart((prev) => prev.map((item) => ({ ...item, selected })));
+  };
+
   const clearCart = () => {
     setCart([]);
   };
 
+  const clearSelectedItems = () => {
+    setCart((prev) => prev.filter((item) => item.selected === false));
+  };
+
+  // Only selected items participate in checkout and subtotal
+  const selectedCart = useMemo(() => {
+    return cart.filter((item) => item.selected !== false);
+  }, [cart]);
+
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = cart.reduce(
+  const selectedItemsCount = selectedCart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const subtotal = selectedCart.reduce(
     (sum, item) => sum + item.product.priceNumber * item.quantity,
     0
   );
@@ -91,13 +164,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <CartContext.Provider
       value={{
         cart,
+        selectedCart,
         addToCart,
+        buyNow,
         removeFromCart,
         updateQuantity,
+        toggleItemSelection,
+        selectAllItems,
         clearCart,
+        clearSelectedItems,
         isCartOpen,
         setIsCartOpen,
         totalItems,
+        selectedItemsCount,
         subtotal,
         freeDeliveryThreshold,
         freeDeliveryProgress,
