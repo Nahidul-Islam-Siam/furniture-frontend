@@ -12,6 +12,7 @@ export interface ICategoryItem {
 }
 
 export const categoryApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getCategories: builder.query<{ success: boolean; data: ICategoryItem[] }, { all?: boolean } | void>({
       query: (params) => ({

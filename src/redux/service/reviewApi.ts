@@ -51,6 +51,7 @@ export interface SingleReviewResponse {
 }
 
 export const reviewApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getPublicReviews: builder.query<
       ReviewListResponse,

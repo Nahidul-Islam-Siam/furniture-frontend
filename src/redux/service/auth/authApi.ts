@@ -115,6 +115,7 @@ export interface ChangePasswordResponse {
 }
 
 export const authApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     registerUser: builder.mutation<AuthResponse, RegisterRequest>({
       query: (user) => ({

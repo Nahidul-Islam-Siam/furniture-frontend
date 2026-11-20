@@ -54,6 +54,7 @@ export interface ChangePasswordResponse {
 }
 
 export const profileApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getUser: builder.query<UserProfileResponse, void>({
       query: () => ({

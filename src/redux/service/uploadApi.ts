@@ -6,6 +6,7 @@ export interface IUploadResult {
 }
 
 export const uploadApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     uploadFile: builder.mutation<
       { success: boolean; data: IUploadResult | IUploadResult[] },

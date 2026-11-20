@@ -43,6 +43,7 @@ export interface IOrder {
 }
 
 export const orderApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     createOrder: builder.mutation<
       { success: boolean; message: string; data: IOrder },

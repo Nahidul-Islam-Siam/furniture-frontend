@@ -31,6 +31,7 @@ export interface UpdateSettingPayload {
 }
 
 export const settingsApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getSettingPage: builder.query<SettingResponse, string>({
       query: (slug) => ({

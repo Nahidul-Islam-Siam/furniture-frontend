@@ -17,6 +17,7 @@ export interface CreateContactUsPartnerPayload {
 }
 
 export const contactApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     addContact: builder.mutation<any, CreateContactUsPayload>({
       query: (body) => ({

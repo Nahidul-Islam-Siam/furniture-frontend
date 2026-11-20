@@ -23,6 +23,7 @@ export interface AllUsersResponse {
 }
 
 export const adminApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getAdminOverview: builder.query<
       { success: boolean; data: IAdminOverview },

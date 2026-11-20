@@ -53,6 +53,7 @@ export interface IProductListResponse {
 }
 
 export const productApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getProducts: builder.query<IProductListResponse, IProductQueryParams | void>({
       query: (params) => ({
