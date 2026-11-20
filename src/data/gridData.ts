@@ -12,6 +12,7 @@ export interface Product {
   description: string;
   features?: string[];
   inStock: boolean;
+  isFreeDelivery?: boolean;
 }
 
 export interface Testimonial {

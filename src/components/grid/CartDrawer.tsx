@@ -65,37 +65,6 @@ export const CartDrawer: React.FC = () => {
           </button>
         </div>
 
-        {/* Free Delivery Bar */}
-        {cart.length > 0 && (
-          <div className="px-5 py-3 bg-neutral-50 border-b border-neutral-100">
-            <div className="flex justify-between items-center text-xs font-medium text-neutral-700 mb-1.5">
-              {subtotal >= freeDeliveryThreshold ? (
-                <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Congratulations! Free Delivery unlocked
-                </span>
-              ) : (
-                <span>
-                  Add{" "}
-                  <span className="font-bold text-neutral-900">
-                    Tk {(freeDeliveryThreshold - subtotal).toLocaleString("en-BD")}
-                  </span>{" "}
-                  more for Free Delivery
-                </span>
-              )}
-              <span className="text-neutral-500">{freeDeliveryProgress}%</span>
-            </div>
-            <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 rounded-full ${
-                  subtotal >= freeDeliveryThreshold ? "bg-emerald-600" : "bg-neutral-900"
-                }`}
-                style={{ width: `${freeDeliveryProgress}%` }}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Cart Items Body */}
         <div className="flex-1 overflow-y-auto p-5">
           {cart.length === 0 ? (

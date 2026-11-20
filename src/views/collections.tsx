@@ -70,6 +70,7 @@ export default function Collections() {
           description: p.description,
           inStock: p.isAvailable ?? (p.stock > 0),
           tag: p.isFeatured ? 'Featured' : undefined,
+          isFreeDelivery: p.isFreeDelivery,
         };
       });
     }

@@ -174,6 +174,11 @@ export default function AdminProductsPage() {
                     Featured
                   </Tag>
                 )}
+                {record.isFreeDelivery && (
+                  <Tag color="green" className="text-[10px] font-bold m-0 uppercase">
+                    Free Delivery
+                  </Tag>
+                )}
               </div>
             </div>
           </div>
