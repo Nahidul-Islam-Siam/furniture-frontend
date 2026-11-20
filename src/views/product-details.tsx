@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useGetProductBySlugQuery,
   useGetProductByIdQuery,
@@ -52,6 +53,9 @@ interface NormalizedProduct {
   inStock: boolean;
   isFeatured: boolean;
   isFreeDelivery?: boolean;
+  deliveryInsideDhaka?: number;
+  deliverySuburbs?: number;
+  deliveryOutsideDhaka?: number;
   rating: number;
   numReviews?: number;
   features: string[];
@@ -210,6 +214,9 @@ function normalizeProductData(
       inStock: dbProduct.isAvailable ?? dbProduct.stock > 0,
       isFeatured: Boolean(dbProduct.isFeatured),
       isFreeDelivery: Boolean(dbProduct.isFreeDelivery),
+      deliveryInsideDhaka: dbProduct.deliveryInsideDhaka,
+      deliverySuburbs: dbProduct.deliverySuburbs,
+      deliveryOutsideDhaka: dbProduct.deliveryOutsideDhaka,
       rating: dbProduct.rating || staticProduct?.rating || 5,
       numReviews: dbProduct.numReviews,
       features: staticProduct?.features || [],
@@ -247,6 +254,9 @@ function normalizeProductData(
       inStock: staticProduct.inStock,
       isFeatured: staticProduct.rating >= 5 && staticProduct.inStock,
       isFreeDelivery: Boolean(staticProduct.isFreeDelivery),
+      deliveryInsideDhaka: staticProduct.deliveryInsideDhaka,
+      deliverySuburbs: staticProduct.deliverySuburbs,
+      deliveryOutsideDhaka: staticProduct.deliveryOutsideDhaka,
       rating: staticProduct.rating || 5,
       features: staticProduct.features || [],
       colors: [],
@@ -378,7 +388,8 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
   slug,
   category: urlCategory,
 }) => {
-  const { addToCart, setIsCartOpen } = useCart();
+  const router = useRouter();
+  const { addToCart, buyNow, setIsCartOpen } = useCart();
 
   // Primary lookup via slug, with Mongo ObjectId fallback
   const { data: slugData, isLoading: isSlugLoading } =
@@ -441,6 +452,10 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
       description: product.description,
       features: product.features,
       inStock: product.inStock,
+      isFreeDelivery: product.isFreeDelivery,
+      deliveryInsideDhaka: product.deliveryInsideDhaka,
+      deliverySuburbs: product.deliverySuburbs,
+      deliveryOutsideDhaka: product.deliveryOutsideDhaka,
       tag: product.badgeText,
     };
   }, [product, activeColor]);
@@ -539,8 +554,8 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
 
   const handleBuyNow = () => {
     if (!cartProduct) return;
-    addToCart(cartProduct, quantity);
-    setIsCartOpen(true);
+    buyNow(cartProduct, quantity);
+    router.push("/checkout");
   };
 
   const handleCopyLink = async () => {
@@ -846,6 +861,18 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
               <div className="flex items-center gap-2.5">
                 <Globe className="w-4 h-4 text-neutral-700 shrink-0" aria-hidden="true" />
                 <span>Home delivery all over Bangladesh</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Truck className="w-4 h-4 text-neutral-700 shrink-0" aria-hidden="true" />
+                <span>
+                  {product.isFreeDelivery ? (
+                    <strong className="text-emerald-600 font-semibold">FREE Delivery</strong>
+                  ) : (
+                    <>
+                      Delivery: Inside Dhaka <strong>৳{product.deliveryInsideDhaka ?? 150}</strong> • Outside Dhaka <strong>৳{product.deliveryOutsideDhaka ?? 350}</strong>
+                    </>
+                  )}
+                </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <span

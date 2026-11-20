@@ -33,6 +33,7 @@ import {
   PictureOutlined,
   CheckCircleOutlined,
   CompassOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
@@ -97,6 +98,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         isAvailable: initialProduct.isAvailable ?? true,
         isFeatured: initialProduct.isFeatured ?? false,
         isFreeDelivery: initialProduct.isFreeDelivery ?? false,
+        deliveryInsideDhaka: initialProduct.deliveryInsideDhaka,
+        deliverySuburbs: initialProduct.deliverySuburbs,
+        deliveryOutsideDhaka: initialProduct.deliveryOutsideDhaka,
       });
     } else {
       setImageUrls([]);
@@ -186,6 +190,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         isAvailable: values.isAvailable ?? true,
         isFeatured: values.isFeatured ?? false,
         isFreeDelivery: values.isFreeDelivery ?? false,
+        deliveryInsideDhaka:
+          values.deliveryInsideDhaka !== undefined &&
+          values.deliveryInsideDhaka !== null &&
+          values.deliveryInsideDhaka !== ""
+            ? Number(values.deliveryInsideDhaka)
+            : undefined,
+        deliverySuburbs:
+          values.deliverySuburbs !== undefined &&
+          values.deliverySuburbs !== null &&
+          values.deliverySuburbs !== ""
+            ? Number(values.deliverySuburbs)
+            : undefined,
+        deliveryOutsideDhaka:
+          values.deliveryOutsideDhaka !== undefined &&
+          values.deliveryOutsideDhaka !== null &&
+          values.deliveryOutsideDhaka !== ""
+            ? Number(values.deliveryOutsideDhaka)
+            : undefined,
       };
 
       if (isEdit && initialProduct) {
@@ -545,6 +567,61 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     style={{ width: "100%" }}
                     min={1}
                     placeholder="e.g. 180000 (Optional)"
+                    className="rounded-xl"
+                  />
+                </Form.Item>
+              </div>
+            </Card>
+
+            {/* Delivery & Shipping Rates Card */}
+            <Card
+              title={
+                <span className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                  <CarOutlined /> Delivery Charges (BDT Tk)
+                </span>
+              }
+              className="rounded-2xl border border-slate-200/80 shadow-sm"
+            >
+              <div className="space-y-3">
+                <p className="text-[11px] text-slate-500 mb-2 leading-relaxed">
+                  Set product-specific delivery fees. If left empty, site default delivery charges apply.
+                </p>
+
+                <Form.Item
+                  name="deliveryInsideDhaka"
+                  label="Inside Dhaka (Tk)"
+                  tooltip="Delivery charge for addresses inside Dhaka city (default: ৳150)"
+                >
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="Default: 150"
+                    className="rounded-xl"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="deliverySuburbs"
+                  label="Dhaka Suburbs (Tk)"
+                  tooltip="Delivery charge for Gazipur, Savar, Narayanganj (default: ৳200)"
+                >
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="Default: 200"
+                    className="rounded-xl"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="deliveryOutsideDhaka"
+                  label="Outside Dhaka (Tk)"
+                  tooltip="Delivery charge for all 64 districts outside Dhaka (default: ৳350)"
+                >
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="Default: 350"
                     className="rounded-xl"
                   />
                 </Form.Item>

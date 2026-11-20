@@ -13,6 +13,9 @@ export interface Product {
   features?: string[];
   inStock: boolean;
   isFreeDelivery?: boolean;
+  deliveryInsideDhaka?: number;
+  deliverySuburbs?: number;
+  deliveryOutsideDhaka?: number;
 }
 
 export interface Testimonial {

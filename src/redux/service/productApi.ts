@@ -24,6 +24,9 @@ export interface IProductItem {
   isFeatured?: boolean;
   isAvailable?: boolean;
   isFreeDelivery?: boolean;
+  deliveryInsideDhaka?: number;
+  deliverySuburbs?: number;
+  deliveryOutsideDhaka?: number;
   rating?: number;
   numReviews?: number;
   createdAt?: string;

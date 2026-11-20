@@ -122,11 +122,52 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Delivery Charge Engine ──
-  const hasFreeDeliveryItem = checkoutItems.some((item) => Boolean((item.product as any).isFreeDelivery));
-  const isFreeDelivery = hasFreeDeliveryItem;
-  const currentZoneRate = DELIVERY_RATES[deliveryZone]?.rate ?? 150;
-  const deliveryCharge = isFreeDelivery ? 0 : currentZoneRate;
+  // ── Delivery Charge Engine (Product-Specific with Zone Fallbacks) ──
+  const isAllFreeDelivery =
+    checkoutItems.length > 0 &&
+    checkoutItems.every((item) => Boolean((item.product as any).isFreeDelivery));
+  const isFreeDelivery = isAllFreeDelivery;
+
+  const insideDhakaRate = isAllFreeDelivery
+    ? 0
+    : Math.max(
+        ...checkoutItems.map((item) => {
+          const p = item.product as any;
+          if (p.isFreeDelivery) return 0;
+          return p.deliveryInsideDhaka ?? DELIVERY_RATES.inside_dhaka.rate;
+        })
+      );
+
+  const subDhakaRate = isAllFreeDelivery
+    ? 0
+    : Math.max(
+        ...checkoutItems.map((item) => {
+          const p = item.product as any;
+          if (p.isFreeDelivery) return 0;
+          return p.deliverySuburbs ?? p.deliveryInsideDhaka ?? DELIVERY_RATES.sub_dhaka.rate;
+        })
+      );
+
+  const outsideDhakaRate = isAllFreeDelivery
+    ? 0
+    : Math.max(
+        ...checkoutItems.map((item) => {
+          const p = item.product as any;
+          if (p.isFreeDelivery) return 0;
+          return p.deliveryOutsideDhaka ?? DELIVERY_RATES.outside_dhaka.rate;
+        })
+      );
+
+  let deliveryCharge = 0;
+  if (!isAllFreeDelivery && checkoutItems.length > 0) {
+    if (deliveryZone === "inside_dhaka") {
+      deliveryCharge = insideDhakaRate;
+    } else if (deliveryZone === "sub_dhaka") {
+      deliveryCharge = subDhakaRate;
+    } else {
+      deliveryCharge = outsideDhakaRate;
+    }
+  }
 
   const activeSubtotal = checkoutItems.reduce(
     (sum, item) => sum + item.product.priceNumber * item.quantity,
@@ -410,13 +451,13 @@ export default function CheckoutPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs">Inside Dhaka</span>
+                        <span className="font-bold text-xs">{DELIVERY_RATES.inside_dhaka.label}</span>
                         {deliveryZone === "inside_dhaka" && (
                           <CheckCircle2 className="size-3.5 text-emerald-400" />
                         )}
                       </div>
                       <span className={`text-[11px] mt-1 ${deliveryZone === "inside_dhaka" ? "text-neutral-300" : "text-neutral-500"}`}>
-                        {isFreeDelivery ? "FREE (৳5k+ Order)" : "৳150 Delivery"}
+                        {isFreeDelivery ? "FREE Delivery" : `৳${insideDhakaRate} Delivery`}
                       </span>
                     </button>
 
@@ -431,13 +472,13 @@ export default function CheckoutPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs">Dhaka Suburbs</span>
+                        <span className="font-bold text-xs">{DELIVERY_RATES.sub_dhaka.label}</span>
                         {deliveryZone === "sub_dhaka" && (
                           <CheckCircle2 className="size-3.5 text-emerald-400" />
                         )}
                       </div>
                       <span className={`text-[11px] mt-1 ${deliveryZone === "sub_dhaka" ? "text-neutral-300" : "text-neutral-500"}`}>
-                        Gazipur/Savar/N.ganj (৳200)
+                        {isFreeDelivery ? "FREE Delivery" : `Gazipur/Savar/N.ganj (৳${subDhakaRate})`}
                       </span>
                     </button>
 
@@ -452,13 +493,13 @@ export default function CheckoutPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs">Outside Dhaka</span>
+                        <span className="font-bold text-xs">{DELIVERY_RATES.outside_dhaka.label}</span>
                         {deliveryZone === "outside_dhaka" && (
                           <CheckCircle2 className="size-3.5 text-emerald-400" />
                         )}
                       </div>
                       <span className={`text-[11px] mt-1 ${deliveryZone === "outside_dhaka" ? "text-neutral-300" : "text-neutral-500"}`}>
-                        All 64 Districts (৳350)
+                        {isFreeDelivery ? "FREE Delivery" : `All 64 Districts (৳${outsideDhakaRate})`}
                       </span>
                     </button>
                   </div>
@@ -680,13 +721,13 @@ export default function CheckoutPage() {
                     Order Summary
                   </h3>
                   <span className="text-xs font-bold text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-full font-mono">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)} Items
+                    {checkoutItems.reduce((sum, item) => sum + item.quantity, 0)} Items
                   </span>
                 </div>
 
                 {/* Items List with Direct Steppers */}
                 <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1 divide-y divide-neutral-100">
-                  {cart.map((item) => (
+                  {checkoutItems.map((item) => (
                     <div key={item.id} className="pt-3 first:pt-0 flex items-center gap-3">
                       <div className="w-14 h-14 rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden relative shrink-0">
                         {item.product.images?.[0] ? (
@@ -757,7 +798,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-neutral-600">
                     <span>Subtotal:</span>
                     <span className="font-bold text-neutral-900 font-mono">
-                      Tk {subtotal.toLocaleString("en-BD")}
+                      Tk {activeSubtotal.toLocaleString("en-BD")}
                     </span>
                   </div>
 

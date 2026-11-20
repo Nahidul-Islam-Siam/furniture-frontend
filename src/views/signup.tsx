@@ -60,9 +60,22 @@ export default function Signup() {
 
   const isBusy = isLoading || isRedirecting || isGoogleLoading;
 
+  const onError = (formErrors: any) => {
+    const errorEntries = Object.values(formErrors);
+    if (errorEntries.length > 0) {
+      const firstError =
+        (errorEntries[0] as any)?.message ||
+        "Please fill in all required fields properly.";
+      setErrorMessage(firstError);
+      toast.error(firstError);
+    }
+  };
+
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setErrorMessage(null);
-    const fullName = `${data.firstName.trim()} ${data.lastName.trim()}`.trim();
+    const fullName = data.lastName?.trim()
+      ? `${data.firstName.trim()} ${data.lastName.trim()}`
+      : data.firstName.trim();
     const normalizedEmail = data.email.trim().toLowerCase();
 
     try {
@@ -160,7 +173,7 @@ export default function Signup() {
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-3">
           {/* Side-by-side First Name & Last Name */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
@@ -168,7 +181,7 @@ export default function Signup() {
                 id="firstName"
                 type="text"
                 aria-label="First Name"
-                placeholder="First Name"
+                placeholder="First Name *"
                 autoComplete="given-name"
                 disabled={isBusy}
                 className={cn(
@@ -189,7 +202,7 @@ export default function Signup() {
                 id="lastName"
                 type="text"
                 aria-label="Last Name"
-                placeholder="Last Name"
+                placeholder="Last Name (Optional)"
                 autoComplete="family-name"
                 disabled={isBusy}
                 className={cn(

@@ -141,3 +141,4 @@ export const BANGLADESH_DISTRICTS: Record<string, DistrictInfo> = {
 
 export const ALL_DISTRICT_NAMES = Object.keys(BANGLADESH_DISTRICTS);
 
+
