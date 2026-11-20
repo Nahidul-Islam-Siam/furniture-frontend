@@ -23,6 +23,7 @@ export interface IProductItem {
   weight?: number;
   isFeatured?: boolean;
   isAvailable?: boolean;
+  isFreeDelivery?: boolean;
   rating?: number;
   numReviews?: number;
   createdAt?: string;

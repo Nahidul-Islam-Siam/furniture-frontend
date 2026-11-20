@@ -96,6 +96,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         description: initialProduct.description || "",
         isAvailable: initialProduct.isAvailable ?? true,
         isFeatured: initialProduct.isFeatured ?? false,
+        isFreeDelivery: initialProduct.isFreeDelivery ?? false,
       });
     } else {
       setImageUrls([]);
@@ -103,6 +104,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       form.setFieldsValue({
         isAvailable: true,
         isFeatured: false,
+        isFreeDelivery: false,
         stock: 50,
         dimensionUnit: "inch",
         colors: [],
@@ -183,6 +185,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         images: finalImages,
         isAvailable: values.isAvailable ?? true,
         isFeatured: values.isFeatured ?? false,
+        isFreeDelivery: values.isFreeDelivery ?? false,
       };
 
       if (isEdit && initialProduct) {
@@ -492,6 +495,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   </div>
                   <Form.Item name="isFeatured" valuePropName="checked" noStyle>
                     <Switch checkedChildren="Yes" unCheckedChildren="No" />
+                  </Form.Item>
+                </div>
+
+                <Divider style={{ margin: "12px 0" }} />
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">Free Delivery</div>
+                    <div className="text-[11px] text-slate-400">Mark product eligible for Free Delivery</div>
+                  </div>
+                  <Form.Item name="isFreeDelivery" valuePropName="checked" noStyle>
+                    <Switch checkedChildren="Free Delivery" unCheckedChildren="Standard" />
                   </Form.Item>
                 </div>
               </div>

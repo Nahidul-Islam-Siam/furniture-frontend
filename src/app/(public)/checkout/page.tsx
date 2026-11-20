@@ -23,10 +23,8 @@ import {
   Plus,
   Minus,
   Trash2,
-  Tag,
   Check,
   X,
-  AlertCircle,
   Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -78,11 +76,6 @@ export default function CheckoutPage() {
   // 3. Payment Method
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "sslcommerz">("cod");
 
-  // 4. Coupon Code State
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
-  const [couponError, setCouponError] = useState("");
-
   // Sync user info if loaded from redux
   useEffect(() => {
     if (user?.name && !name) setName(user.name);
@@ -129,39 +122,7 @@ export default function CheckoutPage() {
     ? 200
     : 350;
 
-  // Coupon handling
-  const discountAmount = appliedCoupon ? appliedCoupon.discount : 0;
-  const totalAmount = Math.max(0, subtotal - discountAmount + deliveryCharge);
-
-  const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = couponCode.trim().toUpperCase();
-    if (!clean) {
-      setCouponError("Please enter a valid coupon code");
-      return;
-    }
-    if (clean === "WELCOME10" || clean === "FURNITURE10") {
-      const disc = Math.round(subtotal * 0.1);
-      setAppliedCoupon({ code: clean, discount: disc });
-      setCouponError("");
-      toast.success(`Coupon ${clean} applied! ৳${disc.toLocaleString("en-BD")} discount`);
-    } else if (clean === "SAVE500" || clean === "DISCOUNT500") {
-      const disc = Math.min(500, subtotal);
-      setAppliedCoupon({ code: clean, discount: disc });
-      setCouponError("");
-      toast.success(`Coupon ${clean} applied! ৳${disc.toLocaleString("en-BD")} discount`);
-    } else {
-      setCouponError("Invalid coupon code. Try WELCOME10 or SAVE500");
-      toast.error("Invalid coupon code");
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-    setCouponError("");
-    toast.info("Coupon removed");
-  };
+  const totalAmount = subtotal + deliveryCharge;
 
   // Order Submission Handler
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -222,7 +183,7 @@ export default function CheckoutPage() {
         },
         paymentMethod: paymentMethod,
         shippingFee: deliveryCharge,
-        discount: discountAmount,
+        discount: 0,
         notes: fullNotes,
       };
 
@@ -693,7 +654,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* ═══ RIGHT 5 COLUMNS: Sticky Order Summary & Coupon ═══ */}
+            {/* ═══ RIGHT 5 COLUMNS: Sticky Order Summary ═══ */}
             <div className="lg:col-span-5 sticky top-24 space-y-6">
               <div className="bg-white rounded-3xl border border-neutral-200/90 p-6 sm:p-7 shadow-xs space-y-5">
                 
@@ -774,57 +735,6 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* Coupon Code Input Box */}
-                <div className="pt-3 border-t border-neutral-100">
-                  {appliedCoupon ? (
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 text-emerald-600" />
-                        <div>
-                          <span className="text-xs font-bold text-emerald-900">{appliedCoupon.code}</span>
-                          <span className="text-[11px] text-emerald-700 block">
-                            -Tk {appliedCoupon.discount.toLocaleString("en-BD")} saved
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRemoveCoupon}
-                        className="text-xs text-red-500 hover:text-red-700 font-semibold p-1"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Coupon Code (e.g. WELCOME10)"
-                          value={couponCode}
-                          onChange={(e) => {
-                            setCouponCode(e.target.value);
-                            setCouponError("");
-                          }}
-                          className="flex-1 px-3 py-2 text-xs rounded-xl border border-neutral-200 uppercase font-mono focus:outline-none focus:ring-1 focus:ring-black"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleApplyCoupon}
-                          className="px-4 py-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl transition shadow-2xs"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                      {couponError && (
-                        <p className="text-[11px] text-red-500 flex items-center gap-1 font-medium">
-                          <AlertCircle className="size-3" /> {couponError}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
                 {/* Pricing Breakdown */}
                 <div className="space-y-2 pt-3 border-t border-neutral-100 text-xs">
                   <div className="flex justify-between text-neutral-600">
@@ -833,13 +743,6 @@ export default function CheckoutPage() {
                       Tk {subtotal.toLocaleString("en-BD")}
                     </span>
                   </div>
-
-                  {discountAmount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-bold">
-                      <span>Coupon Discount:</span>
-                      <span className="font-mono">-Tk {discountAmount.toLocaleString("en-BD")}</span>
-                    </div>
-                  )}
 
                   <div className="flex justify-between text-neutral-600 items-center">
                     <span className="flex items-center gap-1.5">
