@@ -9,13 +9,9 @@ export const HeroSection = () => {
       {/* Background Image matching original banner */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
-          src="/images/hero-banner.jpg"
+          src="/images/904244067_1854399275688210_2979974784891532611_n.jpg"
           alt="Modern Work Furniture"
-          className="w-full h-full object-cover object-[center_top] hero-zoom-bg"
-          onError={(e) => {
-            e.currentTarget.src =
-              "https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385";
-          }}
+          className="w-full h-full object-cover object-[center_center] hero-zoom-bg"
         />
         {/* Subtle dual gradients: top gradient for header legibility, bottom gradient for hero text depth */}
         <div className="absolute inset-0 bg-black/15" />
