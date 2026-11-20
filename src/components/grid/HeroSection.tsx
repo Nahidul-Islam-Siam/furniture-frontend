@@ -20,33 +20,35 @@ export const HeroSection = () => {
 
       {/* Hero Text Wrap */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center text-white space-y-4 pt-28 sm:pt-36 pb-16">
-        {/* Title */}
+        {/* Title: Engineering Excellence */}
         <div className="overflow-hidden">
-          <h1 className="font-sans font-bold text-4xl sm:text-6xl md:text-7xl lg:text-[76px] tracking-tight leading-[1.1] text-white drop-shadow-md">
+          <h1 className="font-heading font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-[76px] tracking-tight leading-[1.1] text-white drop-shadow-md">
             <span className="animation-cropper">
-              <span className="animation-contents hero-title-anim">
-                Modern Furniture
+              <span className="animation-contents hero-title-anim inline-block">
+                Engineering <span className="text-[#0088ff] drop-shadow-[0_2px_12px_rgba(0,136,255,0.4)]">Excellence</span>
               </span>
             </span>
           </h1>
         </div>
 
-        {/* Subtitle */}
+        {/* Subtitle: ── Crafted with Precision ── */}
         <div className="overflow-hidden pt-1">
-          <p className="font-sans text-sm sm:text-base md:text-lg font-light text-white tracking-[0.2em] uppercase drop-shadow">
-            <span className="animation-cropper">
-              <span className="animation-contents hero-subtitle-anim">
-                FOR A BETTER WAY TO WORK
-              </span>
-            </span>
-          </p>
+          <div className="animation-cropper">
+            <div className="animation-contents hero-subtitle-anim flex items-center justify-center gap-3 sm:gap-4">
+              <span className="h-[1.5px] w-8 sm:w-16 bg-white/70 rounded-full" />
+              <p className="font-heading text-base sm:text-xl md:text-2xl font-semibold text-white tracking-wide drop-shadow m-0">
+                Crafted with Precision
+              </p>
+              <span className="h-[1.5px] w-8 sm:w-16 bg-white/70 rounded-full" />
+            </div>
+          </div>
         </div>
 
-        {/* Single Outline Shop Now Button */}
-        <div className="pt-4 hero-cta-anim flex items-center justify-center">
+        {/* Solid Blue Pill Shop Now Button */}
+        <div className="pt-6 hero-cta-anim flex items-center justify-center">
           <Link
             href="/collections"
-            className="group inline-flex items-center gap-3 px-8 sm:px-10 py-3.5 sm:py-4 rounded-full border-[1.5px] border-white/90 text-white hover:bg-white hover:text-black font-sans text-xs sm:text-sm font-semibold tracking-widest uppercase transition-all duration-300 backdrop-blur-[2px] shadow-lg no-underline hover:no-underline"
+            className="group inline-flex items-center gap-2.5 px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#0055b3] hover:bg-[#004499] text-white border-2 border-white/80 font-heading text-sm sm:text-base font-bold tracking-wide shadow-[0_8px_30px_rgba(0,85,179,0.55)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.99] no-underline hover:no-underline"
           >
             <span>Shop Now</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />

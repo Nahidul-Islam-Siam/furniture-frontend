@@ -14,17 +14,23 @@ import { useRegisterUserMutation } from "@/redux/service/auth/authApi";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-const schema = z.object({
-  firstName: z.string().min(2, "First name required"),
-  lastName: z.string().min(1, "Last name required"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Include at least 1 uppercase letter")
-    .regex(/[0-9]/, "Include at least 1 number")
-    .regex(/[!@#$%^&*]/, "Include at least 1 special character (!@#$%^&*)"),
-});
+const schema = z
+  .object({
+    firstName: z.string().min(2, "First name required"),
+    lastName: z.string().min(1, "Last name required"),
+    email: z.string().email("Please enter a valid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Include at least 1 uppercase letter")
+      .regex(/[0-9]/, "Include at least 1 number")
+      .regex(/[!@#$%^&*]/, "Include at least 1 special character (!@#$%^&*)"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type Inputs = z.infer<typeof schema>;
 
@@ -37,6 +43,7 @@ export default function Signup() {
   const [registerUser, { isLoading }] = useRegisterUserMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -254,6 +261,43 @@ export default function Signup() {
             ) : (
               <p className="text-slate-400 text-[11px] mt-1 pl-2">
                 8+ chars, 1 uppercase, 1 number &amp; 1 special character (!@#$%^&amp;*)
+              </p>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                aria-label="Confirm Password"
+                placeholder="Confirm Password"
+                autoComplete="new-password"
+                disabled={isBusy}
+                className={cn(
+                  inputBaseClass,
+                  "flex-1",
+                  errors.confirmPassword && "bg-red-50/70 ring-2 ring-red-400/50"
+                )}
+                {...register("confirmPassword")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                disabled={isBusy}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                className="w-12 h-12 flex-shrink-0 rounded-2xl bg-[#f2f4f7] hover:bg-[#e7ebf0] text-slate-600 hover:text-slate-900 flex items-center justify-center border-0 cursor-pointer transition-colors disabled:opacity-60"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-[11px] mt-1 pl-2">
+                {errors.confirmPassword.message}
               </p>
             )}
           </div>

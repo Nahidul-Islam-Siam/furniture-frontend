@@ -48,33 +48,38 @@ export const UEFLogo: React.FC<UEFLogoProps> = ({
     <div className={`inline-flex items-center gap-2.5 sm:gap-3 select-none ${className}`}>
       {/* Authentic UEF Gear & Monogram Emblem */}
       <div
-        className="relative flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden"
+        className="relative flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden shadow-xs"
         style={{ width: dimension.width, height: dimension.height }}
       >
         <Image
-          src="/images/uef-emblem.png"
+          src="/logo/916421240_1675591394297447_7907002081699647637_n.jpg"
           alt="UEF Emblem"
           width={dimension.width * 2}
           height={dimension.height * 2}
-          className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-200 group-hover:scale-105"
+          className="w-full h-full object-cover filter drop-shadow-sm transition-transform duration-200 group-hover:scale-105 rounded-md"
           priority
         />
       </div>
 
-      {/* Brand Name Typography */}
+      {/* Brand Name Typography matching reference mockup */}
       {showText && (
-        <div className="flex flex-col leading-none tracking-tight">
+        <div className="flex flex-col justify-center leading-[1.05] tracking-tight">
           <span
             style={{ color: primaryTextColor }}
-            className="text-[14px] sm:text-[15px] font-black tracking-wider uppercase font-heading"
+            className="text-[13px] sm:text-[14px] font-black tracking-wider uppercase font-heading"
           >
-            Unique Engineering
+            UNIQUE
           </span>
           <span
-            style={{ color: subtitleTextColor }}
-            className="text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] uppercase mt-0.5"
+            style={{ color: primaryTextColor }}
+            className="text-[12px] sm:text-[13px] font-black tracking-wider uppercase font-heading"
           >
-            &amp; Furniture
+            ENGINEERING
+          </span>
+          <span
+            className="text-[10px] sm:text-[11px] font-black tracking-wider uppercase text-[#0ea5e9]"
+          >
+            &amp; FURNITURE
           </span>
         </div>
       )}

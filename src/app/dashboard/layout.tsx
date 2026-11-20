@@ -119,11 +119,14 @@ export default function DashboardLayout({
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      await triggerLogout().unwrap();
+      await Promise.race([
+        triggerLogout().unwrap(),
+        new Promise((resolve) => setTimeout(resolve, 800)),
+      ]);
     } catch {}
     clearAuthCookies();
     dispatch(logout());
-    router.replace("/login");
+    window.location.href = "/login";
   };
 
   if (checkingAuth || !isAuthorized) {
