@@ -26,6 +26,7 @@ import {
   X,
   ShoppingBag,
   Copy,
+  Truck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,6 +51,7 @@ interface NormalizedProduct {
   stockCount: number | null;
   inStock: boolean;
   isFeatured: boolean;
+  isFreeDelivery?: boolean;
   rating: number;
   numReviews?: number;
   features: string[];
@@ -207,6 +209,7 @@ function normalizeProductData(
       stockCount: typeof dbProduct.stock === "number" ? dbProduct.stock : null,
       inStock: dbProduct.isAvailable ?? dbProduct.stock > 0,
       isFeatured: Boolean(dbProduct.isFeatured),
+      isFreeDelivery: Boolean(dbProduct.isFreeDelivery),
       rating: dbProduct.rating || staticProduct?.rating || 5,
       numReviews: dbProduct.numReviews,
       features: staticProduct?.features || [],
@@ -243,6 +246,7 @@ function normalizeProductData(
       stockCount: null,
       inStock: staticProduct.inStock,
       isFeatured: staticProduct.rating >= 5 && staticProduct.inStock,
+      isFreeDelivery: Boolean(staticProduct.isFreeDelivery),
       rating: staticProduct.rating || 5,
       features: staticProduct.features || [],
       colors: [],
@@ -795,6 +799,11 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                 {product.discountPercent > 0 && (
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-[#C53030] bg-red-50 px-2 py-0.5">
                     Save {product.discountPercent}%
+                  </span>
+                )}
+                {product.isFreeDelivery && (
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <Truck className="w-3.5 h-3.5 text-emerald-600" /> Free Delivery
                   </span>
                 )}
               </div>

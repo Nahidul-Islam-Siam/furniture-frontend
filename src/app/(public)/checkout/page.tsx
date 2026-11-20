@@ -113,7 +113,8 @@ export default function CheckoutPage() {
   };
 
   // ── Delivery Charge Engine ──
-  const isFreeDelivery = subtotal >= freeDeliveryThreshold;
+  const hasFreeDeliveryItem = cart.some((item) => Boolean((item.product as any).isFreeDelivery));
+  const isFreeDelivery = hasFreeDeliveryItem;
   const deliveryCharge = isFreeDelivery
     ? 0
     : deliveryZone === "inside_dhaka"
@@ -758,12 +759,6 @@ export default function CheckoutPage() {
                       </span>
                     )}
                   </div>
-
-                  {subtotal < freeDeliveryThreshold && (
-                    <div className="text-[11px] text-neutral-500 bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
-                      Add Tk {(freeDeliveryThreshold - subtotal).toLocaleString("en-BD")} more to unlock <b>Free Delivery</b>!
-                    </div>
-                  )}
 
                   <div className="pt-3 border-t border-neutral-200 flex justify-between items-baseline">
                     <span className="text-sm sm:text-base font-heading font-black text-neutral-900">

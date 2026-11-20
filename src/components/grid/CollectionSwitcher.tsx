@@ -141,6 +141,12 @@ export const CollectionSwitcher = () => {
                       </span>
                     )}
 
+                    {product.isFreeDelivery && (
+                      <span className="absolute top-2.5 right-2.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full z-10 bg-emerald-600 text-white shadow-xs">
+                        Free Delivery
+                      </span>
+                    )}
+
                     {/* View Details Floating Overlay on Desktop */}
                     <div className="absolute inset-x-3 bottom-3 hidden sm:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-3 group-hover:translate-y-0 z-10">
                       <Link

@@ -588,7 +588,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch }) => {
         className={`w-full transition-colors duration-200 z-40 ${
           isHome
             ? isTransparent
-              ? "fixed top-0 left-0 right-0 bg-gradient-to-b from-black/55 via-black/20 to-transparent py-4 border-none text-white"
+              ? "fixed top-0 left-0 right-0 bg-neutral-950/95 lg:bg-gradient-to-b lg:from-black/55 lg:via-black/20 lg:to-transparent backdrop-blur-md lg:backdrop-blur-none border-b border-white/10 lg:border-none py-3.5 sm:py-4 text-white shadow-sm lg:shadow-none"
               : "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-stone-200/80 py-3.5 text-neutral-900"
             : "sticky top-0 bg-white border-b border-stone-200/80 py-3.5 text-neutral-900 shadow-sm"
         }`}
