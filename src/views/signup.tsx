@@ -11,20 +11,23 @@ import { cn } from "@/lib/utils";
 import Seo from "../components/Seo";
 import { motion } from "framer-motion";
 import { useRegisterUserMutation } from "@/redux/service/auth/authApi";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import toast from "react-hot-toast";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 const schema = z
   .object({
-    firstName: z.string().min(2, "First name required"),
-    lastName: z.string().min(1, "Last name required"),
-    email: z.string().email("Please enter a valid email address"),
+    firstName: z.string().min(2, "Please enter your name (at least 2 characters)"),
+    lastName: z.string().optional(),
+    email: z.string().trim().email("Please enter a valid email address"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Include at least 1 uppercase letter")
-      .regex(/[0-9]/, "Include at least 1 number")
-      .regex(/[!@#$%^&*]/, "Include at least 1 special character (!@#$%^&*)"),
+      .regex(/[A-Z]/, "Password must include at least 1 uppercase letter (A-Z)")
+      .regex(/[0-9]/, "Password must include at least 1 number (0-9)")
+      .regex(
+        /[!@#$%^&*.,_\-+=<>?~`]/,
+        "Password must include at least 1 special character (!@#$%^&*)"
+      ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {

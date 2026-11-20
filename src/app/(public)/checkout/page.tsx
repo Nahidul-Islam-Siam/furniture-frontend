@@ -38,18 +38,28 @@ import {
   BANGLADESH_DISTRICTS,
   ALL_DISTRICT_NAMES,
 } from "@/lib/bangladesh-geo";
+import { DELIVERY_RATES } from "@/lib/delivery-config";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const {
     cart,
+    selectedCart,
     subtotal,
     freeDeliveryThreshold,
     updateQuantity,
     removeFromCart,
     clearCart,
+    clearSelectedItems,
+    toggleItemSelection,
+    selectAllItems,
   } = useCart();
   const { user } = useAppSelector((state) => state.auth);
+
+  // Active items participating in this checkout session
+  const checkoutItems = useMemo(() => {
+    return selectedCart.length > 0 ? selectedCart : cart;
+  }, [selectedCart, cart]);
 
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
   const [initiateSSLCommerz, { isLoading: isInitiatingSSL }] =
@@ -113,24 +123,23 @@ export default function CheckoutPage() {
   };
 
   // ── Delivery Charge Engine ──
-  const hasFreeDeliveryItem = cart.some((item) => Boolean((item.product as any).isFreeDelivery));
+  const hasFreeDeliveryItem = checkoutItems.some((item) => Boolean((item.product as any).isFreeDelivery));
   const isFreeDelivery = hasFreeDeliveryItem;
-  const deliveryCharge = isFreeDelivery
-    ? 0
-    : deliveryZone === "inside_dhaka"
-    ? 150
-    : deliveryZone === "sub_dhaka"
-    ? 200
-    : 350;
+  const currentZoneRate = DELIVERY_RATES[deliveryZone]?.rate ?? 150;
+  const deliveryCharge = isFreeDelivery ? 0 : currentZoneRate;
 
-  const totalAmount = subtotal + deliveryCharge;
+  const activeSubtotal = checkoutItems.reduce(
+    (sum, item) => sum + item.product.priceNumber * item.quantity,
+    0
+  );
+  const totalAmount = activeSubtotal + deliveryCharge;
 
   // Order Submission Handler
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (cart.length === 0) {
-      toast.error("Your cart is empty. Please add products first.");
+    if (checkoutItems.length === 0) {
+      toast.error("No items selected for checkout. Please select items from your cart.");
       return;
     }
 
@@ -167,13 +176,20 @@ export default function CheckoutPage() {
           email: email.trim() || `${cleanPhone}@furniture.com`,
           phone: cleanPhone,
         },
-        items: cart.map((item) => ({
-          product: item.product.id,
-          name: item.product.title,
-          price: item.product.priceNumber,
-          quantity: item.quantity,
-          image: item.product.images?.[0] || "",
-        })),
+        items: checkoutItems.map((item) => {
+          const rawId = item.product.id || "";
+          const cleanId =
+            rawId.includes("-") && rawId.split("-")[0].length === 24
+              ? rawId.split("-")[0]
+              : rawId;
+          return {
+            product: cleanId,
+            name: item.product.title,
+            price: item.product.priceNumber,
+            quantity: item.quantity,
+            image: item.product.images?.[0] || "",
+          };
+        }),
         shippingAddress: {
           recipientName: name.trim(),
           phone: cleanPhone,
@@ -199,7 +215,7 @@ export default function CheckoutPage() {
           try {
             const sslRes = await initiateSSLCommerz(orderId).unwrap();
             if (sslRes?.data?.gatewayUrl) {
-              clearCart();
+              clearSelectedItems();
               window.location.href = sslRes.data.gatewayUrl;
               return;
             }
@@ -210,7 +226,7 @@ export default function CheckoutPage() {
           }
         }
 
-        clearCart();
+        clearSelectedItems();
         toast.success(`Order #${orderNo} placed successfully!`);
         router.push(
           `/checkout/success?orderNumber=${encodeURIComponent(
