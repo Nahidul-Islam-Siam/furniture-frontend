@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useCart } from "../../context/CartContext";
 import {
   X,
@@ -481,6 +482,14 @@ export const CartDrawer: React.FC = () => {
                   <span>Proceed to Delivery Info</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
+
+                <Link
+                  href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
+                  className="block text-center text-xs text-neutral-500 hover:text-black transition-colors underline underline-offset-4"
+                >
+                  Or Open Full Page Checkout
+                </Link>
               </>
             ) : (
               <>

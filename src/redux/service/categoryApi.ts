@@ -13,10 +13,11 @@ export interface ICategoryItem {
 
 export const categoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCategories: builder.query<{ success: boolean; data: ICategoryItem[] }, void>({
-      query: () => ({
+    getCategories: builder.query<{ success: boolean; data: ICategoryItem[] }, { all?: boolean } | void>({
+      query: (params) => ({
         url: "/categories",
         method: "GET",
+        params: params?.all ? { all: "true" } : undefined,
       }),
       providesTags: ["Category"],
     }),

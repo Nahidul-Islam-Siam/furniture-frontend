@@ -10,29 +10,22 @@ import {
 } from "@/redux/service/productApi";
 import { useGetPublicReviewsQuery } from "@/redux/service/reviewApi";
 import { useCart } from "@/context/CartContext";
-import { ALL_PRODUCTS, Product } from "@/data/gridData";
+import { ALL_PRODUCTS, FOOTER_PROMOTIONS, Product } from "@/data/gridData";
 import {
   Star,
-  Truck,
-  ShieldCheck,
-  RotateCcw,
+  Globe,
   Plus,
   Minus,
-  ShoppingBag,
-  Zap,
-  CheckCircle2,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Share2,
-  PackageCheck,
-  Ruler,
-  Layers,
-  Clock,
-  Sparkles,
   Maximize2,
   MessageCircle,
   Check,
   X,
+  ShoppingBag,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,11 +57,12 @@ interface NormalizedProduct {
   colors: string[];
   dimensions?: IProductItem["dimensions"];
   weight?: number;
-  isFromBackend: boolean;
 }
 
 const FALLBACK_IMAGE =
   "https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385";
+const LIFESTYLE_QUALITY_IMAGE =
+  "https://99grid.com/cdn/shop/files/unnamed_600x.jpg?v=1652694957";
 
 function slugifyTitle(text: string): string {
   return text
@@ -117,11 +111,11 @@ function renderRichDescription(text: string): string {
 
   html = html.replace(
     /^### (.*$)/gim,
-    '<h3 class="text-base font-bold text-neutral-900 mt-4 mb-1.5">$1</h3>'
+    '<h3 class="text-sm font-bold text-neutral-900 mt-4 mb-1.5">$1</h3>'
   );
   html = html.replace(
     /^## (.*$)/gim,
-    '<h2 class="text-lg font-bold text-neutral-900 mt-5 mb-2 pb-1 border-b border-stone-200">$1</h2>'
+    '<h2 class="text-base font-bold text-neutral-900 mt-5 mb-2 pb-1 border-b border-stone-200">$1</h2>'
   );
   html = html.replace(
     /\*\*(.*?)\*\*/gim,
@@ -141,7 +135,7 @@ function renderRichDescription(text: string): string {
     /^\s*\*\s+(.*$)/gim,
     '<li class="list-disc ml-5 my-0.5">$1</li>'
   );
-  html = html.replace(/\n{2,}/g, '</p><p class="my-2">');
+  html = html.replace(/\n{2,}/g, '</p><p class="my-2.5">');
   return `<p class="my-1">${html}</p>`;
 }
 
@@ -169,7 +163,7 @@ function normalizeProductData(
     const basePrice = dbProduct.price || staticProduct?.priceNumber || 0;
     const altPrice = dbProduct.discountPrice;
 
-    // Supports both conventions: discountPrice < price (sale) and discountPrice > price (compare-at)
+    // Supports both compare-at higher price and lower sale-price overrides
     const hasLowerSale =
       typeof altPrice === "number" && altPrice > 0 && altPrice < basePrice;
     const hasHigherCompare =
@@ -220,7 +214,6 @@ function normalizeProductData(
       colors: dbProduct.colors || [],
       dimensions: dbProduct.dimensions,
       weight: dbProduct.weight,
-      isFromBackend: true,
     };
   }
 
@@ -253,7 +246,6 @@ function normalizeProductData(
       rating: staticProduct.rating || 5,
       features: staticProduct.features || [],
       colors: [],
-      isFromBackend: false,
     };
   }
 
@@ -291,7 +283,7 @@ const ProductLightboxDialog: React.FC<ProductLightboxDialogProps> = ({
     }
   }, [isOpen]);
 
-  // Mandatory Safari light-dismiss fallback when `closedby` is unsupported
+  // Safari light-dismiss fallback when `closedby` is unsupported
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog || !isOpen) return;
@@ -324,14 +316,14 @@ const ProductLightboxDialog: React.FC<ProductLightboxDialogProps> = ({
     <dialog
       ref={dialogRef}
       {...({ closedby: "any" } as Record<string, string>)}
-      aria-label={`${productName} image viewer`}
+      aria-label={`${productName} full image viewer`}
       onClose={onClose}
       className="m-auto max-w-4xl w-[92vw] rounded-2xl bg-white p-0 shadow-2xl border border-stone-200 backdrop:bg-black/75 backdrop:backdrop-blur-sm"
     >
       <div ref={contentRef} className="relative bg-white p-4 sm:p-6">
         <div className="flex items-center justify-between pb-3 border-b border-stone-100">
           <span className="text-xs font-semibold uppercase tracking-wider text-stone-500 truncate pr-4">
-            {productName} — View {activeIndex + 1} of {images.length}
+            {productName} — Angle {activeIndex + 1} of {images.length}
           </span>
           <button
             type="button"
@@ -347,7 +339,7 @@ const ProductLightboxDialog: React.FC<ProductLightboxDialogProps> = ({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={images[activeIndex] || images[0]}
-            alt={`${productName} detailed angle ${activeIndex + 1}`}
+            alt={`${productName} view ${activeIndex + 1}`}
             fetchPriority="low"
             className="max-h-[72vh] w-auto object-contain"
           />
@@ -384,7 +376,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
 }) => {
   const { addToCart, setIsCartOpen } = useCart();
 
-  // Backend lookup by slug, or by Mongo ObjectId when applicable
+  // Primary lookup via slug, with Mongo ObjectId fallback
   const { data: slugData, isLoading: isSlugLoading } =
     useGetProductBySlugQuery(slug);
 
@@ -394,7 +386,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
     { skip: !isMongoId || Boolean(slugData?.data) }
   );
 
-  // Catalog fallback ensures static showcase links resolve seamlessly without 404s
+  // Catalog fallback guarantees seeded storefront links resolve immediately
   const staticProduct = useMemo(() => findStaticProductBySlug(slug), [slug]);
   const dbProduct: IProductItem | undefined = slugData?.data || idData?.data;
 
@@ -406,24 +398,19 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
   const isLoading =
     !product && (isSlugLoading || (isMongoId && isIdLoading));
 
-  // Related products & approved reviews
   const { data: relatedData } = useGetProductsQuery({ limit: 8 });
   const { data: reviewsData } = useGetPublicReviewsQuery({ limit: 4 });
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"desc" | "specs" | "shipping">(
-    "desc"
-  );
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  // Reset local interaction state when navigating between products
+  // Reset UI selections when switching product routes
   useEffect(() => {
     setSelectedImageIndex(0);
     setQuantity(1);
     setSelectedColor("");
-    setActiveTab("desc");
     setIsLightboxOpen(false);
   }, [slug]);
 
@@ -454,7 +441,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
     };
   }, [product, activeColor]);
 
-  // Merge live backend related products with same-category catalog pieces
+  // Collect 5 related items merging backend products and static category peers
   const relatedProducts = useMemo(() => {
     if (!product) return [];
 
@@ -476,6 +463,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
 
     const backendItems = relatedData?.data || [];
     for (const item of backendItems) {
+      if (collected.length >= 5) break;
       const itemSlug = item.slug || item._id;
       if (
         seenKeys.has(item._id.toLowerCase()) ||
@@ -501,18 +489,18 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
       });
     }
 
-    const staticCategoryPeers = ALL_PRODUCTS.filter(
+    const categoryPeers = ALL_PRODUCTS.filter(
       (p) =>
         p.category.toLowerCase() === product.categorySlug ||
         product.categoryName.toLowerCase().includes(p.category.toLowerCase())
     );
     const orderedStatic = [
-      ...staticCategoryPeers,
-      ...ALL_PRODUCTS.filter((p) => !staticCategoryPeers.includes(p)),
+      ...categoryPeers,
+      ...ALL_PRODUCTS.filter((p) => !categoryPeers.includes(p)),
     ];
 
     for (const item of orderedStatic) {
-      if (collected.length >= 4) break;
+      if (collected.length >= 5) break;
       const itemSlug = extractSlugFromLink(item.link, item.id);
       if (
         seenKeys.has(item.id.toLowerCase()) ||
@@ -536,7 +524,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
       });
     }
 
-    return collected.slice(0, 4);
+    return collected.slice(0, 5);
   }, [product, relatedData]);
 
   const handleAddToCart = () => {
@@ -551,6 +539,13 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
     setIsCartOpen(true);
   };
 
+  const handleCopyLink = async () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Product link copied to clipboard");
+    }
+  };
+
   const handleShare = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -560,14 +555,10 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
         });
         return;
       } catch {
-        // User dismissed share sheet; avoid overwriting clipboard
         return;
       }
     }
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("Product link copied to clipboard");
-    }
+    await handleCopyLink();
   };
 
   const cycleMainImage = (direction: 1 | -1) => {
@@ -579,21 +570,20 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="bg-white min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+      <div className="bg-white min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 animate-pulse">
-          <div className="lg:col-span-7 space-y-4">
-            <div className="aspect-square w-full rounded-2xl bg-stone-100" />
-            <div className="flex gap-3">
-              <div className="w-20 h-20 rounded-xl bg-stone-100" />
-              <div className="w-20 h-20 rounded-xl bg-stone-100" />
+          <div className="lg:col-span-6 space-y-4">
+            <div className="aspect-square w-full bg-stone-100" />
+            <div className="flex gap-3 justify-center">
+              <div className="w-16 h-16 bg-stone-100" />
+              <div className="w-16 h-16 bg-stone-100" />
             </div>
           </div>
-          <div className="lg:col-span-5 space-y-5 pt-2">
-            <div className="h-4 w-28 rounded bg-stone-100" />
-            <div className="h-9 w-4/5 rounded bg-stone-200" />
-            <div className="h-8 w-44 rounded bg-stone-100" />
-            <div className="h-24 w-full rounded-xl bg-stone-100" />
-            <div className="h-12 w-full rounded-xl bg-stone-200" />
+          <div className="lg:col-span-6 space-y-5 pt-2">
+            <div className="h-8 w-3/4 bg-stone-200" />
+            <div className="h-6 w-44 bg-stone-100" />
+            <div className="h-12 w-full bg-stone-100" />
+            <div className="h-12 w-full bg-stone-200" />
           </div>
         </div>
       </div>
@@ -610,7 +600,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
           Product Not Found
         </h1>
         <p className="text-sm text-stone-500 mb-8 max-w-md mx-auto leading-relaxed">
-          The requested furniture piece may have been archived or moved to another
+          The requested furniture piece may have been updated or moved to another
           collection.
         </p>
         <Link
@@ -625,6 +615,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
 
   const currentImage =
     product.images[selectedImageIndex] || product.images[0] || FALLBACK_IMAGE;
+  const secondaryStoryImage = product.images[1];
   const approvedReviews = (reviewsData?.data || []).filter(
     (rev) => !rev.status || rev.status === "approved"
   );
@@ -632,71 +623,17 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
     `Hello Unique Engineering & Furniture, I would like details or a custom quote for: ${product.name}`
   )}`;
 
-  const ratingSummary = (
-    <>
-      <div className="flex items-center text-amber-400">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`w-3.5 h-3.5 ${
-              i < Math.round(product.rating)
-                ? "fill-current"
-                : "text-stone-300"
-            }`}
-            aria-hidden="true"
-          />
-        ))}
-      </div>
-      <span className="font-semibold text-neutral-900">
-        {product.rating.toFixed(1)}
-      </span>
-      <span className="text-stone-400">
-        (
-        {approvedReviews.length > 0
-          ? approvedReviews.length
-          : product.numReviews || "Verified"}
-        )
-      </span>
-    </>
-  );
-
-  const tabs: { id: "desc" | "specs" | "shipping"; label: string }[] = [
-    { id: "desc", label: "Craftsmanship & Details" },
-    { id: "specs", label: "Specifications" },
-    { id: "shipping", label: "Delivery & Warranty" },
-  ];
-
-  const handleTabKeyDown = (
-    e: React.KeyboardEvent<HTMLButtonElement>,
-    idx: number
-  ) => {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      setActiveTab(tabs[(idx + 1) % tabs.length].id);
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length].id);
-    }
-  };
-
   return (
-    <div className="bg-white min-h-screen pb-28 lg:pb-24 font-sans text-neutral-900">
-      {/* Subtle Editorial Breadcrumb Strip */}
-      <div className="border-b border-stone-200/70 bg-[#fafaf8]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+    <div className="bg-white min-h-screen pb-24 lg:pb-16 font-sans text-neutral-900">
+      {/* Minimal Breadcrumb Header */}
+      <div className="border-b border-stone-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <nav
             aria-label="Breadcrumb"
             className="flex items-center gap-2 text-xs text-stone-500 flex-wrap"
           >
             <Link href="/" className="hover:text-black no-underline transition-colors">
               Home
-            </Link>
-            <ChevronRight className="w-3 h-3 text-stone-400" aria-hidden="true" />
-            <Link
-              href="/collections"
-              className="hover:text-black no-underline transition-colors"
-            >
-              Collections
             </Link>
             <ChevronRight className="w-3 h-3 text-stone-400" aria-hidden="true" />
             <Link
@@ -711,271 +648,303 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
             </span>
           </nav>
 
-          <Link
-            href={`/collections/${product.categorySlug}`}
-            className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-black no-underline transition-colors shrink-0"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Back to {product.categoryName}</span>
-          </Link>
+          {product.sku && (
+            <span className="hidden sm:inline text-[11px] font-mono text-stone-400">
+              SKU: {product.sku}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Main Split Showcase */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-7 sm:pt-10 lg:pt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-start">
-          {/* Left Column: Gallery & Value Guarantees (7 Cols) */}
-          <div className="lg:col-span-7 lg:sticky lg:top-24 space-y-4">
-            <div className="relative aspect-[4/4.2] sm:aspect-square w-full rounded-2xl overflow-hidden bg-[#f7f6f2] border border-stone-200/80 group">
+      {/* Band 1: Asymmetric 2-Column Hero Gallery & Editorial Spec Narrative */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-start">
+          {/* Left Sticky Column: Primary Product Image & Thumbnail Carousel */}
+          <div className="lg:col-span-6 lg:sticky lg:top-24">
+            <div className="relative aspect-square w-full overflow-hidden bg-[#fafaf8] border border-stone-100 group">
               {/* Primary Hero LCP Image */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={currentImage}
                 alt={`${product.name} - angle ${selectedImageIndex + 1}`}
                 fetchPriority="high"
-                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
+                className="w-full h-full object-contain p-4 sm:p-6 transition-transform duration-500 group-hover:scale-[1.02]"
               />
 
-              {/* Top-left Status Badges */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
-                {product.badgeText && (
-                  <span
-                    className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm ${
-                      product.badgeText.toLowerCase().includes("sold")
-                        ? "bg-neutral-900"
-                        : "bg-[#C53030]"
-                    }`}
-                  >
-                    {product.badgeText}
-                  </span>
-                )}
-                {product.isFeatured && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-neutral-900/90 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white shadow-sm">
-                    <Sparkles className="w-3 h-3" aria-hidden="true" />
-                    <span>Featured</span>
-                  </span>
-                )}
-                {!product.inStock && (
-                  <span className="inline-block rounded-full bg-stone-800 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white shadow-sm">
-                    Made to Order
-                  </span>
-                )}
-              </div>
-
-              {/* Top-right Share Action */}
-              <button
-                type="button"
-                onClick={handleShare}
-                aria-label="Share this product"
-                title="Share this product"
-                className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/90 backdrop-blur-md border border-stone-200/80 text-neutral-700 shadow-sm hover:bg-neutral-900 hover:text-white flex items-center justify-center cursor-pointer transition-colors z-10"
-              >
-                <Share2 className="w-4 h-4" aria-hidden="true" />
-              </button>
-
-              {/* Multi-angle Arrows */}
-              {product.images.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => cycleMainImage(-1)}
-                    aria-label="Previous image"
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 backdrop-blur-sm border border-stone-200/80 text-neutral-800 shadow-sm hover:bg-neutral-900 hover:text-white flex items-center justify-center cursor-pointer transition-all opacity-90 sm:opacity-0 sm:group-hover:opacity-100 z-10"
-                  >
-                    <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => cycleMainImage(1)}
-                    aria-label="Next image"
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 backdrop-blur-sm border border-stone-200/80 text-neutral-800 shadow-sm hover:bg-neutral-900 hover:text-white flex items-center justify-center cursor-pointer transition-all opacity-90 sm:opacity-0 sm:group-hover:opacity-100 z-10"
-                  >
-                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </>
+              {/* Subtle Corner Savings Pill */}
+              {product.badgeText && (
+                <span
+                  className={`absolute top-4 left-4 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 text-white ${
+                    product.badgeText.toLowerCase().includes("sold")
+                      ? "bg-neutral-900"
+                      : "bg-[#C53030]"
+                  }`}
+                >
+                  {product.badgeText}
+                </span>
               )}
 
-              {/* Bottom-right Zoom Pill */}
+              {/* Bottom-right Subtle Zoom Icon Button */}
               <button
                 type="button"
                 onClick={() => setIsLightboxOpen(true)}
                 aria-label="Inspect full-screen image"
-                className="absolute bottom-4 right-4 h-9 px-3.5 rounded-full bg-white/92 backdrop-blur-md border border-stone-200/90 text-xs font-semibold text-neutral-800 hover:bg-neutral-900 hover:text-white shadow-sm inline-flex items-center gap-1.5 cursor-pointer transition-colors z-10"
+                title="Zoom image"
+                className="absolute bottom-3.5 right-3.5 h-9 px-3 bg-white/95 border border-stone-200 text-xs font-medium text-neutral-800 hover:bg-neutral-900 hover:text-white inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
               >
                 <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Zoom view</span>
+                <span>Zoom</span>
               </button>
             </div>
 
-            {/* Thumbnail Navigation Strip */}
+            {/* Thumbnail Strip with Prev/Next Arrows (matching reference) */}
             {product.images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {product.images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedImageIndex(idx)}
-                    aria-label={`Select angle ${idx + 1}`}
-                    aria-pressed={selectedImageIndex === idx}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 bg-[#f7f6f2] shrink-0 cursor-pointer transition-all ${
-                      selectedImageIndex === idx
-                        ? "border-neutral-900 ring-2 ring-neutral-900/10"
-                        : "border-stone-200 opacity-75 hover:opacity-100"
-                    }`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={img}
-                      alt={`${product.name} thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+              <div className="mt-4 flex items-center justify-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => cycleMainImage(-1)}
+                  aria-label="Previous gallery angle"
+                  className="h-9 w-9 flex items-center justify-center text-stone-500 hover:text-black bg-transparent border-0 cursor-pointer transition-colors shrink-0"
+                >
+                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+                </button>
+
+                <div className="flex items-center gap-2.5 overflow-x-auto py-1">
+                  {product.images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedImageIndex(idx)}
+                      aria-label={`Select angle ${idx + 1}`}
+                      aria-pressed={selectedImageIndex === idx}
+                      className={`w-16 h-16 sm:w-[72px] sm:h-[72px] bg-[#fafaf8] border p-1 shrink-0 cursor-pointer transition-all ${
+                        selectedImageIndex === idx
+                          ? "border-neutral-900 ring-1 ring-neutral-900"
+                          : "border-stone-200 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img}
+                        alt={`${product.name} angle ${idx + 1}`}
+                        className="w-full h-full object-contain"
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => cycleMainImage(1)}
+                  aria-label="Next gallery angle"
+                  className="h-9 w-9 flex items-center justify-center text-stone-500 hover:text-black bg-transparent border-0 cursor-pointer transition-colors shrink-0"
+                >
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                </button>
               </div>
             )}
-
-            {/* Studio Value Guarantees (Desktop) */}
-            <div className="hidden lg:grid grid-cols-3 gap-3.5 pt-4">
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#fafaf8] border border-stone-200/75">
-                <Truck className="w-4 h-4 text-neutral-900 shrink-0 mt-0.5" aria-hidden="true" />
-                <div>
-                  <h4 className="text-xs font-semibold text-neutral-900 m-0">
-                    Dhaka White-Glove
-                  </h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5 mb-0 leading-snug">
-                    Home delivery &amp; on-site installation
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#fafaf8] border border-stone-200/75">
-                <ShieldCheck className="w-4 h-4 text-neutral-900 shrink-0 mt-0.5" aria-hidden="true" />
-                <div>
-                  <h4 className="text-xs font-semibold text-neutral-900 m-0">
-                    5-Year Warranty
-                  </h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5 mb-0 leading-snug">
-                    Frame structure &amp; mechanism support
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#fafaf8] border border-stone-200/75">
-                <RotateCcw className="w-4 h-4 text-neutral-900 shrink-0 mt-0.5" aria-hidden="true" />
-                <div>
-                  <h4 className="text-xs font-semibold text-neutral-900 m-0">
-                    7-Day Replacement
-                  </h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5 mb-0 leading-snug">
-                    Covered defect &amp; transit replacement
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Right Column: Editorial Buy Panel (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="space-y-4">
-              {/* Category Eyebrow & Rating Summary */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Right Column: Clean Buy Controls + Architectural Feature Narrative */}
+          <div className="lg:col-span-6 space-y-6">
+            {/* Title & Price Header */}
+            <div className="space-y-2.5 border-b border-stone-100 pb-5">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <Link
                   href={`/collections/${product.categorySlug}`}
-                  className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cyan-800 bg-cyan-50/80 border border-cyan-200/60 px-2.5 py-1 rounded-full no-underline hover:bg-cyan-100/80 transition-colors"
+                  className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500 hover:text-black no-underline transition-colors"
                 >
                   {product.categoryName} Collection
                 </Link>
 
-                {approvedReviews.length > 0 ? (
-                  <a
-                    href="#reviews-section"
-                    className="inline-flex items-center gap-1.5 text-xs no-underline hover:opacity-80 transition-opacity"
-                  >
-                    {ratingSummary}
-                  </a>
-                ) : (
-                  <div className="inline-flex items-center gap-1.5 text-xs">
-                    {ratingSummary}
+                <div className="inline-flex items-center gap-1.5 text-xs">
+                  <div className="flex items-center text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${
+                          i < Math.round(product.rating)
+                            ? "fill-current"
+                            : "text-stone-300"
+                        }`}
+                        aria-hidden="true"
+                      />
+                    ))}
                   </div>
-                )}
+                  <span className="font-semibold text-neutral-900">
+                    {product.rating.toFixed(1)}
+                  </span>
+                </div>
               </div>
 
-              {/* Product Title */}
-              <h1 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[32px] text-neutral-900 tracking-tight leading-[1.2] m-0">
+              <h1 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[32px] text-neutral-900 tracking-tight leading-tight m-0">
                 {product.name}
               </h1>
 
-              {/* Pricing Stack */}
-              <div className="pt-1 space-y-1.5">
-                <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-3xl font-bold text-neutral-900 tracking-tight">
-                    {formatTk(product.sellingPrice)}
+              {/* Price Line (Strikethrough original + Bold current, matching mockup) */}
+              <div className="flex items-baseline gap-3 pt-1 flex-wrap">
+                {product.compareAtPrice &&
+                  product.compareAtPrice > product.sellingPrice && (
+                    <span className="text-base sm:text-lg text-stone-400 line-through">
+                      {formatTk(product.compareAtPrice)}
+                    </span>
+                  )}
+                <span className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+                  {formatTk(product.sellingPrice)}
+                </span>
+                {product.discountPercent > 0 && (
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#C53030] bg-red-50 px-2 py-0.5">
+                    Save {product.discountPercent}%
                   </span>
-                  {product.compareAtPrice &&
-                    product.compareAtPrice > product.sellingPrice && (
-                      <span className="text-base text-stone-400 line-through">
-                        {formatTk(product.compareAtPrice)}
-                      </span>
-                    )}
-                  {product.discountPercent > 0 && (
-                    <span className="text-xs font-bold text-[#C53030] bg-red-50 border border-red-200/70 px-2 py-0.5 rounded-full">
-                      Save {product.discountPercent}%
-                    </span>
-                  )}
-                  {product.sku && (
-                    <span className="text-[11px] text-stone-400 ml-auto font-mono">
-                      SKU: {product.sku}
-                    </span>
-                  )}
+                )}
+              </div>
+            </div>
+
+            {/* Finish / Variant Selector (when backend defines color variants) */}
+            {product.colors.length > 0 && (
+              <div className="space-y-2.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-800">
+                  COLOR:{" "}
+                  <span className="text-stone-500 font-normal capitalize">
+                    {activeColor}
+                  </span>
                 </div>
-                <p className="text-xs text-stone-500 m-0">
-                  Direct factory pricing · Insured delivery across all 64 districts
-                </p>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color) => {
+                    const isSelected = activeColor === color;
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        aria-pressed={isSelected}
+                        className={`px-3.5 py-2 text-xs font-medium cursor-pointer transition-colors ${
+                          isSelected
+                            ? "border-2 border-neutral-900 bg-white text-neutral-900 font-semibold"
+                            : "border border-stone-300 bg-white text-stone-700 hover:border-neutral-900"
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Availability & Delivery Highlights (2 crisp status lines matching mockup) */}
+            <div className="space-y-2 text-xs sm:text-[13px] text-neutral-800">
+              <div className="flex items-center gap-2.5">
+                <Globe className="w-4 h-4 text-neutral-700 shrink-0" aria-hidden="true" />
+                <span>Home delivery all over Bangladesh</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+                    product.inStock ? "bg-emerald-500" : "bg-amber-500"
+                  }`}
+                />
+                <span>
+                  {product.inStock
+                    ? product.stockCount !== null && product.stockCount > 0
+                      ? `In stock, ready to ship (${product.stockCount} available)`
+                      : "In stock, ready to ship"
+                    : "Made to order / Pre-order — built in our factory"}
+                </span>
+              </div>
+            </div>
+
+            {/* Quantity & Stacked Monochrome Purchase Buttons (matching mockup) */}
+            <div className="space-y-2.5 pt-1">
+              <div className="flex items-center justify-between text-xs text-stone-600 pb-0.5">
+                <span className="uppercase tracking-[0.12em] font-semibold text-stone-500">
+                  Quantity
+                </span>
+                <div
+                  role="group"
+                  aria-label="Quantity selector"
+                  className="inline-flex items-center border border-stone-300 bg-white h-9"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    aria-label="Decrease quantity"
+                    className="h-full w-9 flex items-center justify-center text-neutral-700 hover:bg-stone-100 cursor-pointer transition-colors"
+                  >
+                    <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+                  </button>
+                  <span className="w-9 text-center font-semibold text-neutral-900">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    aria-label="Increase quantity"
+                    className="h-full w-9 flex items-center justify-center text-neutral-700 hover:bg-stone-100 cursor-pointer transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
 
-              {/* Availability Status Strip */}
-              {product.inStock ? (
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50/90 border border-emerald-200/80 px-3.5 py-2.5 rounded-xl">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
-                  <span>
-                    {product.stockCount !== null && product.stockCount > 0
-                      ? `In Stock (${product.stockCount} units ready in Dhaka warehouse)`
-                      : "In Stock — Ready for Dhaka dispatch & assembly (2–4 business days)"}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 bg-amber-50/90 border border-amber-200/80 px-3.5 py-2.5 rounded-xl">
-                  <Clock className="w-4 h-4 text-amber-700 shrink-0" aria-hidden="true" />
-                  <span>
-                    Made to Order / Pre-Order — Built in our factory (custom finish supported)
-                  </span>
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="w-full h-12 border border-neutral-900 bg-white text-neutral-900 hover:bg-neutral-50 text-sm font-semibold tracking-wide cursor-pointer transition-colors"
+              >
+                Add to cart
+              </button>
+
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                className="w-full h-12 bg-[#1a1a1a] hover:bg-black text-white text-sm font-semibold tracking-wide cursor-pointer transition-colors"
+              >
+                Buy it now
+              </button>
+            </div>
+
+            {/* Editorial Narrative & Technical Story Stack inside Right Column */}
+            <div className="pt-4 space-y-7 text-[13.5px] sm:text-sm text-stone-600 leading-relaxed">
+              {/* Overview & Concept */}
+              <div className="space-y-3">
+                <h2 className="text-sm font-bold text-neutral-900 m-0">
+                  Architectural Ergonomic Concept
+                </h2>
+                {product.description && (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: renderRichDescription(product.description),
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Embedded Secondary Angle Photo inside Right Column Story (if available) */}
+              {secondaryStoryImage && (
+                <div className="overflow-hidden border border-stone-100 bg-[#fafaf8]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={secondaryStoryImage}
+                    alt={`${product.name} engineering profile`}
+                    loading="lazy"
+                    className="w-full h-auto max-h-[380px] object-contain mx-auto p-3"
+                  />
                 </div>
               )}
 
-              {/* Short Description */}
-              {product.description && (
-                <div
-                  className="text-[14px] text-stone-600 leading-relaxed pt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: renderRichDescription(product.description),
-                  }}
-                />
-              )}
-
-              {/* Key Engineering Highlights */}
+              {/* Engineering & Feature Breakdown */}
               {product.features.length > 0 && (
-                <div className="rounded-xl border border-stone-200/80 bg-[#fafaf8] p-4 space-y-2.5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                    Key Engineering Highlights
-                  </div>
-                  <ul className="m-0 p-0 list-none grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-3">
+                  <h2 className="text-sm font-bold text-neutral-900 m-0">
+                    Innovative Engineering Highlights
+                  </h2>
+                  <ul className="m-0 p-0 list-none space-y-2">
                     {product.features.map((feat) => (
-                      <li
-                        key={feat}
-                        className="flex items-start gap-2 text-xs text-neutral-800 leading-snug"
-                      >
+                      <li key={feat} className="flex items-start gap-2.5 text-neutral-800">
                         <Check
-                          className="w-3.5 h-3.5 text-cyan-700 shrink-0 mt-0.5"
+                          className="w-4 h-4 text-neutral-900 shrink-0 mt-0.5"
                           aria-hidden="true"
                         />
                         <span>{feat}</span>
@@ -985,313 +954,234 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                 </div>
               )}
 
-              {/* Variant Selector */}
-              {product.colors.length > 0 && (
-                <div className="pt-1 space-y-2">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-neutral-800">
-                    Finish &amp; Color:{" "}
-                    <span className="text-stone-500 font-normal capitalize">
-                      {activeColor}
-                    </span>
+              {/* Specification Summary Matrix */}
+              <div className="space-y-2.5 pt-2 border-t border-stone-100">
+                <h2 className="text-sm font-bold text-neutral-900 m-0">
+                  Specifications &amp; Material Notes
+                </h2>
+                <dl className="m-0 grid grid-cols-1 gap-2 text-xs sm:text-[13px]">
+                  <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                    <dt className="font-semibold text-neutral-800">Collection</dt>
+                    <dd className="m-0 text-stone-600 text-right">{product.categoryName}</dd>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {product.colors.map((color) => {
-                      const isSelected = activeColor === color;
-                      return (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setSelectedColor(color)}
-                          aria-pressed={isSelected}
-                          className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border cursor-pointer transition-colors ${
-                            isSelected
-                              ? "border-neutral-900 bg-neutral-900 text-white"
-                              : "border-stone-200 bg-white text-neutral-800 hover:border-neutral-400"
-                          }`}
-                        >
-                          {color}
-                        </button>
-                      );
-                    })}
+                  <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                    <dt className="font-semibold text-neutral-800">Material &amp; Frame</dt>
+                    <dd className="m-0 text-stone-600 text-right">
+                      {product.material || "Contract-Grade Steel & High-Density Finish"}
+                    </dd>
                   </div>
-                </div>
-              )}
-
-              {/* Material & Dimensions inline metadata */}
-              {(product.material || product.dimensions) && (
-                <div className="space-y-1.5 pt-1 border-t border-stone-100">
-                  {product.material && (
-                    <div className="flex items-center gap-2 text-xs text-stone-600 pt-2">
-                      <Layers className="w-4 h-4 text-stone-400 shrink-0" aria-hidden="true" />
-                      <span>
-                        Material: <strong className="text-neutral-900">{product.material}</strong>
-                      </span>
-                    </div>
-                  )}
                   {product.dimensions && (
-                    <div className="flex items-center gap-2 text-xs text-stone-600">
-                      <Ruler className="w-4 h-4 text-stone-400 shrink-0" aria-hidden="true" />
-                      <span>
-                        Dimensions:{" "}
-                        <strong className="text-neutral-900">
-                          {product.dimensions.width || "-"}&quot; W ×{" "}
-                          {product.dimensions.depth || "-"}&quot; D ×{" "}
-                          {product.dimensions.height || "-"}&quot; H
-                        </strong>
-                      </span>
+                    <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                      <dt className="font-semibold text-neutral-800">Dimensions</dt>
+                      <dd className="m-0 text-stone-600 text-right">
+                        {product.dimensions.width || "-"}&quot; W ×{" "}
+                        {product.dimensions.depth || "-"}&quot; D ×{" "}
+                        {product.dimensions.height || "-"}&quot; H
+                      </dd>
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Quantity Stepper & Purchase CTAs */}
-              <div className="pt-3 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    role="group"
-                    aria-label="Quantity selector"
-                    className="flex items-center border border-stone-300 rounded-xl bg-[#fafaf8] h-12 px-1"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      aria-label="Decrease quantity"
-                      className="h-9 w-9 text-neutral-700 hover:text-black hover:bg-white rounded-lg flex items-center justify-center cursor-pointer transition-colors"
-                    >
-                      <Minus className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
-                    <span className="w-10 text-center font-bold text-sm text-neutral-900">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity((q) => q + 1)}
-                      aria-label="Increase quantity"
-                      className="h-9 w-9 text-neutral-700 hover:text-black hover:bg-white rounded-lg flex items-center justify-center cursor-pointer transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
+                  {product.weight && (
+                    <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                      <dt className="font-semibold text-neutral-800">Weight</dt>
+                      <dd className="m-0 text-stone-600 text-right">{product.weight} kg</dd>
+                    </div>
+                  )}
+                  <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                    <dt className="font-semibold text-neutral-800">Assembly</dt>
+                    <dd className="m-0 text-stone-600 text-right">
+                      Free installation inside Dhaka Metro
+                    </dd>
                   </div>
+                  <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                    <dt className="font-semibold text-neutral-800">Warranty</dt>
+                    <dd className="m-0 text-stone-600 text-right">
+                      Up to 5-Year UEF Structural Frame Support
+                    </dd>
+                  </div>
+                </dl>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    className="flex-1 h-12 px-6 rounded-xl bg-white border-[1.5px] border-neutral-900 text-neutral-900 font-semibold text-sm hover:bg-neutral-900 hover:text-white cursor-pointer transition-colors flex items-center justify-center gap-2"
-                  >
-                    <ShoppingBag className="w-4 h-4" aria-hidden="true" />
-                    <span>Add to Cart</span>
-                  </button>
-                </div>
+              {/* Native Collapsible Shipping & Factory Support Accordions (matching mockup) */}
+              <div className="border-t border-b border-stone-200 divide-y divide-stone-200">
+                <details className="group py-3.5">
+                  <summary className="flex items-center justify-between cursor-pointer list-none text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-900">
+                    <span>SHIPPING INFORMATION</span>
+                    <ChevronDown
+                      className="w-4 h-4 text-stone-500 transition-transform duration-200 group-open:rotate-180"
+                      aria-hidden="true"
+                    />
+                  </summary>
+                  <div className="pt-3 text-xs sm:text-[13px] text-stone-600 space-y-2 leading-relaxed">
+                    <p className="m-0">
+                      <strong className="text-neutral-900">Dhaka Metro:</strong> Delivered by Unique Engineering &amp; Furniture specialists within 2–4 business days with free in-room setup.
+                    </p>
+                    <p className="m-0">
+                      <strong className="text-neutral-900">Nationwide 64 Districts:</strong> Dispatched with protective wooden crating in 4–7 business days.
+                    </p>
+                  </div>
+                </details>
 
+                <details className="group py-3.5">
+                  <summary className="flex items-center justify-between cursor-pointer list-none text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-900">
+                    <span>CUSTOM SIZE &amp; CORPORATE ORDERS</span>
+                    <ChevronDown
+                      className="w-4 h-4 text-stone-500 transition-transform duration-200 group-open:rotate-180"
+                      aria-hidden="true"
+                    />
+                  </summary>
+                  <div className="pt-3 text-xs sm:text-[13px] text-stone-600 space-y-2 leading-relaxed">
+                    <p className="m-0">
+                      Need custom steel dimensions, cable routing, or bulk studio quantities? Reach our factory fabrication desk directly at{" "}
+                      <strong className="text-neutral-900">+880 1755-348053</strong>.
+                    </p>
+                  </div>
+                </details>
+              </div>
+
+              {/* Minimal Share & WhatsApp Utility Strip */}
+              <div className="flex items-center gap-5 flex-wrap pt-1 text-xs font-medium text-neutral-700">
                 <button
                   type="button"
-                  onClick={handleBuyNow}
-                  className="w-full h-12 px-6 rounded-xl bg-neutral-900 hover:bg-black text-white font-semibold text-sm cursor-pointer transition-colors shadow-sm flex items-center justify-center gap-2"
+                  onClick={handleShare}
+                  className="inline-flex items-center gap-1.5 hover:text-black bg-transparent border-0 p-0 cursor-pointer transition-colors"
                 >
-                  <Zap className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
-                  <span>Buy It Now</span>
+                  <Share2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Share</span>
                 </button>
-
-                {/* Direct Factory WhatsApp Customization Inquiry */}
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="inline-flex items-center gap-1.5 hover:text-black bg-transparent border-0 p-0 cursor-pointer transition-colors"
+                >
+                  <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Copy link</span>
+                </button>
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full h-10 px-4 rounded-xl border border-stone-200 bg-[#fafaf8] hover:bg-stone-100 text-xs font-medium text-neutral-800 flex items-center justify-center gap-2 no-underline transition-colors"
+                  className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-900 no-underline transition-colors"
                 >
-                  <MessageCircle className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-                  <span>Request Custom Size or Corporate Quote via WhatsApp</span>
+                  <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>WhatsApp Concierge</span>
                 </a>
-              </div>
-
-              {/* Payment & Trust Bar */}
-              <div className="pt-1 text-center text-[11px] text-stone-400">
-                Trusted checkout via SSLCommerz · bKash · Nagad · Cards · Cash on Delivery
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Architectural Details Tabs */}
+      {/* Band 2: Full-Bleed Overlapping Card Banner ("ERGONOMIC DESIGN - For the 21st century") */}
+      <section className="relative w-full min-h-[360px] sm:min-h-[440px] flex items-center overflow-hidden bg-stone-100 border-y border-stone-200/70">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/hero-banner.jpg"
+          alt="21st century modern ergonomic workspace"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = FALLBACK_IMAGE;
+          }}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-white p-7 sm:p-10 max-w-md shadow-xl border border-stone-100 space-y-3">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-400 block">
+              ERGONOMIC DESIGN
+            </span>
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight m-0">
+              For the 21st century
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed m-0">
+              We are proud to present our factory-crafted workspace systems. Clean proportions and enduring structural quality engineered to elevate your home office or studio.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Band 3: Alternating 2-Column Editorial Story ("Why Our product is best?") */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-16 sm:space-y-24">
+        {/* Row 1: Text Left, Photo Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="lg:col-span-5 space-y-4">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-400 block">
+              WHY
+            </span>
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight m-0">
+              Our product is best?
+            </h2>
+            <p className="text-sm text-stone-600 leading-relaxed m-0">
+              Unique Engineering &amp; Furniture ensures verified material quality across every ergonomic mechanism and CNC laser-cut steel frame. We never compromise on weld integrity, load stability, or comfort—so you receive studio-grade durability built for years of daily focus.
+            </p>
+          </div>
+
+          <div className="lg:col-span-7 overflow-hidden bg-stone-100 border border-stone-200/70 aspect-[4/3]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={LIFESTYLE_QUALITY_IMAGE}
+              alt="Engineered furniture inside modern office space"
+              loading="lazy"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+        </div>
+
+        {/* Row 2: Photo Left, Numbered Reasons Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="lg:col-span-7 overflow-hidden bg-stone-100 border border-stone-200/70 aspect-[4/3] order-2 lg:order-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={FOOTER_PROMOTIONS[0].image}
+              alt="Factory quality control and modern seating setup"
+              loading="lazy"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+
+          <div className="lg:col-span-5 space-y-5 order-1 lg:order-2">
+            <ol className="m-0 p-0 list-none space-y-4 text-sm text-stone-600 leading-relaxed">
+              <li className="flex gap-3">
+                <span className="font-bold text-neutral-900 shrink-0">1.</span>
+                <span>
+                  Every piece undergoes a multi-point pre-delivery quality check by our product specialists before it leaves our Dhaka facility.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-neutral-900 shrink-0">2.</span>
+                <span>
+                  We pair balanced ergonomic support with clean minimalist styling tailored for executive workstations, home studies, and gaming rigs.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-neutral-900 shrink-0">3.</span>
+                <span>
+                  Built from heavy-gauge powder-coated steel, breathable contract textiles, and precision mechanisms backed by direct factory service support.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* Customer Impressions Strip (Database Reviews when approved entries exist) */}
+      {approvedReviews.length > 0 && (
         <section
-          aria-label="Detailed product information"
-          className="mt-16 sm:mt-24 border-t border-stone-200 pt-10"
+          id="reviews-section"
+          aria-label="Client impressions"
+          className="border-t border-stone-200/80 py-14 bg-[#fafaf8]"
         >
-          <div
-            role="tablist"
-            aria-label="Product sections"
-            className="flex items-center justify-center gap-5 sm:gap-10 border-b border-stone-200/80 overflow-x-auto"
-          >
-            {tabs.map((tab, idx) => {
-              const selected = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  id={`tab-${tab.id}`}
-                  role="tab"
-                  type="button"
-                  aria-selected={selected}
-                  aria-controls={`panel-${tab.id}`}
-                  tabIndex={selected ? 0 : -1}
-                  onClick={() => setActiveTab(tab.id)}
-                  onKeyDown={(e) => handleTabKeyDown(e, idx)}
-                  className={`pb-3.5 text-sm sm:text-[15px] font-semibold whitespace-nowrap border-b-2 cursor-pointer transition-colors ${
-                    selected
-                      ? "border-neutral-900 text-neutral-900"
-                      : "border-transparent text-stone-400 hover:text-neutral-800"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div
-            id={`panel-${activeTab}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${activeTab}`}
-            className="max-w-4xl mx-auto py-8 text-stone-700 leading-relaxed"
-          >
-            {activeTab === "desc" && (
-              <div className="space-y-5 text-sm sm:text-[15px]">
-                {product.description && (
-                  <div
-                    className="leading-relaxed"
-                    dangerouslySetInnerHTML={{
-                      __html: renderRichDescription(product.description),
-                    }}
-                  />
-                )}
-                {product.features.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    {product.features.map((feat) => (
-                      <div
-                        key={feat}
-                        className="flex items-center gap-2.5 rounded-xl bg-[#fafaf8] border border-stone-200/70 px-4 py-3 text-sm text-neutral-800"
-                      >
-                        <CheckCircle2
-                          className="w-4 h-4 text-cyan-700 shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <p className="text-sm text-stone-600 m-0">
-                  Built to balance daily ergonomic posture support with clean architectural lines—crafted for studios, executive suites, and modern home setups across Bangladesh.
-                </p>
-              </div>
-            )}
-
-            {activeTab === "specs" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75 space-y-1">
-                  <div className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">
-                    Category
-                  </div>
-                  <div className="font-semibold text-neutral-900">
-                    {product.categoryName}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75 space-y-1">
-                  <div className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">
-                    Primary Material
-                  </div>
-                  <div className="font-semibold text-neutral-900">
-                    {product.material || "Contract-Grade Frame & High-Density Components"}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75 space-y-1">
-                  <div className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">
-                    Dimensions
-                  </div>
-                  <div className="font-semibold text-neutral-900">
-                    {product.dimensions
-                      ? `${product.dimensions.width || "-"}" W × ${
-                          product.dimensions.depth || "-"
-                        }" D × ${product.dimensions.height || "-"}" H`
-                      : "Standard Ergonomic Proportions (Custom sizing via WhatsApp)"}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75 space-y-1">
-                  <div className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">
-                    Warranty &amp; Assembly
-                  </div>
-                  <div className="font-semibold text-neutral-900">
-                    {product.weight
-                      ? `${product.weight} kg · Free Dhaka assembly`
-                      : "Included free assembly inside Dhaka Metro"}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "shipping" && (
-              <div className="space-y-4 text-sm">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75">
-                  <PackageCheck className="w-5 h-5 text-neutral-900 shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <h4 className="font-semibold text-neutral-900 m-0">
-                      Dhaka White-Glove Delivery &amp; Setup
-                    </h4>
-                    <p className="text-stone-600 mt-1 mb-0">
-                      Dispatched by Unique Engineering &amp; Furniture logistics personnel within 2–4 business days with in-room assembly.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75">
-                  <Clock className="w-5 h-5 text-neutral-900 shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <h4 className="font-semibold text-neutral-900 m-0">
-                      Nationwide 64-District Shipping
-                    </h4>
-                    <p className="text-stone-600 mt-1 mb-0">
-                      Protective wooden crating for safe courier transit outside Dhaka (typically 4–7 business days).
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-[#fafaf8] border border-stone-200/75">
-                  <ShieldCheck className="w-5 h-5 text-neutral-900 shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <h4 className="font-semibold text-neutral-900 m-0">
-                      Structural Frame Warranty &amp; Servicing
-                    </h4>
-                    <p className="text-stone-600 mt-1 mb-0">
-                      Backed by our dedicated factory servicing team—covering structural welds, pneumatic lifts, and motorized mechanisms.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Customer Reviews Strip */}
-        {approvedReviews.length > 0 && (
-          <section
-            id="reviews-section"
-            aria-label="Customer reviews"
-            className="mt-14 border-t border-stone-200 pt-12"
-          >
-            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400 m-0">
                   Verified Feedback
                 </p>
-                <h2 className="font-heading font-bold text-xl sm:text-2xl text-neutral-900 mt-1 mb-0">
+                <h2 className="font-heading font-bold text-2xl text-neutral-900 mt-1 mb-0">
                   Client Impressions
                 </h2>
               </div>
               <div className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600">
                 <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
-                <span>{product.rating.toFixed(1)} Average Satisfaction</span>
+                <span>{product.rating.toFixed(1)} Average Rating</span>
               </div>
             </div>
 
@@ -1299,7 +1189,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
               {approvedReviews.slice(0, 4).map((review) => (
                 <div
                   key={review._id}
-                  className="rounded-xl border border-stone-200/80 bg-[#fafaf8] p-4 flex flex-col justify-between space-y-3"
+                  className="bg-white border border-stone-200/80 p-5 flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-0.5 text-amber-400">
@@ -1322,81 +1212,89 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                       &ldquo;{review.comment}&rdquo;
                     </p>
                   </div>
-                  <div className="text-[11px] font-medium text-neutral-800 pt-2 border-t border-stone-200/70">
+                  <div className="text-[11px] font-medium text-neutral-800 pt-2 border-t border-stone-100">
                     {review.customerName}
                   </div>
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {/* Related Products Recommendations */}
-        {relatedProducts.length > 0 && (
-          <section
-            aria-label="You may also like"
-            className="mt-16 border-t border-stone-200 pt-12"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400 m-0">
-                  Explore More
-                </p>
-                <h2 className="font-heading font-bold text-2xl text-neutral-900 mt-1 mb-0">
-                  You May Also Like
-                </h2>
-              </div>
-              <Link
-                href={`/collections/${product.categorySlug}`}
-                className="text-xs font-semibold uppercase tracking-wider text-stone-600 hover:text-black flex items-center gap-1 no-underline transition-colors"
-              >
-                <span>View {product.categoryName}</span>
-                <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
-              </Link>
-            </div>
+      {/* Band 4: Centered 5-Column "You may also like" Row (matching mockup) */}
+      {relatedProducts.length > 0 && (
+        <section
+          aria-label="You may also like"
+          className="border-t border-stone-200/80 py-16 sm:py-20"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-neutral-900 text-center mb-10">
+              You may also like
+            </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
               {relatedProducts.map((rel) => (
                 <Link
                   key={rel.id}
                   href={`/products/${rel.slug}`}
-                  className="group block no-underline"
+                  className="group block no-underline text-center"
                 >
-                  <div className="aspect-square bg-[#f7f6f2] rounded-xl overflow-hidden border border-stone-200/70 relative">
+                  <div className="aspect-square bg-[#fafaf8] border border-stone-100 overflow-hidden relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={rel.primaryImage}
                       alt={rel.name}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
                     />
-                    {rel.badge && (
-                      <span className="absolute top-2.5 left-2.5 rounded-full bg-neutral-900/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
-                        {rel.badge}
-                      </span>
-                    )}
                   </div>
-                  <div className="mt-3">
-                    <h4 className="text-xs sm:text-sm font-medium text-neutral-900 group-hover:text-black truncate m-0">
+                  <div className="mt-3 space-y-1">
+                    <h4 className="text-xs font-medium text-neutral-900 group-hover:text-black line-clamp-1 m-0">
                       {rel.name}
                     </h4>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-neutral-900">
-                        {formatTk(rel.price)}
-                      </span>
+                    <div className="flex items-baseline justify-center gap-2 flex-wrap text-xs">
                       {rel.compareAtPrice && rel.compareAtPrice > rel.price && (
-                        <span className="text-[11px] text-stone-400 line-through">
+                        <span className="text-stone-400 line-through">
                           {formatTk(rel.compareAtPrice)}
                         </span>
                       )}
+                      <span className="font-semibold text-neutral-900">
+                        from {formatTk(rel.price)}
+                      </span>
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
-          </section>
-        )}
-      </div>
+          </div>
+        </section>
+      )}
+
+      {/* Band 5: 3-Column Brand Showcase Strip (matching bottom section of mockup) */}
+      <section className="border-t border-stone-200/80 py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+          {FOOTER_PROMOTIONS.map((promo) => (
+            <div key={promo.title} className="space-y-4">
+              <div className="aspect-[16/10] w-full overflow-hidden bg-stone-100 border border-stone-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={promo.image}
+                  alt={promo.title}
+                  loading="lazy"
+                  className="w-full h-full object-cover object-center"
+                />
+              </div>
+              <h3 className="font-heading font-bold text-base sm:text-lg text-neutral-900 m-0 leading-snug">
+                {promo.title}
+              </h3>
+              <p className="text-xs sm:text-[13px] text-stone-600 leading-relaxed m-0">
+                {promo.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Mobile Sticky Quick Purchase Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-stone-200 px-4 py-3 shadow-[0_-8px_24px_-8px_rgba(15,23,42,0.12)] flex items-center justify-between gap-3">
@@ -1409,10 +1307,10 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
         <button
           type="button"
           onClick={handleAddToCart}
-          className="h-10 px-5 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 shrink-0 cursor-pointer transition-colors"
+          className="h-10 px-5 bg-[#1a1a1a] hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 shrink-0 cursor-pointer transition-colors"
         >
           <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Add to Cart</span>
+          <span>Add to cart</span>
         </button>
       </div>
 
