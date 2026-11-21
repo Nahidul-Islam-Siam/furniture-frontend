@@ -5,6 +5,7 @@ export interface IProductItem {
   _id: string;
   name: string;
   slug: string;
+  shortDesc?: string;
   description: string;
   price: number;
   discountPrice?: number;
@@ -14,12 +15,17 @@ export interface IProductItem {
   images: string[];
   material?: string;
   colors?: string[];
+  sizes?: string[];
   dimensions?: {
     width?: number;
     height?: number;
     depth?: number;
     unit?: string;
   };
+  specifications?: Record<string, any>;
+  warranty?: string;
+  video?: string;
+  brand?: string;
   weight?: number;
   isFeatured?: boolean;
   isAvailable?: boolean;

@@ -42,6 +42,7 @@ interface NormalizedProduct {
   name: string;
   categoryName: string;
   categorySlug: string;
+  shortDesc?: string;
   description: string;
   images: string[];
   sellingPrice: number;
@@ -60,10 +61,29 @@ interface NormalizedProduct {
   numReviews?: number;
   features: string[];
   material?: string;
+  brand?: string;
+  warranty?: string;
+  video?: string;
   colors: string[];
+  sizes?: string[];
+  specifications?: Record<string, any>;
   dimensions?: IProductItem["dimensions"];
   weight?: number;
 }
+
+const getColorHex = (name: string): string => {
+  const lower = name.toLowerCase().trim();
+  if (lower.includes("black") || lower.includes("dark") || lower.includes("কালো")) return "#171717";
+  if (lower.includes("walnut") || lower.includes("brown") || lower.includes("বাদামী")) return "#5c3a21";
+  if (lower.includes("oak") || lower.includes("wood")) return "#c8ad7f";
+  if (lower.includes("oat") || lower.includes("beige") || lower.includes("অফ হোয়াইট")) return "#d4b996";
+  if (lower.includes("grey") || lower.includes("gray") || lower.includes("graphite")) return "#374151";
+  if (lower.includes("white") || lower.includes("সাদা")) return "#f9fafb";
+  if (lower.includes("navy") || lower.includes("blue") || lower.includes("নীল")) return "#1e3a8a";
+  if (lower.includes("green") || lower.includes("emerald") || lower.includes("সবুজ")) return "#064e3b";
+  if (lower.includes("gold") || lower.includes("brass") || lower.includes("সোনালী")) return "#d97706";
+  return "#475569";
+};
 
 const FALLBACK_IMAGE =
   "https://99grid.com/cdn/shop/files/cover-99grid-compressed_1400x.jpg?v=1767697385";
@@ -221,7 +241,13 @@ function normalizeProductData(
       numReviews: dbProduct.numReviews,
       features: staticProduct?.features || [],
       material: dbProduct.material,
+      brand: dbProduct.brand,
+      warranty: dbProduct.warranty,
+      video: dbProduct.video,
+      shortDesc: dbProduct.shortDesc,
       colors: dbProduct.colors || [],
+      sizes: dbProduct.sizes || [],
+      specifications: dbProduct.specifications,
       dimensions: dbProduct.dimensions,
       weight: dbProduct.weight,
     };
@@ -260,6 +286,7 @@ function normalizeProductData(
       rating: staticProduct.rating || 5,
       features: staticProduct.features || [],
       colors: [],
+      sizes: [],
     };
   }
 
@@ -419,6 +446,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Reset UI selections when switching product routes
@@ -426,19 +454,72 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
     setSelectedImageIndex(0);
     setQuantity(1);
     setSelectedColor("");
+    setSelectedSize("");
     setIsLightboxOpen(false);
   }, [slug]);
 
-  const activeColor =
-    selectedColor || (product?.colors.length ? product.colors[0] : "");
+  // Parse colors (Format: "Name:Hex:ImageIndex" or "Name:Hex" or "Name")
+  const parsedColors = useMemo(() => {
+    if (!product?.colors || product.colors.length === 0) return [];
+    return product.colors.map((colorStr, idx) => {
+      if (colorStr.includes(":")) {
+        const parts = colorStr.split(":");
+        const name = parts[0]?.trim() || colorStr;
+        const hex = parts[1]?.trim() || getColorHex(name);
+        const imgIdx =
+          parts[2] !== undefined && !isNaN(parseInt(parts[2], 10))
+            ? parseInt(parts[2], 10)
+            : idx < (product.images?.length || 0)
+            ? idx
+            : undefined;
+        return { raw: colorStr, name, hex, imageIndex: imgIdx };
+      }
+      if (colorStr.startsWith("#")) {
+        return {
+          raw: colorStr,
+          name: colorStr,
+          hex: colorStr,
+          imageIndex: idx < (product.images?.length || 0) ? idx : undefined,
+        };
+      }
+      return {
+        raw: colorStr,
+        name: colorStr,
+        hex: getColorHex(colorStr),
+        imageIndex: idx < (product.images?.length || 0) ? idx : undefined,
+      };
+    });
+  }, [product?.colors, product?.images]);
+
+  const activeColorObj = parsedColors.length > 0
+    ? (parsedColors.find((c) => c.name === selectedColor) || parsedColors[0])
+    : null;
+  const activeColor = activeColorObj?.name || "";
+
+  const activeSize = product?.sizes && product.sizes.length > 0
+    ? selectedSize || product.sizes[0]
+    : "";
+
+  const handleSelectColor = (c: { name: string; hex: string; imageIndex?: number }) => {
+    setSelectedColor(c.name);
+    if (
+      c.imageIndex !== undefined &&
+      c.imageIndex >= 0 &&
+      c.imageIndex < (product?.images?.length || 0)
+    ) {
+      setSelectedImageIndex(c.imageIndex);
+    }
+  };
 
   const cartProduct: Product | null = useMemo(() => {
     if (!product) return null;
-    const variantTitle = activeColor
-      ? `${product.name} (${activeColor})`
-      : product.name;
+    const variantParts = [activeColor, activeSize].filter(Boolean);
+    const variantSuffix = variantParts.length ? ` (${variantParts.join(" / ")})` : "";
+    const variantTitle = `${product.name}${variantSuffix}`;
+    const variantId = variantParts.length ? `${product.id}-${variantParts.join("-")}` : product.id;
+
     return {
-      id: activeColor ? `${product.id}-${activeColor}` : product.id,
+      id: variantId,
       title: variantTitle,
       category: product.categoryName as Product["category"],
       link: `/products/${product.slug}`,
@@ -458,7 +539,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
       deliveryOutsideDhaka: product.deliveryOutsideDhaka,
       tag: product.badgeText,
     };
-  }, [product, activeColor]);
+  }, [product, activeColor, activeSize]);
 
   // Collect 5 related items merging backend products and static category peers
   const relatedProducts = useMemo(() => {
@@ -822,33 +903,88 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                   </span>
                 )}
               </div>
+
+              {/* Short Summary Highlight (matching e-commerce standard) */}
+              {product.shortDesc && (
+                <p className="text-xs sm:text-[13px] text-stone-600 leading-relaxed bg-[#faf9f6] p-3 rounded-xl border border-stone-200/70 m-0">
+                  {product.shortDesc}
+                </p>
+              )}
             </div>
 
-            {/* Finish / Variant Selector (when backend defines color variants) */}
-            {product.colors.length > 0 && (
-              <div className="space-y-2.5">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-800">
-                  COLOR:{" "}
-                  <span className="text-stone-500 font-normal capitalize">
-                    {activeColor}
+            {/* Visual Round Color Swatches (matching e-commerce standard) */}
+            {parsedColors.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-neutral-900 uppercase tracking-[0.1em] text-[11px]">
+                    Color / Finish: <strong className="text-stone-900 normal-case font-bold">{activeColor}</strong>
+                  </span>
+                  <span className="text-[10px] text-stone-400">{parsedColors.length} finish options</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {parsedColors.map((c) => {
+                    const isSelected = activeColor === c.name;
+                    const isLight =
+                      c.hex.toLowerCase() === "#ffffff" ||
+                      c.hex.toLowerCase() === "#f9fafb" ||
+                      c.hex.toLowerCase() === "#f5f2eb";
+
+                    return (
+                      <button
+                        key={c.raw}
+                        type="button"
+                        onClick={() => handleSelectColor(c)}
+                        title={`${c.name}${c.imageIndex !== undefined ? ` (Click to view Photo #${c.imageIndex + 1})` : ""}`}
+                        aria-label={`Select color ${c.name}`}
+                        className={`group relative size-9 sm:size-10 rounded-full transition-all duration-200 flex items-center justify-center cursor-pointer shadow-xs ${
+                          isSelected
+                            ? "ring-2 ring-neutral-900 ring-offset-2 scale-105"
+                            : "opacity-85 hover:opacity-100 hover:scale-105 ring-1 ring-stone-300"
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                      >
+                        {isSelected && (
+                          <Check
+                            className={`size-3.5 stroke-[3] ${
+                              isLight ? "text-neutral-900" : "text-white"
+                            }`}
+                          />
+                        )}
+                        {/* Desktop Hover Tooltip */}
+                        <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-stone-900 text-white text-[9px] font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 hidden sm:block">
+                          {c.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Furniture Size Selector Chips (matching e-commerce standard) */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-neutral-900 uppercase tracking-[0.1em] text-[11px]">
+                    Size / Dimension: <strong className="text-stone-900 normal-case font-bold">{activeSize}</strong>
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map((color) => {
-                    const isSelected = activeColor === color;
+                  {product.sizes.map((size) => {
+                    const isSelected = activeSize === size;
                     return (
                       <button
-                        key={color}
+                        key={size}
                         type="button"
-                        onClick={() => setSelectedColor(color)}
-                        aria-pressed={isSelected}
-                        className={`px-3.5 py-2 text-xs font-medium cursor-pointer transition-colors ${
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-3.5 py-1.5 rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer ${
                           isSelected
-                            ? "border-2 border-neutral-900 bg-white text-neutral-900 font-semibold"
-                            : "border border-stone-300 bg-white text-stone-700 hover:border-neutral-900"
+                            ? "bg-neutral-900 text-white shadow-xs"
+                            : "bg-white border border-stone-300 text-stone-700 hover:border-neutral-900 hover:bg-stone-50"
                         }`}
                       >
-                        {color}
+                        {isSelected && <Check className="size-3 text-amber-400" />}
+                        <span>{size}</span>
                       </button>
                     );
                   })}
@@ -996,6 +1132,12 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                   Specifications &amp; Material Notes
                 </h2>
                 <dl className="m-0 grid grid-cols-1 gap-2 text-xs sm:text-[13px]">
+                  {product.brand && (
+                    <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
+                      <dt className="font-semibold text-neutral-800">Brand</dt>
+                      <dd className="m-0 text-stone-600 text-right">{product.brand}</dd>
+                    </div>
+                  )}
                   <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
                     <dt className="font-semibold text-neutral-800">Collection</dt>
                     <dd className="m-0 text-stone-600 text-right">{product.categoryName}</dd>
@@ -1031,9 +1173,25 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
                   <div className="flex justify-between gap-4 py-1.5 border-b border-stone-100">
                     <dt className="font-semibold text-neutral-800">Warranty</dt>
                     <dd className="m-0 text-stone-600 text-right">
-                      Up to 5-Year UEF Structural Frame Support
+                      {product.warranty || "Up to 5-Year UEF Structural Frame Support"}
                     </dd>
                   </div>
+
+                  {/* Dynamic Technical Specifications from Admin Form */}
+                  {product.specifications &&
+                    Object.entries(
+                      typeof product.specifications === "string"
+                        ? JSON.parse(product.specifications)
+                        : product.specifications
+                    ).map(([k, v], idx) => (
+                      <div
+                        key={idx}
+                        className="flex justify-between gap-4 py-1.5 border-b border-stone-100"
+                      >
+                        <dt className="font-semibold text-neutral-800">{k}</dt>
+                        <dd className="m-0 text-stone-600 text-right">{String(v)}</dd>
+                      </div>
+                    ))}
                 </dl>
               </div>
 
