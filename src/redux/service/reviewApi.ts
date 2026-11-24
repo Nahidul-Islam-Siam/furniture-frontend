@@ -22,11 +22,13 @@ export interface IReview {
 }
 
 export interface CreateReviewPayload {
+  productId?: string;
   customerName: string;
   customerEmail?: string;
   rating: number;
   title?: string;
   comment: string;
+  images?: string[];
   orderId?: string;
   trackingRef?: string;
 }
@@ -55,7 +57,7 @@ export const reviewApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getPublicReviews: builder.query<
       ReviewListResponse,
-      { isFeatured?: boolean; page?: number; limit?: number } | void
+      { productId?: string; isFeatured?: boolean; page?: number; limit?: number } | void
     >({
       query: (params) => ({
         url: "/reviews/public",

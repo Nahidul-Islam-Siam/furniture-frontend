@@ -10,6 +10,7 @@ import {
   IProductItem,
 } from "@/redux/service/productApi";
 import { useGetPublicReviewsQuery } from "@/redux/service/reviewApi";
+import { ProductReviewSection } from "@/components/product/ProductReviewSection";
 import { useCart } from "@/context/CartContext";
 import { ALL_PRODUCTS, FOOTER_PROMOTIONS, Product } from "@/data/gridData";
 import {
@@ -1356,65 +1357,13 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
         </div>
       </section>
 
-      {/* Customer Impressions Strip (Database Reviews when approved entries exist) */}
-      {approvedReviews.length > 0 && (
-        <section
-          id="reviews-section"
-          aria-label="Client impressions"
-          className="border-t border-stone-200/80 py-14 bg-[#fafaf8]"
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400 m-0">
-                  Verified Feedback
-                </p>
-                <h2 className="font-heading font-bold text-2xl text-neutral-900 mt-1 mb-0">
-                  Client Impressions
-                </h2>
-              </div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600">
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
-                <span>{product.rating.toFixed(1)} Average Rating</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {approvedReviews.slice(0, 4).map((review) => (
-                <div
-                  key={review._id}
-                  className="bg-white border border-stone-200/80 p-5 flex flex-col justify-between space-y-3"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-0.5 text-amber-400">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-3.5 h-3.5 ${
-                            i < review.rating ? "fill-current" : "text-stone-300"
-                          }`}
-                          aria-hidden="true"
-                        />
-                      ))}
-                    </div>
-                    {review.title && (
-                      <h3 className="text-xs font-semibold text-neutral-900 m-0">
-                        {review.title}
-                      </h3>
-                    )}
-                    <p className="text-xs text-stone-600 leading-relaxed m-0 line-clamp-4">
-                      &ldquo;{review.comment}&rdquo;
-                    </p>
-                  </div>
-                  <div className="text-[11px] font-medium text-neutral-800 pt-2 border-t border-stone-100">
-                    {review.customerName}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Customer Reviews & Impressions Section */}
+      <ProductReviewSection
+        productId={product.id}
+        productName={product.name}
+        initialRating={product.rating}
+        initialNumReviews={product.numReviews}
+      />
 
       {/* Band 4: Centered 5-Column "You may also like" Row (matching mockup) */}
       {relatedProducts.length > 0 && (
