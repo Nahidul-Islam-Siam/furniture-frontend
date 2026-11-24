@@ -90,7 +90,7 @@ export default function CheckoutPage() {
   // 3. Payment Method
   const [paymentMethod, setPaymentMethod] = useState<
     "cod" | "sslcommerz" | "bank_transfer" | "manual_bkash" | "manual_nagad" | "manual_rocket"
-  >("cod");
+  >("bank_transfer");
   const [manualProvider, setManualProvider] = useState<"bkash" | "nagad" | "rocket">("bkash");
   const [manualSenderPhone, setManualSenderPhone] = useState("");
   const [manualTrxId, setManualTrxId] = useState("");
@@ -702,63 +702,62 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {/* Option 1: COD */}
-                  <label
-                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-                      paymentMethod === "cod"
-                        ? "border-black bg-neutral-900 text-white shadow-xs"
-                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
-                    }`}
+                  {/* Option 1: COD (Blurred / Unavailable) */}
+                  <div
+                    className="relative p-4 rounded-2xl border border-neutral-200/80 bg-neutral-100/70 select-none cursor-not-allowed opacity-50 overflow-hidden flex flex-col justify-between gap-3"
+                    title="Cash on Delivery is currently paused for custom furniture production"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-neutral-200 text-neutral-600 border border-neutral-300">
+                      Paused
+                    </div>
+                    <div className="flex items-start justify-between filter blur-[0.8px] pointer-events-none">
                       <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                          paymentMethod === "cod" ? "bg-neutral-800 text-amber-400" : "bg-amber-100 text-amber-700"
-                        }`}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-neutral-200 text-neutral-500">
                           <Banknote className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-bold">Cash on Delivery</div>
-                          <div className={`text-[10px] ${paymentMethod === "cod" ? "text-neutral-300" : "text-neutral-500"}`}>
-                            Pay upon delivery
+                          <div className="text-xs font-bold text-neutral-700">Cash on Delivery (COD)</div>
+                          <div className="text-[10px] text-neutral-400">
+                            হাতে পেয়ে মূল্য পরিশোধ
                           </div>
                         </div>
                       </div>
                       <input
                         type="radio"
-                        name="paymentMethod"
-                        checked={paymentMethod === "cod"}
-                        onChange={() => setPaymentMethod("cod")}
-                        className="mt-1 w-4 h-4 text-black focus:ring-black"
+                        disabled
+                        checked={false}
+                        className="mt-1 w-4 h-4 text-neutral-300 cursor-not-allowed"
                       />
                     </div>
-                    <div className={`text-[11px] p-2 rounded-lg border leading-tight ${
-                      paymentMethod === "cod"
-                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
-                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
-                    }`}>
+                    <div className="text-[11px] p-2 rounded-lg border border-neutral-200 bg-white/60 text-neutral-500 leading-tight filter blur-[0.8px] pointer-events-none">
                       Pay 100% cash upon unboxing &amp; physical inspection.
                     </div>
-                  </label>
+                  </div>
 
-                  {/* Option 2: Direct Bank Transfer (Dutch-Bangla Bank) */}
+                  {/* Option 2: Direct Bank Transfer (Dutch-Bangla Bank) - ACTIVE & RECOMMENDED */}
                   <label
-                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ring-2 ring-amber-400/50 shadow-md ${
                       paymentMethod === "bank_transfer"
-                        ? "border-black bg-neutral-900 text-white shadow-xs"
+                        ? "border-amber-400 bg-neutral-900 text-white"
                         : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-amber-500 text-neutral-950 shadow-sm flex items-center gap-1">
+                      <Sparkles className="size-2.5 fill-current" /> Recommended
+                    </div>
+
+                    <div className="flex items-start justify-between pt-1">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                          paymentMethod === "bank_transfer" ? "bg-neutral-800 text-amber-300" : "bg-amber-100 text-amber-800"
+                          paymentMethod === "bank_transfer" ? "bg-amber-400/20 text-amber-300 border border-amber-400/40" : "bg-amber-100 text-amber-800"
                         }`}>
                           <Landmark className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-bold">Bank Transfer</div>
-                          <div className={`text-[10px] ${paymentMethod === "bank_transfer" ? "text-neutral-300" : "text-neutral-500"}`}>
+                          <div className="text-xs font-bold flex items-center gap-1.5">
+                            Bank Transfer
+                          </div>
+                          <div className={`text-[10px] ${paymentMethod === "bank_transfer" ? "text-amber-200/90" : "text-neutral-500"}`}>
                             Dutch-Bangla Bank
                           </div>
                         </div>
@@ -768,99 +767,82 @@ export default function CheckoutPage() {
                         name="paymentMethod"
                         checked={paymentMethod === "bank_transfer"}
                         onChange={() => setPaymentMethod("bank_transfer")}
-                        className="mt-1 w-4 h-4 text-black focus:ring-black"
+                        className="mt-1 w-4 h-4 text-amber-500 focus:ring-amber-400"
                       />
                     </div>
-                    <div className={`text-[11px] p-2 rounded-lg border leading-tight flex items-center gap-1 ${
+                    <div className={`text-[10px] p-2 rounded-lg border leading-tight flex items-center gap-1 ${
                       paymentMethod === "bank_transfer"
-                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
+                        ? "bg-neutral-800/90 border-amber-400/30 text-amber-100/90"
                         : "bg-neutral-50 border-neutral-100 text-neutral-600"
                     }`}>
                       <Sparkles className="size-3 text-amber-400 shrink-0" />
-                      Direct DBBL transfer (Full / Advance).
+                      Recommended for High-Value Furniture • 0% Extra Fee
                     </div>
                   </label>
 
-                  {/* Option 3: Manual Mobile Banking (bKash / Nagad / Rocket) */}
-                  <label
-                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-                      paymentMethod.startsWith("manual_")
-                        ? "border-black bg-neutral-900 text-white shadow-xs"
-                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
-                    }`}
+                  {/* Option 3: Manual Mobile Banking (Blurred / Unavailable) */}
+                  <div
+                    className="relative p-4 rounded-2xl border border-neutral-200/80 bg-neutral-100/70 select-none cursor-not-allowed opacity-50 overflow-hidden flex flex-col justify-between gap-3"
+                    title="Mobile banking merchant channels under upgrade"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-neutral-200 text-neutral-600 border border-neutral-300">
+                      Paused
+                    </div>
+                    <div className="flex items-start justify-between filter blur-[0.8px] pointer-events-none">
                       <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                          paymentMethod.startsWith("manual_") ? "bg-neutral-800 text-pink-400" : "bg-pink-100 text-pink-600"
-                        }`}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-neutral-200 text-neutral-500">
                           <Smartphone className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-bold">bKash / Nagad</div>
-                          <div className={`text-[10px] ${paymentMethod.startsWith("manual_") ? "text-neutral-300" : "text-neutral-500"}`}>
-                            Send Money + TrxID
+                          <div className="text-xs font-bold text-neutral-700">bKash / Nagad / Rocket</div>
+                          <div className="text-[10px] text-neutral-400">
+                            মোবাইল ব্যাংকিং
                           </div>
                         </div>
                       </div>
                       <input
                         type="radio"
-                        name="paymentMethod"
-                        checked={paymentMethod.startsWith("manual_")}
-                        onChange={() => {
-                          setPaymentMethod(`manual_${manualProvider}` as any);
-                        }}
-                        className="mt-1 w-4 h-4 text-black focus:ring-black"
+                        disabled
+                        checked={false}
+                        className="mt-1 w-4 h-4 text-neutral-300 cursor-not-allowed"
                       />
                     </div>
-                    <div className={`text-[11px] p-2 rounded-lg border leading-tight ${
-                      paymentMethod.startsWith("manual_")
-                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
-                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
-                    }`}>
-                      Mobile transfer (Full or Advance Booking).
+                    <div className="text-[11px] p-2 rounded-lg border border-neutral-200 bg-white/60 text-neutral-500 leading-tight filter blur-[0.8px] pointer-events-none">
+                      Send Money + TrxID (আপগ্রেড চলছে).
                     </div>
-                  </label>
+                  </div>
 
-                  {/* Option 4: SSLCommerz Gateway */}
-                  <label
-                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-                      paymentMethod === "sslcommerz"
-                        ? "border-black bg-neutral-900 text-white shadow-xs"
-                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
-                    }`}
+                  {/* Option 4: SSLCommerz Gateway (Blurred / Unavailable) */}
+                  <div
+                    className="relative p-4 rounded-2xl border border-neutral-200/80 bg-neutral-100/70 select-none cursor-not-allowed opacity-50 overflow-hidden flex flex-col justify-between gap-3"
+                    title="Online payment gateway currently in maintenance"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-neutral-200 text-neutral-600 border border-neutral-300">
+                      Paused
+                    </div>
+                    <div className="flex items-start justify-between filter blur-[0.8px] pointer-events-none">
                       <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                          paymentMethod === "sslcommerz" ? "bg-neutral-800 text-rose-400" : "bg-rose-100 text-rose-600"
-                        }`}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-neutral-200 text-neutral-500">
                           <CreditCard className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-bold">Online Gateway</div>
-                          <div className={`text-[10px] ${paymentMethod === "sslcommerz" ? "text-neutral-300" : "text-neutral-500"}`}>
-                            Cards &amp; Instant MFS
+                          <div className="text-xs font-bold text-neutral-700">Online Gateway</div>
+                          <div className="text-[10px] text-neutral-400">
+                            কার্ড ও ইনস্ট্যান্ট SSLCommerz
                           </div>
                         </div>
                       </div>
                       <input
                         type="radio"
-                        name="paymentMethod"
-                        checked={paymentMethod === "sslcommerz"}
-                        onChange={() => setPaymentMethod("sslcommerz")}
-                        className="mt-1 w-4 h-4 text-black focus:ring-black"
+                        disabled
+                        checked={false}
+                        className="mt-1 w-4 h-4 text-neutral-300 cursor-not-allowed"
                       />
                     </div>
-                    <div className={`text-[11px] p-2 rounded-lg border leading-tight flex items-center gap-1.5 ${
-                      paymentMethod === "sslcommerz"
-                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
-                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
-                    }`}>
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      Instant SSLCommerz secure checkout.
+                    <div className="text-[11px] p-2 rounded-lg border border-neutral-200 bg-white/60 text-neutral-500 leading-tight filter blur-[0.8px] pointer-events-none">
+                      কার্ড ও গেটওয়ে ইন্টিগ্রেশন আপডেট হচ্ছে।
                     </div>
-                  </label>
+                  </div>
                 </div>
 
                 {/* ═══ EXPANDED DIRECT BANK TRANSFER CARD (DUTCH-BANGLA AGENT BANKING) ═══ */}
