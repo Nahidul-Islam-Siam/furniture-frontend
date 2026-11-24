@@ -43,9 +43,24 @@ export function getPaymentStatus(order: Partial<IOrder> | any): string {
 
 export function getPaymentTransactionId(order: Partial<IOrder> | any): string {
   if (!order) return "";
-  return (
-    order.payment?.transactionId ||
-    `TXN-${order.orderNumber || order._id?.slice(-6)?.toUpperCase() || "UEF"}`
-  );
+  return order.payment?.transactionId || "";
+}
+
+export function getPaymentSenderNumber(order: Partial<IOrder> | any): string {
+  if (!order) return "";
+  return order.payment?.senderNumber || "";
+}
+
+export function getPaymentAdvanceAmount(order: Partial<IOrder> | any): number {
+  if (!order) return 0;
+  return order.payment?.advanceAmount ?? 0;
+}
+
+export function getPaymentDueAmount(order: Partial<IOrder> | any): number {
+  if (!order) return 0;
+  if (order.payment?.dueAmount !== undefined) return order.payment.dueAmount;
+  const total = getOrderAmount(order);
+  const advance = getPaymentAdvanceAmount(order);
+  return Math.max(0, total - advance);
 }
 

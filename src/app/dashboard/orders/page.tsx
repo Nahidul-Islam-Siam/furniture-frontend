@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Table, Tag, Button, Modal, Popconfirm, Input } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import AntdProvider from "@/lib/antd/AntdProvider";
-import { ShoppingBag, Eye, XCircle, Search } from "lucide-react";
+import { ShoppingBag, Eye, XCircle, Search, Printer } from "lucide-react";
 import { OrderProgressStepper } from "@/components/dashboard/OrderProgressStepper";
 import {
   useGetMyOrdersQuery,
@@ -18,6 +18,7 @@ import {
   getPaymentMethod,
   getPaymentStatus,
 } from "@/lib/orderUtils";
+import { OrderInvoiceModal } from "@/components/invoice/OrderInvoiceModal";
 import toast from "react-hot-toast";
 
 export default function MyOrdersPage() {
@@ -25,6 +26,8 @@ export default function MyOrdersPage() {
     useGetMyOrdersQuery();
   const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [invoiceOrder, setInvoiceOrder] = useState<IOrder | null>(null);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -131,13 +134,25 @@ export default function MyOrdersPage() {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Button
-          size="small"
-          icon={<Eye className="w-3.5 h-3.5" />}
-          onClick={() => setSelectedOrder(record)}
-        >
-          View Details
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="small"
+            icon={<Eye className="w-3.5 h-3.5" />}
+            onClick={() => setSelectedOrder(record)}
+          >
+            Details
+          </Button>
+          <Button
+            size="small"
+            icon={<Printer className="w-3.5 h-3.5" />}
+            onClick={() => {
+              setInvoiceOrder(record);
+              setIsInvoiceOpen(true);
+            }}
+          >
+            Invoice
+          </Button>
+        </div>
       ),
     },
   ];
@@ -365,9 +380,30 @@ export default function MyOrdersPage() {
                   Tk {getOrderAmount(selectedOrder).toLocaleString("en-BD")}.00
                 </span>
               </div>
+
+              {/* Action Buttons in Modal */}
+              <div className="pt-3 flex justify-end gap-2 border-t">
+                <Button
+                  icon={<Printer className="w-3.5 h-3.5" />}
+                  onClick={() => {
+                    setInvoiceOrder(selectedOrder);
+                    setIsInvoiceOpen(true);
+                  }}
+                  type="primary"
+                  className="bg-black hover:bg-neutral-800"
+                >
+                  Print Official Invoice
+                </Button>
+              </div>
             </div>
           )}
         </Modal>
+
+        <OrderInvoiceModal
+          order={invoiceOrder || selectedOrder}
+          isOpen={isInvoiceOpen}
+          onClose={() => setIsInvoiceOpen(false)}
+        />
       </div>
     </AntdProvider>
   );

@@ -34,9 +34,27 @@ export interface IOrder {
   discountAmount?: number;
   finalAmount: number;
   currency?: string;
-  paymentMethod: "sslcommerz" | "stripe" | "cod";
-  paymentStatus: "pending" | "paid" | "failed" | "refunded";
-  orderStatus: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  paymentMethod?: string;
+  paymentStatus?: "pending" | "paid" | "failed" | "refunded";
+  orderStatus?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status?: string;
+  payment?: {
+    method: string;
+    status: "pending" | "paid" | "failed" | "refunded";
+    transactionId?: string;
+    senderNumber?: string;
+    advanceAmount?: number;
+    dueAmount?: number;
+    paidAt?: string;
+  };
+  pricing?: {
+    subtotal: number;
+    shippingFee: number;
+    discount: number;
+    tax: number;
+    total: number;
+    currency: string;
+  };
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -92,6 +110,24 @@ export const orderApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Order", "AdminOverview"],
     }),
+    updateOrderPaymentStatus: builder.mutation<
+      { success: boolean; message: string; data: IOrder },
+      {
+        id: string;
+        status: "pending" | "paid" | "failed" | "refunded";
+        transactionId?: string;
+        senderNumber?: string;
+        advanceAmount?: number;
+        notes?: string;
+      }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/orders/${id}/payment-status`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Order", "AdminOverview"],
+    }),
     cancelOrder: builder.mutation<
       { success: boolean; message: string; data: IOrder },
       string
@@ -120,6 +156,7 @@ export const {
   useGetMyOrdersQuery,
   useGetOrderByIdQuery,
   useUpdateOrderStatusMutation,
+  useUpdateOrderPaymentStatusMutation,
   useCancelOrderMutation,
   useInitiateSSLCommerzMutation,
 } = orderApi;

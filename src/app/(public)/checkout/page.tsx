@@ -26,6 +26,8 @@ import {
   Check,
   X,
   Wrench,
+  Smartphone,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
@@ -39,6 +41,7 @@ import {
   ALL_DISTRICT_NAMES,
 } from "@/lib/bangladesh-geo";
 import { DELIVERY_RATES } from "@/lib/delivery-config";
+import { MOBILE_BANKING_CONFIG } from "@/lib/payment-config";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -84,7 +87,15 @@ export default function CheckoutPage() {
   const [orderNote, setOrderNote] = useState("");
 
   // 3. Payment Method
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "sslcommerz">("cod");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cod" | "sslcommerz" | "manual_bkash" | "manual_nagad" | "manual_rocket"
+  >("cod");
+  const [manualProvider, setManualProvider] = useState<"bkash" | "nagad" | "rocket">("bkash");
+  const [manualSenderPhone, setManualSenderPhone] = useState("");
+  const [manualTrxId, setManualTrxId] = useState("");
+  const [isAdvancePayment, setIsAdvancePayment] = useState(false);
+  const [advanceAmountInput, setAdvanceAmountInput] = useState<number>(1000);
+  const [copiedNumber, setCopiedNumber] = useState(false);
 
   // Sync user info if loaded from redux
   useEffect(() => {
@@ -200,6 +211,18 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (paymentMethod.startsWith("manual_")) {
+      const cleanSender = manualSenderPhone.trim().replace(/\D/g, "");
+      if (!cleanSender || cleanSender.length < 10) {
+        toast.error("Please enter your sender mobile banking phone number");
+        return;
+      }
+      if (!manualTrxId.trim() || manualTrxId.trim().length < 4) {
+        toast.error("Please enter the Transaction ID (TrxID) from your payment confirmation SMS or app");
+        return;
+      }
+    }
+
     // Compose detailed delivery instructions
     const fullNotes = [
       `Floor: ${floorNumber}`,
@@ -240,6 +263,14 @@ export default function CheckoutPage() {
           country: "Bangladesh",
         },
         paymentMethod: paymentMethod,
+        transactionId: paymentMethod.startsWith("manual_") ? manualTrxId.trim() : undefined,
+        senderNumber: paymentMethod.startsWith("manual_") ? manualSenderPhone.trim() : undefined,
+        advanceAmount:
+          paymentMethod.startsWith("manual_") && isAdvancePayment
+            ? advanceAmountInput
+            : paymentMethod.startsWith("manual_")
+            ? totalAmount
+            : 0,
         shippingFee: deliveryCharge,
         discount: 0,
         notes: fullNotes,
@@ -645,23 +676,27 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* COD Option */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Option 1: COD */}
                   <label
                     className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
                       paymentMethod === "cod"
-                        ? "border-black bg-neutral-50/70 shadow-xs"
-                        : "border-neutral-200 hover:border-neutral-300 bg-white"
+                        ? "border-black bg-neutral-900 text-white shadow-xs"
+                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                          <Banknote className="w-5 h-5" />
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                          paymentMethod === "cod" ? "bg-neutral-800 text-amber-400" : "bg-amber-100 text-amber-700"
+                        }`}>
+                          <Banknote className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-neutral-900">Cash on Delivery</div>
-                          <div className="text-xs text-neutral-500">Pay upon physical inspection</div>
+                          <div className="text-xs font-bold">Cash on Delivery</div>
+                          <div className={`text-[10px] ${paymentMethod === "cod" ? "text-neutral-300" : "text-neutral-500"}`}>
+                            Pay upon delivery
+                          </div>
                         </div>
                       </div>
                       <input
@@ -672,27 +707,76 @@ export default function CheckoutPage() {
                         className="mt-1 w-4 h-4 text-black focus:ring-black"
                       />
                     </div>
-                    <div className="text-[11px] text-neutral-600 bg-white p-2 rounded-lg border border-neutral-100">
-                      ✓ Pay cash directly to delivery personnel after unboxing and inspection.
+                    <div className={`text-[11px] p-2 rounded-lg border leading-tight ${
+                      paymentMethod === "cod"
+                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
+                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
+                    }`}>
+                      Pay 100% cash upon unboxing &amp; physical inspection.
                     </div>
                   </label>
 
-                  {/* SSLCommerz Online Option */}
+                  {/* Option 2: Manual Mobile Banking (bKash / Nagad / Rocket) */}
                   <label
                     className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-                      paymentMethod === "sslcommerz"
-                        ? "border-black bg-neutral-50/70 shadow-xs"
-                        : "border-neutral-200 hover:border-neutral-300 bg-white"
+                      paymentMethod.startsWith("manual_")
+                        ? "border-black bg-neutral-900 text-white shadow-xs"
+                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                          <CreditCard className="w-5 h-5" />
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                          paymentMethod.startsWith("manual_") ? "bg-neutral-800 text-pink-400" : "bg-pink-100 text-pink-600"
+                        }`}>
+                          <Smartphone className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-neutral-900">Online Payment</div>
-                          <div className="text-xs text-neutral-500">bKash, Nagad, Visa, Mastercard</div>
+                          <div className="text-xs font-bold">bKash / Nagad</div>
+                          <div className={`text-[10px] ${paymentMethod.startsWith("manual_") ? "text-neutral-300" : "text-neutral-500"}`}>
+                            Send Money + TrxID
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        checked={paymentMethod.startsWith("manual_")}
+                        onChange={() => {
+                          setPaymentMethod(`manual_${manualProvider}` as any);
+                        }}
+                        className="mt-1 w-4 h-4 text-black focus:ring-black"
+                      />
+                    </div>
+                    <div className={`text-[11px] p-2 rounded-lg border leading-tight ${
+                      paymentMethod.startsWith("manual_")
+                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
+                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
+                    }`}>
+                      Direct transfer with TrxID (Full or Advance Booking).
+                    </div>
+                  </label>
+
+                  {/* Option 3: SSLCommerz Gateway */}
+                  <label
+                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                      paymentMethod === "sslcommerz"
+                        ? "border-black bg-neutral-900 text-white shadow-xs"
+                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                          paymentMethod === "sslcommerz" ? "bg-neutral-800 text-rose-400" : "bg-rose-100 text-rose-600"
+                        }`}>
+                          <CreditCard className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold">Online Gateway</div>
+                          <div className={`text-[10px] ${paymentMethod === "sslcommerz" ? "text-neutral-300" : "text-neutral-500"}`}>
+                            Cards &amp; Instant MFS
+                          </div>
                         </div>
                       </div>
                       <input
@@ -703,12 +787,148 @@ export default function CheckoutPage() {
                         className="mt-1 w-4 h-4 text-black focus:ring-black"
                       />
                     </div>
-                    <div className="text-[11px] text-neutral-600 bg-white p-2 rounded-lg border border-neutral-100 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      Instant SSLCommerz secure checkout gateway.
+                    <div className={`text-[11px] p-2 rounded-lg border leading-tight flex items-center gap-1.5 ${
+                      paymentMethod === "sslcommerz"
+                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
+                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
+                    }`}>
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      Instant SSLCommerz secure checkout.
                     </div>
                   </label>
                 </div>
+
+                {/* ═══ EXPANDED MOBILE BANKING DETAILS FORM ═══ */}
+                {paymentMethod.startsWith("manual_") && (
+                  <div className="mt-4 p-4 sm:p-5 rounded-2xl border-2 border-neutral-900 bg-neutral-50/70 space-y-4 animate-in fade-in-50 duration-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 pb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-1.5">
+                        <Smartphone className="size-3.5 text-pink-600" /> Select Mobile Banking Wallet:
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {(["bkash", "nagad", "rocket"] as const).map((prov) => (
+                          <button
+                            key={prov}
+                            type="button"
+                            onClick={() => {
+                              setManualProvider(prov);
+                              setPaymentMethod(`manual_${prov}` as any);
+                            }}
+                            className={`px-3 py-1 text-xs font-bold rounded-lg border transition ${
+                              manualProvider === prov
+                                ? "bg-black text-white border-black shadow-xs"
+                                : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                            }`}
+                          >
+                            {prov === "bkash" ? "bKash" : prov === "nagad" ? "Nagad" : "Rocket"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Official Account Number Card with Copy */}
+                    <div className="p-3.5 rounded-xl bg-white border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] font-medium text-neutral-500">
+                          Official {MOBILE_BANKING_CONFIG[manualProvider].name} ({MOBILE_BANKING_CONFIG[manualProvider].type}) Account:
+                        </div>
+                        <div className="text-base sm:text-lg font-mono font-black text-neutral-900 tracking-wider mt-0.5">
+                          {MOBILE_BANKING_CONFIG[manualProvider].number}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(MOBILE_BANKING_CONFIG[manualProvider].number);
+                          setCopiedNumber(true);
+                          toast.success(`${MOBILE_BANKING_CONFIG[manualProvider].name} number copied!`);
+                          setTimeout(() => setCopiedNumber(false), 2500);
+                        }}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 transition active:scale-95 shrink-0"
+                      >
+                        {copiedNumber ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
+                        {copiedNumber ? "Copied!" : "Copy Number"}
+                      </button>
+                    </div>
+
+                    {/* Advance Booking vs Full Payment Toggle */}
+                    <div className="space-y-2 p-3 rounded-xl bg-white border border-neutral-200">
+                      <div className="text-xs font-bold text-neutral-800">Payment Option:</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label className={`p-2.5 rounded-lg border cursor-pointer flex items-center justify-between ${
+                          !isAdvancePayment ? "border-black bg-neutral-900 text-white font-bold" : "border-neutral-200 bg-neutral-50"
+                        }`}>
+                          <span>Pay Full Amount (Tk {totalAmount.toLocaleString("en-BD")})</span>
+                          <input
+                            type="radio"
+                            name="advanceChoice"
+                            checked={!isAdvancePayment}
+                            onChange={() => setIsAdvancePayment(false)}
+                            className="sr-only"
+                          />
+                        </label>
+                        <label className={`p-2.5 rounded-lg border cursor-pointer flex items-center justify-between ${
+                          isAdvancePayment ? "border-black bg-neutral-900 text-white font-bold" : "border-neutral-200 bg-neutral-50"
+                        }`}>
+                          <span>Pay Advance Booking (৳{advanceAmountInput}) + COD Rest</span>
+                          <input
+                            type="radio"
+                            name="advanceChoice"
+                            checked={isAdvancePayment}
+                            onChange={() => setIsAdvancePayment(true)}
+                            className="sr-only"
+                          />
+                        </label>
+                      </div>
+                      {isAdvancePayment && (
+                        <div className="pt-2 flex items-center gap-2 text-xs">
+                          <span className="text-neutral-600">Advance Amount:</span>
+                          <input
+                            type="number"
+                            min={100}
+                            max={totalAmount}
+                            value={advanceAmountInput}
+                            onChange={(e) => setAdvanceAmountInput(Math.max(100, Number(e.target.value) || 0))}
+                            className="w-28 px-2 py-1 text-xs border rounded-lg font-mono font-bold"
+                          />
+                          <span className="text-neutral-500 text-[11px]">
+                            (Remaining ৳{(totalAmount - advanceAmountInput).toLocaleString("en-BD")} on COD delivery)
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sender Details Input Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block">
+                          Your Sender Number *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="e.g. 01XXXXXXXXX"
+                          value={manualSenderPhone}
+                          onChange={(e) => setManualSenderPhone(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black bg-white font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block">
+                          Transaction ID (TrxID) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. 9J8A7D6F or SMS reference"
+                          value={manualTrxId}
+                          onChange={(e) => setManualTrxId(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black bg-white font-mono uppercase"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -830,6 +1050,19 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                   </div>
+
+                  {paymentMethod.startsWith("manual_") && isAdvancePayment && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 text-xs">
+                      <div className="flex justify-between font-bold text-amber-900">
+                        <span>Advance Paid (TrxID):</span>
+                        <span className="font-mono">Tk {advanceAmountInput.toLocaleString("en-BD")}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-neutral-800">
+                        <span>Remaining Due on Delivery:</span>
+                        <span className="font-mono text-emerald-700">Tk {Math.max(0, totalAmount - advanceAmountInput).toLocaleString("en-BD")}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Confirm Order Button */}
@@ -846,6 +1079,11 @@ export default function CheckoutPage() {
                   ) : paymentMethod === "sslcommerz" ? (
                     <>
                       Pay Tk {totalAmount.toLocaleString("en-BD")} via SSLCommerz <ChevronRight className="size-4" />
+                    </>
+                  ) : paymentMethod.startsWith("manual_") ? (
+                    <>
+                      Confirm Order with TrxID • Tk {(isAdvancePayment ? advanceAmountInput : totalAmount).toLocaleString("en-BD")}{" "}
+                      <Check className="size-4 text-pink-400" />
                     </>
                   ) : (
                     <>

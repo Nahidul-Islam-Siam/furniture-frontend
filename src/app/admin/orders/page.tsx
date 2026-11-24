@@ -23,10 +23,13 @@ import {
   CloseCircleOutlined,
   SyncOutlined,
   ReloadOutlined,
+  PrinterOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
 import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
+  useUpdateOrderPaymentStatusMutation,
   IOrder,
 } from "@/redux/service/orderApi";
 import {
@@ -36,7 +39,12 @@ import {
   getOrderSubtotal,
   getPaymentMethod,
   getPaymentStatus,
+  getPaymentTransactionId,
+  getPaymentSenderNumber,
+  getPaymentAdvanceAmount,
+  getPaymentDueAmount,
 } from "@/lib/orderUtils";
+import { OrderInvoiceModal } from "@/components/invoice/OrderInvoiceModal";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -44,15 +52,55 @@ const { Option } = Select;
 export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
 
   // RTK Query & Mutation
   const { data: ordersData, isLoading, isFetching, refetch } = useGetAllOrdersQuery();
   const [updateOrderStatus] = useUpdateOrderStatusMutation();
+  const [updateOrderPaymentStatus] = useUpdateOrderPaymentStatusMutation();
 
   const ordersList: IOrder[] = ordersData?.data || [];
+
+  const handlePaymentStatusChange = async (
+    orderId: string,
+    newPaymentStatus: "pending" | "paid" | "failed" | "refunded"
+  ) => {
+    setUpdatingPaymentId(orderId);
+    try {
+      await updateOrderPaymentStatus({
+        id: orderId,
+        status: newPaymentStatus,
+      }).unwrap();
+      message.success(`Payment marked as ${newPaymentStatus.toUpperCase()}`);
+      if (selectedOrder && selectedOrder._id === orderId) {
+        setSelectedOrder((prev) =>
+          prev
+            ? {
+                ...prev,
+                paymentStatus: newPaymentStatus,
+                payment: {
+                  ...prev.payment,
+                  status: newPaymentStatus,
+                  paidAt:
+                    newPaymentStatus === "paid"
+                      ? new Date().toISOString()
+                      : prev.payment?.paidAt,
+                } as any,
+              }
+            : null
+        );
+      }
+      refetch();
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to update payment status");
+    } finally {
+      setUpdatingPaymentId(null);
+    }
+  };
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
@@ -297,10 +345,27 @@ export default function AdminOrdersPage() {
 
       {/* Order Detail Drawer */}
       <Drawer
-        title={selectedOrder ? `Order #${selectedOrder.orderNumber || selectedOrder._id.slice(-6).toUpperCase()}` : "Order Details"}
+        title={
+          selectedOrder ? (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", paddingRight: 24 }}>
+              <span>Order #{selectedOrder.orderNumber || selectedOrder._id.slice(-6).toUpperCase()}</span>
+              <Button
+                type="primary"
+                size="small"
+                icon={<PrinterOutlined />}
+                onClick={() => setIsInvoiceOpen(true)}
+                className="bg-neutral-900 hover:bg-black"
+              >
+                Print Invoice
+              </Button>
+            </div>
+          ) : (
+            "Order Details"
+          )
+        }
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        width="min(95vw, 560px)"
+        width="min(95vw, 620px)"
       >
         {selectedOrder && (
           <div>
@@ -320,22 +385,25 @@ export default function AdminOrdersPage() {
                     : "N/A"}
                 </Text>
               </div>
-              <Select
-                value={getOrderStatus(selectedOrder)}
-                onChange={(val) => handleStatusChange(selectedOrder._id, val)}
-                loading={updatingOrderId === selectedOrder._id}
-                disabled={updatingOrderId === selectedOrder._id}
-                style={{ width: 140 }}
-              >
-                <Option value="pending">Pending</Option>
-                <Option value="processing">Processing</Option>
-                <Option value="shipped">Shipped</Option>
-                <Option value="delivered">Delivered</Option>
-                <Option value="cancelled">Cancelled</Option>
-              </Select>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>Delivery Status: </Text>
+                <Select
+                  value={getOrderStatus(selectedOrder)}
+                  onChange={(val) => handleStatusChange(selectedOrder._id, val)}
+                  loading={updatingOrderId === selectedOrder._id}
+                  disabled={updatingOrderId === selectedOrder._id}
+                  style={{ width: 140 }}
+                >
+                  <Option value="pending">Pending</Option>
+                  <Option value="processing">Processing</Option>
+                  <Option value="shipped">Shipped</Option>
+                  <Option value="delivered">Delivered</Option>
+                  <Option value="cancelled">Cancelled</Option>
+                </Select>
+              </div>
             </div>
 
-            <Descriptions title="Customer Information" bordered size="small" column={1}>
+            <Descriptions title="Customer & Delivery Information" bordered size="small" column={1}>
               <Descriptions.Item label="Name">{selectedOrder.customer?.name}</Descriptions.Item>
               <Descriptions.Item label="Phone">{selectedOrder.customer?.phone}</Descriptions.Item>
               <Descriptions.Item label="Email">{selectedOrder.customer?.email}</Descriptions.Item>
@@ -343,8 +411,62 @@ export default function AdminOrdersPage() {
                 {selectedOrder.shippingAddress?.street}, {selectedOrder.shippingAddress?.city}
                 {selectedOrder.shippingAddress?.postalCode ? ` - ${selectedOrder.shippingAddress?.postalCode}` : ""}
               </Descriptions.Item>
+              <Descriptions.Item label="Delivery Notes">
+                {selectedOrder.notes || "None"}
+              </Descriptions.Item>
               <Descriptions.Item label="Payment Details">
-                {getPaymentTag(getPaymentStatus(selectedOrder))} via {getPaymentMethod(selectedOrder).toUpperCase()}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      {getPaymentTag(getPaymentStatus(selectedOrder))} via{" "}
+                      <span style={{ fontWeight: 700, textTransform: "uppercase" }}>
+                        {getPaymentMethod(selectedOrder)}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Text type="secondary" style={{ fontSize: 11 }}>Mark Status:</Text>
+                      <Select
+                        value={getPaymentStatus(selectedOrder)}
+                        onChange={(val) =>
+                          handlePaymentStatusChange(
+                            selectedOrder._id,
+                            val as "pending" | "paid" | "failed" | "refunded"
+                          )
+                        }
+                        loading={updatingPaymentId === selectedOrder._id}
+                        disabled={updatingPaymentId === selectedOrder._id}
+                        size="small"
+                        style={{ width: 120 }}
+                      >
+                        <Option value="pending">Pending</Option>
+                        <Option value="paid">Paid</Option>
+                        <Option value="failed">Failed</Option>
+                        <Option value="refunded">Refunded</Option>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {getPaymentTransactionId(selectedOrder) && (
+                    <div style={{ fontSize: 12, background: "#f5f5f5", padding: "4px 8px", borderRadius: 4 }}>
+                      <span style={{ color: "#666" }}>Transaction ID: </span>
+                      <strong style={{ fontFamily: "monospace" }}>{getPaymentTransactionId(selectedOrder)}</strong>
+                    </div>
+                  )}
+
+                  {getPaymentSenderNumber(selectedOrder) && (
+                    <div style={{ fontSize: 12 }}>
+                      <span style={{ color: "#666" }}>Sender Number: </span>
+                      <strong style={{ fontFamily: "monospace" }}>{getPaymentSenderNumber(selectedOrder)}</strong>
+                    </div>
+                  )}
+
+                  {getPaymentAdvanceAmount(selectedOrder) > 0 && (
+                    <div style={{ fontSize: 12, color: "#b45309", background: "#fef3c7", padding: "4px 8px", borderRadius: 4 }}>
+                      <span>Advance Received: <strong>Tk {getPaymentAdvanceAmount(selectedOrder).toLocaleString("en-BD")}</strong></span>
+                      <span style={{ marginLeft: 10 }}>Due on Delivery: <strong>Tk {getPaymentDueAmount(selectedOrder).toLocaleString("en-BD")}</strong></span>
+                    </div>
+                  )}
+                </div>
               </Descriptions.Item>
             </Descriptions>
 
@@ -400,6 +522,12 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </Drawer>
+
+      <OrderInvoiceModal
+        order={selectedOrder}
+        isOpen={isInvoiceOpen}
+        onClose={() => setIsInvoiceOpen(false)}
+      />
     </div>
   );
 }
