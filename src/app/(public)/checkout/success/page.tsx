@@ -10,6 +10,7 @@ function SuccessContent() {
   const orderNumber = searchParams.get("orderNumber") || "N/A";
   const method = (searchParams.get("method") || "").toLowerCase();
   const isCod = method === "cod";
+  const isBank = method.includes("bank");
   const isManual =
     method.includes("manual") ||
     method.includes("bkash") ||
@@ -18,6 +19,8 @@ function SuccessContent() {
 
   const methodLabel = isCod
     ? "Cash on Delivery"
+    : isBank
+    ? "Direct Bank Transfer (Dutch-Bangla Bank)"
     : isManual
     ? "Mobile Banking (bKash/Nagad)"
     : "Online Payment (SSLCommerz)";
@@ -38,6 +41,8 @@ function SuccessContent() {
         <p className="text-sm text-neutral-600 leading-relaxed max-w-sm mx-auto">
           {isCod
             ? "Your order has been placed successfully. You can pay with cash upon receiving and inspecting your furniture."
+            : isBank
+            ? "Your bank transfer / deposit TrxID has been recorded! Our accounts team will verify your Dutch-Bangla Bank transaction and initiate factory dispatch."
             : isManual
             ? "Your transaction details and TrxID have been recorded! Our accounts team will verify your transfer and schedule factory dispatch."
             : "Your payment was processed successfully through SSLCommerz."}

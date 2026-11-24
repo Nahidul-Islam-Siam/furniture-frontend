@@ -33,3 +33,21 @@ export const MOBILE_BANKING_CONFIG = {
     borderLight: "border-purple-200",
   },
 };
+
+export const BANK_TRANSFER_CONFIG = {
+  bankName: "Dutch-Bangla Bank PLC",
+  bankingType: "Agent Banking",
+  accountName: "UNIQUE ENGINEERING & FURNITURE",
+  accountNumber: "1937100864589",
+  branch: "Progoti Saroni Branch",
+  routingNumber: "90270608",
+  currency: "BDT (৳)",
+  channels: [
+    "Any Bank Internet Banking / Mobile App (NPSB Instant / BEFTN)",
+    "DBBL NexusPay / Rocket App Direct Transfer",
+    "Any Dutch-Bangla Bank Branch / Agent Banking Outlet Deposit Counter",
+  ],
+  instructions:
+    "আপনার যেকোনো ব্যাংক অ্যাকাউন্ট, মোবাইল ব্যাংকিং অ্যাপ বা সরাসরি DBBL এজেন্ট ব্যাংকিং আউটলেট থেকে উপরের ব্যাংক অ্যাকাউন্টে ফুল পেমেন্ট অথবা বুকিং অ্যাডভান্স ট্রান্সফার করুন। এরপর নিচে প্রেরক একাউন্টের নাম এবং TrxID / ডিপোজিট স্লিপ নম্বর প্রদান করুন।",
+};
+

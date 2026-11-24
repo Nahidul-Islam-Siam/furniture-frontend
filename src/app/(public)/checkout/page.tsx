@@ -28,6 +28,7 @@ import {
   Wrench,
   Smartphone,
   Copy,
+  Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
@@ -41,7 +42,7 @@ import {
   ALL_DISTRICT_NAMES,
 } from "@/lib/bangladesh-geo";
 import { DELIVERY_RATES } from "@/lib/delivery-config";
-import { MOBILE_BANKING_CONFIG } from "@/lib/payment-config";
+import { MOBILE_BANKING_CONFIG, BANK_TRANSFER_CONFIG } from "@/lib/payment-config";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -88,11 +89,14 @@ export default function CheckoutPage() {
 
   // 3. Payment Method
   const [paymentMethod, setPaymentMethod] = useState<
-    "cod" | "sslcommerz" | "manual_bkash" | "manual_nagad" | "manual_rocket"
+    "cod" | "sslcommerz" | "bank_transfer" | "manual_bkash" | "manual_nagad" | "manual_rocket"
   >("cod");
   const [manualProvider, setManualProvider] = useState<"bkash" | "nagad" | "rocket">("bkash");
   const [manualSenderPhone, setManualSenderPhone] = useState("");
   const [manualTrxId, setManualTrxId] = useState("");
+  const [bankSenderName, setBankSenderName] = useState("");
+  const [bankTrxId, setBankTrxId] = useState("");
+  const [copiedBankField, setCopiedBankField] = useState<string | null>(null);
   const [isAdvancePayment, setIsAdvancePayment] = useState(false);
   const [advanceAmountInput, setAdvanceAmountInput] = useState<number>(1000);
   const [copiedNumber, setCopiedNumber] = useState(false);
@@ -211,6 +215,17 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (paymentMethod === "bank_transfer") {
+      if (!bankSenderName.trim()) {
+        toast.error("Please enter your Depositor / Sender Account Name and Bank");
+        return;
+      }
+      if (!bankTrxId.trim() || bankTrxId.trim().length < 4) {
+        toast.error("Please enter the Bank Transaction ID (TrxID) or Deposit Voucher No.");
+        return;
+      }
+    }
+
     if (paymentMethod.startsWith("manual_")) {
       const cleanSender = manualSenderPhone.trim().replace(/\D/g, "");
       if (!cleanSender || cleanSender.length < 10) {
@@ -263,12 +278,22 @@ export default function CheckoutPage() {
           country: "Bangladesh",
         },
         paymentMethod: paymentMethod,
-        transactionId: paymentMethod.startsWith("manual_") ? manualTrxId.trim() : undefined,
-        senderNumber: paymentMethod.startsWith("manual_") ? manualSenderPhone.trim() : undefined,
-        advanceAmount:
-          paymentMethod.startsWith("manual_") && isAdvancePayment
-            ? advanceAmountInput
+        transactionId:
+          paymentMethod === "bank_transfer"
+            ? bankTrxId.trim()
             : paymentMethod.startsWith("manual_")
+            ? manualTrxId.trim()
+            : undefined,
+        senderNumber:
+          paymentMethod === "bank_transfer"
+            ? bankSenderName.trim()
+            : paymentMethod.startsWith("manual_")
+            ? manualSenderPhone.trim()
+            : undefined,
+        advanceAmount:
+          (paymentMethod.startsWith("manual_") || paymentMethod === "bank_transfer") && isAdvancePayment
+            ? advanceAmountInput
+            : paymentMethod.startsWith("manual_") || paymentMethod === "bank_transfer"
             ? totalAmount
             : 0,
         shippingFee: deliveryCharge,
@@ -676,7 +701,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* Option 1: COD */}
                   <label
                     className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
@@ -716,7 +741,47 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  {/* Option 2: Manual Mobile Banking (bKash / Nagad / Rocket) */}
+                  {/* Option 2: Direct Bank Transfer (Dutch-Bangla Bank) */}
+                  <label
+                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                      paymentMethod === "bank_transfer"
+                        ? "border-black bg-neutral-900 text-white shadow-xs"
+                        : "border-neutral-200 hover:border-neutral-300 bg-white text-neutral-800"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                          paymentMethod === "bank_transfer" ? "bg-neutral-800 text-amber-300" : "bg-amber-100 text-amber-800"
+                        }`}>
+                          <Landmark className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold">Bank Transfer</div>
+                          <div className={`text-[10px] ${paymentMethod === "bank_transfer" ? "text-neutral-300" : "text-neutral-500"}`}>
+                            Dutch-Bangla Bank
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        checked={paymentMethod === "bank_transfer"}
+                        onChange={() => setPaymentMethod("bank_transfer")}
+                        className="mt-1 w-4 h-4 text-black focus:ring-black"
+                      />
+                    </div>
+                    <div className={`text-[11px] p-2 rounded-lg border leading-tight flex items-center gap-1 ${
+                      paymentMethod === "bank_transfer"
+                        ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
+                        : "bg-neutral-50 border-neutral-100 text-neutral-600"
+                    }`}>
+                      <Sparkles className="size-3 text-amber-400 shrink-0" />
+                      Direct DBBL transfer (Full / Advance).
+                    </div>
+                  </label>
+
+                  {/* Option 3: Manual Mobile Banking (bKash / Nagad / Rocket) */}
                   <label
                     className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
                       paymentMethod.startsWith("manual_")
@@ -753,11 +818,11 @@ export default function CheckoutPage() {
                         ? "bg-neutral-800/80 border-neutral-700 text-neutral-300"
                         : "bg-neutral-50 border-neutral-100 text-neutral-600"
                     }`}>
-                      Direct transfer with TrxID (Full or Advance Booking).
+                      Mobile transfer (Full or Advance Booking).
                     </div>
                   </label>
 
-                  {/* Option 3: SSLCommerz Gateway */}
+                  {/* Option 4: SSLCommerz Gateway */}
                   <label
                     className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
                       paymentMethod === "sslcommerz"
@@ -797,6 +862,240 @@ export default function CheckoutPage() {
                     </div>
                   </label>
                 </div>
+
+                {/* ═══ EXPANDED DIRECT BANK TRANSFER CARD (DUTCH-BANGLA AGENT BANKING) ═══ */}
+                {paymentMethod === "bank_transfer" && (
+                  <div className="mt-4 p-5 sm:p-6 rounded-2xl border-2 border-neutral-900 bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 text-white shadow-xl space-y-5 animate-in fade-in-50 duration-200">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-800 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
+                          <Landmark className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+                            {BANK_TRANSFER_CONFIG.bankName}
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 uppercase">
+                              {BANK_TRANSFER_CONFIG.bankingType}
+                            </span>
+                          </div>
+                          <div className="text-xs text-neutral-400">
+                            Official Corporate Beneficiary Account • 0% Extra Charge
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                        <Sparkles className="size-3.5" />
+                        <span>Recommended for High-Value Furniture</span>
+                      </div>
+                    </div>
+
+                    {/* Bank Details Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Account Name */}
+                      <div className="p-3.5 rounded-xl bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Account Name (Beneficiary)
+                          </div>
+                          <div className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                            {BANK_TRANSFER_CONFIG.accountName}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(BANK_TRANSFER_CONFIG.accountName);
+                            setCopiedBankField("name");
+                            toast.success("Account Name copied!");
+                            setTimeout(() => setCopiedBankField(null), 2500);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-neutral-700 hover:bg-neutral-600 text-neutral-200 transition shrink-0 text-xs flex items-center gap-1"
+                          title="Copy Account Name"
+                        >
+                          {copiedBankField === "name" ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                          <span className="text-[10px]">{copiedBankField === "name" ? "Copied" : "Copy"}</span>
+                        </button>
+                      </div>
+
+                      {/* Account Number (Highlight) */}
+                      <div className="p-3.5 rounded-xl bg-neutral-800/80 border-2 border-amber-400/50 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                            Account Number
+                          </div>
+                          <div className="text-base sm:text-lg font-mono font-black text-amber-300 tracking-wider mt-0.5">
+                            {BANK_TRANSFER_CONFIG.accountNumber}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(BANK_TRANSFER_CONFIG.accountNumber);
+                            setCopiedBankField("number");
+                            toast.success("Account Number copied!");
+                            setTimeout(() => setCopiedBankField(null), 2500);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold transition shrink-0 text-xs flex items-center gap-1.5 shadow-sm active:scale-95"
+                          title="Copy Account Number"
+                        >
+                          {copiedBankField === "number" ? <Check className="size-3.5 text-emerald-950" /> : <Copy className="size-3.5" />}
+                          <span>{copiedBankField === "number" ? "Copied!" : "Copy No"}</span>
+                        </button>
+                      </div>
+
+                      {/* Branch Name */}
+                      <div className="p-3 rounded-xl bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Branch
+                          </div>
+                          <div className="text-xs font-semibold text-neutral-200 mt-0.5">
+                            {BANK_TRANSFER_CONFIG.branch}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(BANK_TRANSFER_CONFIG.branch);
+                            setCopiedBankField("branch");
+                            toast.success("Branch copied!");
+                            setTimeout(() => setCopiedBankField(null), 2500);
+                          }}
+                          className="px-2 py-1 rounded-lg bg-neutral-700 hover:bg-neutral-600 text-neutral-200 transition shrink-0 text-xs flex items-center gap-1"
+                          title="Copy Branch"
+                        >
+                          {copiedBankField === "branch" ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+                          <span className="text-[10px]">{copiedBankField === "branch" ? "Copied" : "Copy"}</span>
+                        </button>
+                      </div>
+
+                      {/* Routing Number */}
+                      <div className="p-3 rounded-xl bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Routing Number
+                          </div>
+                          <div className="text-xs font-mono font-bold text-neutral-200 mt-0.5">
+                            {BANK_TRANSFER_CONFIG.routingNumber}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(BANK_TRANSFER_CONFIG.routingNumber);
+                            setCopiedBankField("routing");
+                            toast.success("Routing Number copied!");
+                            setTimeout(() => setCopiedBankField(null), 2500);
+                          }}
+                          className="px-2 py-1 rounded-lg bg-neutral-700 hover:bg-neutral-600 text-neutral-200 transition shrink-0 text-xs flex items-center gap-1"
+                          title="Copy Routing Number"
+                        >
+                          {copiedBankField === "routing" ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+                          <span className="text-[10px]">{copiedBankField === "routing" ? "Copied" : "Copy"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Supported Channels */}
+                    <div className="p-3 rounded-xl bg-neutral-800/40 border border-neutral-800 text-[11px] text-neutral-400 space-y-1.5">
+                      <div className="font-bold text-neutral-300 flex items-center gap-1.5">
+                        <Check className="size-3.5 text-emerald-400" /> কীভাবে টাকা পাঠাতে পারেন (Supported Channels):
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {BANK_TRANSFER_CONFIG.channels.map((ch, i) => (
+                          <span key={i} className="px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-300 text-[10px] border border-neutral-700/60">
+                            {ch}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Advance Booking vs Full Payment Toggle */}
+                    <div className="space-y-2 p-3.5 rounded-xl bg-neutral-800/60 border border-neutral-700/70">
+                      <div className="text-xs font-bold text-neutral-200">Payment Option:</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label className={`p-2.5 rounded-lg border cursor-pointer flex items-center justify-between transition ${
+                          !isAdvancePayment ? "border-amber-400 bg-neutral-900 text-amber-300 font-bold" : "border-neutral-700 bg-neutral-800/60 text-neutral-400"
+                        }`}>
+                          <span>Pay Full Amount (৳{totalAmount.toLocaleString("en-BD")})</span>
+                          <input
+                            type="radio"
+                            name="bankAdvanceChoice"
+                            checked={!isAdvancePayment}
+                            onChange={() => setIsAdvancePayment(false)}
+                            className="sr-only"
+                          />
+                        </label>
+                        <label className={`p-2.5 rounded-lg border cursor-pointer flex items-center justify-between transition ${
+                          isAdvancePayment ? "border-amber-400 bg-neutral-900 text-amber-300 font-bold" : "border-neutral-700 bg-neutral-800/60 text-neutral-400"
+                        }`}>
+                          <span>Pay Advance Booking (৳{advanceAmountInput}) + COD Rest</span>
+                          <input
+                            type="radio"
+                            name="bankAdvanceChoice"
+                            checked={isAdvancePayment}
+                            onChange={() => setIsAdvancePayment(true)}
+                            className="sr-only"
+                          />
+                        </label>
+                      </div>
+                      {isAdvancePayment && (
+                        <div className="pt-2 flex items-center gap-2 text-xs">
+                          <span className="text-neutral-400">Advance Amount:</span>
+                          <input
+                            type="number"
+                            min={100}
+                            max={totalAmount}
+                            value={advanceAmountInput}
+                            onChange={(e) => setAdvanceAmountInput(Math.max(100, Number(e.target.value) || 0))}
+                            className="w-28 px-2 py-1 text-xs border border-neutral-700 bg-neutral-900 text-white rounded-lg font-mono font-bold focus:border-amber-400 outline-none"
+                          />
+                          <span className="text-neutral-400 text-[11px]">
+                            (Remaining ৳{(totalAmount - advanceAmountInput).toLocaleString("en-BD")} on COD delivery)
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sender Details Input Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block">
+                          Your Depositor / Sender Account &amp; Bank Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Md. Hasan (Dutch-Bangla Bank or DBBL App)"
+                          value={bankSenderName}
+                          onChange={(e) => setBankSenderName(e.target.value)}
+                          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-700 bg-neutral-900 text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block">
+                          Transaction ID (TrxID) / Deposit Voucher No. *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. TXN987654321 or Slip #882"
+                          value={bankTrxId}
+                          onChange={(e) => setBankTrxId(e.target.value.toUpperCase())}
+                          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-700 bg-neutral-900 text-white placeholder-neutral-500 font-mono tracking-wider focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] text-neutral-400 flex items-start gap-2 bg-neutral-800/40 p-3 rounded-xl border border-neutral-800">
+                      <ShieldCheck className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>
+                        আপনার ব্যাংক ট্রান্সফার বা ডিপোজিট রসিদের TrxID প্রদান করুন। আমাদের অ্যাকাউন্টস টিম ডাচ্-বাংলা ব্যাংকের সাথে ভেরিফাই করে দ্রুত ফার্নিচার তৈরির কাজ শুরু করবে।
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* ═══ EXPANDED MOBILE BANKING DETAILS FORM ═══ */}
                 {paymentMethod.startsWith("manual_") && (
